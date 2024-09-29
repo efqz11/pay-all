@@ -1,0 +1,48 @@
+﻿@model List<Attendance>
+
+<div class="row">
+    <div class="col">
+        <h5 class="head1 text-left">Late and Absent Employees</h5>
+    </div>
+    <div class="col">
+        <div class="float-right">
+            <input type="text" class="has-datepicker form-control form-control-sm" id="lateAbsentDateFitler" value="@(((DateTime)ViewBag.Date).ToString("dd-MMM-yyy"))" onchange="reloadAbsentLateEmpls()" />
+        </div>
+    </div>
+</div>
+
+<div class="text-left mt-2 mb-1">
+    <span class="src btn btn-sm btn-outline-danger">@(Model.Count(x => x.CurrentStatus == AttendanceStatus.Late)) Late</span> &middot; <span class="src btn btn-sm btn-outline-dark">@(Model.Count(x => x.CurrentStatus == AttendanceStatus.Absent)) Absent</span> &middot; <span class="src btn btn-sm btn-outline-primary">@(Model.Count(x => x.CurrentStatus == AttendanceStatus.Early)) Early</span>
+</div>
+@if (Model.Any() == false)
+{
+<p class="pt-2">There were no attendance records for @(((DateTime)ViewBag.Date).ToLocalFormat())</p>
+}
+else
+{
+<p>Showing attendance records for @(((DateTime)ViewBag.Date).ToLocalFormat())</p>
+<table class="table table-hover">
+    @foreach (var item in Model)
+    {
+        <tr class="item-@item.CurrentStatus">
+            <td width="10% " class="text-right"><img src="@Url.Content(item.Employee.Avatar ?? DefaultPictures.default_user)" class="mt-1 rounded-circle" height="30" /></td>
+            <td>@item.Employee.NameDisplay <br /> <small>@item.Employee.Department.Name</small></td>
+            <td><span class="sch-@item.ShiftColor">@item.ShiftName</span> <br /> <small> @item.Duration</small></td>
+            <td>
+                @if (item.CurrentStatus == AttendanceStatus.Late)
+                {
+                    <span class="text-danger">late by @item.TotalLateMins mins</span>
+                }
+                else if (item.CurrentStatus == AttendanceStatus.Early)
+                {
+                    <span class="text-primary">Arrived @item.TotalEarlyMins mins early</span>
+                }
+                else
+                {
+                    <span class="bg-danger p-1 text-white rounded">Absent</span>
+                }
+            </td>
+        </tr>
+    }
+</table>
+}

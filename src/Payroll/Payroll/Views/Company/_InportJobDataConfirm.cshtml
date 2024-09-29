@@ -1,0 +1,184 @@
+﻿@{
+    var error = (bool)ViewBag.IsError;
+    int line = ViewBag.Line != null ? (int)ViewBag.Line : 0;
+    int total = ViewBag.Total != null ? (int)ViewBag.Total : 0;
+    int col = ViewBag.Col != null ? (int)ViewBag.Col : 0;
+    var data = ViewBag.Data != null ? (List<BulkImportJobVm>)ViewBag.Data : null;
+    var errorDict = ViewBag.ErroorDict != null ? (Dictionary<string, string>)ViewBag.ErroorDict : null;
+}
+
+<form asp-action="InportJobDataUpdate" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" data-ajax-success="" id="bulkimportForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input name="Id" id="Id" type="hidden" value="@ViewBag.Id" />
+    <input name="Data" id="Data" type="hidden" value="@ViewBag.DataString" />
+
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @if (error)
+            {
+                <span class="text-danger"><i class="fa fa-exclamation-triangle"></i> Error while Importing</span>
+            }
+            else
+            {
+                <span class="text-success"><i class=" fa fa-check-circle"></i> Import data verification complete</span>
+            }
+        </h2>
+        @*<button class="modal__close" aria-label="Close modal" data-micromodal-close></button>*@
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+        @*@if (error && errorDict.Any())
+        {
+            <div class="form-group">
+                <p>An error occured in row @line and column @col</p>
+            </div>
+        }*@
+
+        @if (error && errorDict.Any())
+        {
+            <div class="form-group">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Row / Column (#)</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in errorDict)
+                        {
+                            <tr>
+                                <td>@item.Key</td>
+                                <td class="text-danger">@item.Value</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @*<span class="text-danger">@ViewBag.Error</span>*@
+            </div>
+
+            @*<div class="form-group">
+                <a class="btn btn-outline-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="InportEmployeeData" asp-controller="Company" asp-route-id="@ViewBag.Id">
+                    Import Data
+                </a>
+            </div>*@
+        }
+        else
+        {
+            <div class="form-group">
+                <h6 class="">@data.Count records was found!. Lets try to import this data</h6>
+                <span>We will try to do actions defined as below</span>
+            </div>
+
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" for="chbxTerms" class="custom-control-input" disabled checked>
+                    <span class="custom-control-label" for="chbxTerms">
+                        Locations, Departments & Classificiations may be created or linked to existing items if available
+                    </span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" for="chbxTerms" class="custom-control-input" disabled checked>
+                    <span class="custom-control-label" for="chbxTerms">
+                        Classificiations may be created or linked to existing items if available
+                    </span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" for="chbxTerms" class="custom-control-input" disabled checked>
+                    <span class="custom-control-label" for="chbxTerms">
+                        @(data.Sum(a=>a.Total)) total Jobs will be created
+                    </span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" for="chbxTerms" class="custom-control-input" disabled checked>
+                    <span class="custom-control-label" for="chbxTerms">
+                        All Job Status will be Vacant
+                    </span>
+                </label>
+            </div>
+
+            <div class="form-group btn-import">
+                <button type="button" class="btn btn-primary" onclick="InportData()">
+                    Create Data
+                </button>
+            </div>
+
+            <div class="form-group col-md-4 p-0 btn-import-progress" style="display:none">
+                <div class="steps">
+                    <h6 class="mb-0 ">
+                        Importing data...
+                        <span class="float-right step-text">10%</span>
+                    </h6>
+
+                    <ul class="steps-container"></ul>
+                    <div class="step-bar" style="width: 10%;"></div>
+                </div>
+                <span id="upload-status"></span>
+            </div>
+
+            <div class="form-group btn-import-complete" style="display:none">
+                <a type="button" class="btn btn-primary" asp-action="Index" asp-controller="Job">View Jobs</a>
+            </div>
+        }
+    </main>
+    @*<footer class="modal__footer">
+            <button type="button" class="modal__btn modal__btn-primary" onclick="UploadImage(this)">
+                Save
+            </button>
+            <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        </footer>*@
+</form>
+
+
+<script>
+
+    function InportData() {
+
+        var formData = new FormData();
+
+        formData.append("Data", $('#bulkimportForm #Data').val());
+        formData.append("Id", $('#bulkimportForm #Id').val());
+
+        var token = $('#bulkimportForm input[name="__RequestVerificationToken"]').val().trim()
+        formData.append("__RequestVerificationToken", token);
+
+        $('.btn-import-progress').show();
+
+        $.ajax(
+            {
+                url: $('#bulkimportForm').attr('action'),
+                data: formData,
+                processData: false,
+                contentType: false,
+                type: "POST",
+                xhr: function () {
+                    var xhr = new window.XMLHttpRequest();
+                    xhr.upload.addEventListener("progress", function (evt) {
+                        if (evt.lengthComputable) {
+                            var progress = Math.round((evt.loaded / evt.total) * 100);
+                            console.log('progress', progress);
+                            $(".step-bar").css("width", progress + "%"); //.attr("aria-valuenow", progress);
+                            $(".step-text").html(progress + "%");
+                        }
+                    }, false);
+                    return xhr;
+                },
+                success: function (data) {
+                    $("#upload-status").show();
+                    sendNotification('success', 'Data import was completed successfully');
+                    $("#cmpFiles-content").html(data);
+
+                    $('.btn-import-complete').fadeIn();
+                    $('.btn-import').hide();
+                },
+                error: handleModalPostFailure
+            }
+        );
+    }
+</script>

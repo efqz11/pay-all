@@ -1,0 +1,330 @@
+﻿@model Request
+@inject Payroll.Database.PayrollDbContext dbContext
+@{ 
+    var canTakeAction = ViewBag.CanTakeAction != null ? (bool?)ViewBag.CanTakeAction : null;
+    var DataChangeListCompare = ViewBag.DataChangeListCompare != null ? (List<(string, string, string, bool?)>)ViewBag.DataChangeListCompare : null;
+}
+
+<style>
+    .hide { display:none; }
+</style>
+
+<form asp-action="AddOrUpdateAttendance" asp-controller="Schedule" data-ajax="true" data-ajax-method="POST" data-ajax-update="#weekly-schedule" data-ajax-begin="showModal()" data-ajax-success="sendNotification('success', 'Attendance record was just saved');hideModal()" id="addUpdateConnectionForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @if (Model.RequestType == RequestType.Attendance_Change)
+            {
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewAttendance" asp-controller="Schedule" asp-route-id="@Model.AttendanceId">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+            }
+
+            @if (Model.RequestType == RequestType.Work_Change)
+            {
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewWorkItem" asp-controller="Schedule" asp-route-id="@Model.WorkItemId">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+            }
+        <partial name="~/Views/Request/_DisplayRequestTypeOnly.cshtml" model="@Model.RequestType" /> @*View*@ Request
+            <br />
+            <small>@Model.CreationDate.ToLongDateString()</small>
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <partial name="_RequestStatusSummary" model="Model" />
+
+        <partial name="_EmployeeSummary" model="Model.Employee" />
+        @*<div class="form-group">
+            <img src="@Url.Content(Model.Employee.PhotoLink ?? DefaultPictures.default_user)" height="30" /> @Model.Employee.Name
+        </div>*@
+        <div class="form-group mt-1">
+            <partial name="~/Views/Request/_DisplayRequestTypeOnly.cshtml" model="@Model.RequestType" /> <span class="text-muted">@Model.NumberFormat</span> 
+            @if (Model.TransferredEmployeeId.HasValue)
+            {
+                <a asp-action="Detail" asp-controller="Employee" asp-route-id="@Model.TransferredEmployeeId">Substituted by @Model.TransferredEmployeeName</a>
+            }
+        </div>
+        <div class="form-group">
+            Status: @Html.Raw(Model.GetStatusString())
+        </div>
+
+
+        <div class="form-group">
+            @if (Model.RequestType == RequestType.Leave)
+            {
+                <div class="d-flex">
+                    <div class="square mr-2 bg-@(Model.DayOff?.Color)"> </div>
+                    <span class="text-lead">@(Model.DayOff?.Name)</span>
+                </div>
+            }
+
+            @if (Model.RequestType == RequestType.Overtime)
+            {
+                <span class="text-lead">@Model.Reason</span>
+                <br />
+
+                <small class="">
+                    Work summary
+                </small>
+            }
+
+            @if (Model.RequestType == RequestType.Leave)
+            {
+                <p class="mb-1">
+                    <span class="text-muted">
+                        @(Model.Start?.Date != Model.End?.Date ? "Period from " : "On ") @Model.GetRequestedDuration()
+                        @Html.Raw(Model.GetTotalDaysStringInfo())
+                    </span>
+                </p>
+            }
+            @if (Model.RequestType == RequestType.Attendance_Change)
+            {
+                <span class="text-lead">Work time: @Model.Attendance.Duration</span>
+            }
+            @if (Model.RequestType == RequestType.Work_Change)
+            {
+                <span class="text-lead">@Model.WorkItem.WorkName (@Model.WorkItem.WorkDurationTime)</span>
+            }
+            @if (Model.RequestType == RequestType.Document)
+            {
+                <span class="text-lead">@Model.Reason</span>
+                <br />
+
+                <small class="">
+                    Reason for request
+                </small>
+                //Documents Required
+            }
+            @if (Model.RequestType == RequestType.Emp_DataChange)
+            {
+                <table class="table tblDataChange">
+                    <tbody>
+                        @foreach(var item in DataChangeListCompare)
+                        {
+                            <tr class="@(DataChangeListCompare.IndexOf(item) >= 3 ? "m hide"  : "")" data-i="@DataChangeListCompare.IndexOf(item)">
+                                <td>@item.Item1</td>
+                                <td>
+                                    @if(item.Item4.HasValue){
+                                        <i class="@(item.Item4.Value ? "fa fa-plus-circle text-success" : "fa fa-minus-circle text-danger")"></i>
+                                    }
+                                    @* @if (!string.IsNullOrEmpty(item.Item3) && string.IsNullOrWhiteSpace(item.Item2))
+                                    {
+                                        <i class=" fa fa-plus-circle text-success"></i>
+                                    }
+                                    else if (string.IsNullOrEmpty(item.Item3) && !string.IsNullOrWhiteSpace(item.Item2))
+                                    {
+                                        <i class=" fa fa-minus-circle text-danger"></i>
+                                    } *@
+
+                                    @if (item.Item1 == "Avatar")
+                                    {
+                                        <div class="d-flex">
+                                            <div class="image-container">
+                                                <img src="@Url.Content(item.Item2)" height="35" class="mt-1 mr-2 rounded-circle" />
+                                            </div>
+                                            <i class="fa fa-arrow-right mr-3 ml-2 mt-3"></i>
+
+                                            <div class="image-container">
+                                                <img src="@Url.Content(item.Item3)" height="35" class="mt-1 mr-2 rounded-circle" />
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        @item.Item3
+                                        <br />
+                                        <strike class="text-muted">@item.Item2 &nbsp;</strike>
+                                    }
+                                        @* <br />
+                                    @(item.Item3?.Length + " - " + @item.Item2?.Length) *@
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    @if(DataChangeListCompare.Count>3)
+                    {
+                        <tfoot>
+                            <tr>
+                                <td colspan="2">
+                                    <div class="btn btn-block btn-light text-muted" onclick="$('.tblDataChange .m').toggleClass('hide'); $('.tblDataChange tfoot .txt').text($('.tblDataChange .m').hasClass('hide') ? 'Show' : 'Hide');"><span class="txt">Show</span> remaing @(DataChangeListCompare.Count - 3) changed field(s)</div>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    }
+                </table>
+            }
+        </div>
+
+        @if (Model.RequestType == RequestType.Attendance_Change ||
+           Model.RequestType == RequestType.Work_Change)
+        {
+            <p>
+                @if (Model.IsTransferEmployee)
+                {
+                    @("Transfer to " + Model.TransferredEmployee?.NameDisplay)
+                }
+                else
+                {
+                    @(Model.Attendance?.DurationCheckin ?? Model.WorkItem?.DurationCheckin)
+                    <i class="fa fa-arrow-right"></i>
+                    @Model.GetNewCheckInCheckOutDuration(User)
+                }
+            </p>
+        }
+        @if (Model.RequestType == RequestType.Overtime)
+        {
+            <p class="mb-1">
+                @Model.GetRequestedDuration()
+                <br>
+                @Model.Duration
+            </p>
+        }
+        @*@if (Model.RequestType == RequestType.Document && Model.Status != WorkItemStatus.Approved)
+        {
+            <span class="text-lead">@Html.Raw(string.Join("<br>", Model.DocumentsData))</span>
+            <br />
+
+            <small class="">
+                Requested Documents
+            </small>
+            //Documents Required
+        }*@
+
+        @if (Model.FileDatas.Any())
+        {
+            <span class="">
+                <i class="fas fa-file"></i> @(Model.RequestType ==  RequestType.Document  ? "Requested Documents" : "Files") (@Model.FileDatas.Count())
+            </span>
+            <table class="table table-sm mt-2">
+                <tbody>
+
+                    @foreach (var item in Model.FileDatas)
+                    {
+                        <tr>
+                            <td>
+                                <span class="text-lead">
+                                    <span>@item.Name@(!item.IsNameChangeable ? "*" : "")</span>
+                                </span>
+                            </td>
+                            <td>
+                                @if (item.IsUploaded)
+                                {
+
+                                    <a href="@item.FileUrl" target="_blank">
+                                        @item.FileName.LimitTo(30)  <i class="fa fa-external-link-alt"></i>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-danger"><i class=" fa fa-exclamation-triangle"></i>  Not Found</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+
+
+
+        }
+        @*<div class="form-group">
+            Check-in / out: @Model.Duration
+        </div>*@
+        @*<p>workStart: @Model.WorkStartTime.ToString("dd-MMM-yyy HH:mm:ss") | Now: @DateTime.Now.ToString("dd-MMM-yyy HH:mm:ss")</p>*@
+
+        @*@if (Model.WorkEndTime.Date >= DateTime.Now.Date)
+        {
+            if (Model.WorkStartTime > DateTime.Now)
+            {
+                // work not started
+                <small>work starting in about @(Model.WorkStartTime.GetTimeDifference())</small>
+            }
+            else if (DateTime.Now > Model.WorkStartTime && DateTime.Now <= Model.WorkEndTime)
+            {
+                <small>work has started. work end time in @Model.WorkEndTime.ToString("h tt").ToLower()</small>
+            }
+            else
+            {
+                <small>work has ended at @Model.WorkEndTime.ToString("h tt").ToLower(). It's been about @(Model.WorkEndTime.GetTimeDifference())</small>
+            }
+        }*@
+        <div class="form-group">
+            @*<small>* Mandatory document</small>
+            <br />*@
+            <small>
+                <i>last modified about @(((DateTime)dbContext.Entry(Model).Property("ModifiedDate").CurrentValue).ConvertToTimeZone(User).GetTimeDifference()) ago</i>
+            </small>
+        </div>
+
+
+    </main>
+    <footer class="modal__footer">
+        
+        <div class="float-left">
+            <a class="modal__btn modal__btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewRequest" asp-route-id="@Model.Id" asp-route-edit="1" asp-route-type="@Model.RequestType">
+                <i class="fa fa-user-shield"></i> Edit
+            </a>
+            &nbsp;
+            <a class="modal__btn modal__btn-primary" asp-action="UploadDocument" asp-controller="Request" asp-route-id="@Model.Id" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure">
+                <i class="fas fa-file"></i> Files (@Model.FileDatas.Count())
+            </a>
+        </div>
+
+        <div class="float-right">
+            @if (Model != null && Model.Id > 0) //  && Model.EmployeeId == User.GetEmployeeId()) //  && Model.Status == WorkItemStatus.Draft)
+            {
+                <a class="modal__btn modal__btn-danger" asp-action="Remove" asp-controller="Request" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-confirm="This action cannot be undone, Are you sure you wish to proceed?" data-ajax-success="sendNotification('success', '@Model.RequestType.ToString() request was just removed');hideModal();$('tr.item-@Model.Id').empty();removeTableRow('@Model.Id')">Remove</a>
+            }
+            &nbsp;
+
+            @if (Model != null && Model.Id > 0 && Model.Status == WorkItemStatus.Submitted && canTakeAction.HasValue && canTakeAction.Value)
+            {
+                <a data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" data-ajax-begin="showModal()" title="Send for Approval" class="btn btn-sm btn-outline-danger" style="" asp-action="ViewRequestAction" asp-route-id="@Model.Id">
+                    <i class="fas fa-stop-circle"></i> Take Action
+                </a>
+            }
+        </div>
+    </footer>
+
+
+</form>
+
+
+<script>
+    function removeTableRow(id) {
+
+        console.log('thisss...');
+        console.log('thisss... + ' + id);
+        console.log($(this));
+
+        
+        $('#requestHomeEmployee tbody').find('tr[data-id="' + id + '"]').fadeOut().empty();
+    }
+
+
+    $('.src').click(function (e) {
+        var match = $('.table-submissions')
+            .find('tr.' + $(this).data('target'));
+
+        $('.table-submissions tbody tr').not(match).hide();
+        $(match).not('.fields-row').show();
+        $('.src').removeClass('active');
+        $(this).addClass('active');
+    });
+
+    $(".has-datepicker").flatpickr({
+        dateFormat: "j-M-Y"
+    });
+
+    $(".has-timepicker").flatpickr({
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+    });
+</script>

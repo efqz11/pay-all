@@ -1,0 +1,64 @@
+﻿@model Payroll.Models.Employee
+
+@{
+    ViewData["Title"] = "Change employee address details";
+    var i = 0;
+    Layout = "_LayoutEditor";
+    ViewBag.ProgressStep = 3;
+    ViewBag.Header = "Address Details";
+    ViewBag.BackAction = Url.Action("AddOrUpdate", new { id  = Model.Id } );
+}
+
+<form asp-action="AddOrUpdateAddressContact" data-ajax="true" data-ajax-method="POST" data-ajax-update="#change-form-wrapper" data-ajax-success="sendNotification('success', 'Employee address and contract information was saved');" id="employeeDetailsCreateForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+
+
+    @foreach (var item in Model.EmployeeAddresses)
+    {
+        <h4 class="pb-4 fs-unmask">@item.AddressType.GetDisplayName()</h4>
+        <input type="hidden" name="EmployeeAddresses[@i].AddressType" value="@item.AddressType" />
+
+
+
+        <div class="form-group mb-4">
+            <label for="Street" class="control-label">Country</label>
+            <input name="EmployeeAddresses[@i].Country" data-width="100%" class=" form-control form-control-lg" value="@item.Country" />
+        </div>
+        <div class="form-group mb-4">
+            <label for="ZipCode" class="control-label">State / Atoll</label>
+            <input name="EmployeeAddresses[@i].State" class="form-control form-control-lg" value="@item.State" />
+        </div>
+        <div class="form-group mb-4">
+            <label for="ZipCode" class="control-label">City / Island</label>
+            <input name="EmployeeAddresses[@i].City" class="form-control form-control-lg" value="@item.City" />
+        </div>
+        <div class="form-group mb-4">
+            <label for="ZipCode" class="control-label">Street Address</label>
+            <textarea name="EmployeeAddresses[@i].Street1" class="form-control form-control-lg">@item.Street1</textarea>
+        </div>
+        <div class="form-group">
+            @*<label for="item.StreetAddress" class="control-label">Street Address</label>
+                <textarea name="EmployeeAddresses[@i].StreetAddress" class="form-control form-control-lg">@item.StreetAddress</textarea>*@
+        </div>
+
+        if (i == 0)
+        {
+            <hr />
+            i++;
+        }
+    }
+
+
+    <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+        <button class="btn btn-lg btn-outline-primary btn-back mr-2" type="button" onclick="$('.modal__btn-back').click()">Back</button>
+        <button class="btn btn-lg btn-primary btn-next" type="submit">Save & Continue</button>
+
+
+        <a class="btn btn-outline-primary right float-right" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="clearHome()" asp-action="AddOrUpdateEmergencyContact" asp-controller="Employee" asp-route-id="@Model.Id">Skip and Continue</a>
+    </div>
+</form>
+
+@*<script>
+    loadCountryddSearch(".cntryId");
+</script>*@

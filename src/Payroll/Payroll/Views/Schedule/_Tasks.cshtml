@@ -1,0 +1,191 @@
+﻿@model List<Work>
+@{ 
+    var weekStart = (DateTime)ViewBag.WeekStart;
+    var weekEnd = (DateTime)ViewBag.WeekEnd;
+}
+<style>
+    tr.empty{
+        display:none !important;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="form-group" style="position:relative; top: -20px;">
+            @*<select asp-items="@(ViewBag.MemberId)" name="EmployeeId" id="MemberId" class="form-control-sm float-left" onchange="$(this).next().attr('href', GetAppRootPath() + '/Schedule/Tasks?empId=' + $(this).val());$(this).next().click()"></select>*@
+
+            <a asp-action="Tasks" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-empId="" data-ajax="true" data-ajax-update="#tasks-schedule" data-ajax-success="UpdateSeach()" class="btn-sm btn btn-outline-secondary border-right-0" style="display:none"><i class="ion ion-arrow-left-c"></i></a>
+            <br />
+
+
+            <div class="form-group has-search mb-1">
+
+                <span class="form-control-feedback"><i class="fad fa-search"></i></span>
+                <input type="text" class="txt-search form-control" name="query" placeholder="Type News Production, Meeting,...">
+            </div>
+
+            @*<input type="text" name="EmployeeId" id="MemberId" class="form-control-sm form-control float-left mt-1 txt-search-tasks " placeholder="Type News Production, Meeting,..." />*@
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+            <div class="btn-group mr-2" role="group" aria-label="First group">
+                <a asp-action="Tasks" data-ajax-begin="convertToLoadingTable('.table-schedule')"  asp-route-date="@((weekStart).AddDays(-1))" data-ajax="true" data-ajax-update="#tasks-schedule" data-ajax-success="UpdateSeach()" class="btn-sm btn btn-outline-secondary border-right-0"><i class="ion ion-arrow-left-c"></i></a>
+                <button type="button" class="btn-sm btn btn-outline-secondary border-left-0 border-right-0">@ViewBag.CurrentRangeDisplay</button>
+                <a asp-action="Tasks" data-ajax-begin="convertToLoadingTable('.table-schedule')"  asp-route-date="@(weekEnd.AddDays(1))" data-ajax="true" data-ajax-update="#tasks-schedule" data-ajax-success="UpdateSeach()" class="btn-sm btn btn-outline-secondary border-left-0"><i class="ion ion-arrow-right-c"></i></a>
+            </div>
+            @*<div class="btn-group mr-2" role="group" aria-label="Second group">
+                <button type="button" class="btn-sm btn btn-outline-warning"><i class="ion ion-levels"></i></button>
+            </div>*@
+            <div class="btn-group" role="group" aria-label="Third group">
+                <a class="btn btn-sm btn-primary" asp-action="SelectDates" asp-route-for="1" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="fad fa-plus-circle"></i> Add Work Schedule</a>
+                <a class="btn btn-sm btn-primary" asp-action="AddOrUpdateWork" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="fad fa-plus-circle"></i> Add New Work</a>
+                @*<button type="button" class="btn btn-sm btn-primary"></button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="" id="tasks-schedule">
+
+    @if (Model == null || Model.Any() == false)
+    {
+        <div class="p-5 text-center" style="width:100%">
+            <p class="text-lead mt-5">No schedules were found for the week @ViewBag.CurrentRangeDisplay</p>
+            <a class="btn btn-primary" asp-action="AddOrUpdateWork" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="ion ion-plus"></i> Add Schedule</a>
+        </div>
+    }
+    else
+    {
+        <table class="table table-schedule" id="tableTasks">
+            <thead>
+                <tr>
+                    <td class="text-left sticky-col first-col" style="z-index: 1">
+                        <b>Task(s)</b>
+                        @*<br />
+
+                        <div style="display:flex">
+
+                            <small>Show all Tasks  &nbsp;</small>
+
+                            <div class="switch_box box_1">
+                                <input type="checkbox" class="switch_1 switch-schedule" value="False" onchange="$('tr.empty').toggle()">
+                            </div>
+                        </div>*@
+                    </td>
+                    @for (var start = weekStart; start < weekEnd; start = start.AddDays(1))
+                    {
+                        <td class="@(start.Date == DateTime.Now.Date ? "active" : "")">
+                            <div class="text-left font-weight-bold row" style=" vertical-align: middle">
+                                <h2 class="col mt-1 pr-2 text-right">@start.Day</h2>
+                                <div class="col name-display pt-1 pl-1">
+                                    <span class="">@start.ToString("ddd").ToUpper()</span>
+                                    <br>
+                                    <small style="position: relative;top: -4px;">@start.ToString("MMM").ToString()</small>
+                                </div>
+                            </div>
+                        </td>
+                        
+                    }
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var item in Model)
+                {
+
+                    <tr class="@(item.WorkItems.Any(x => x.Date >= weekStart && x.Date<= weekEnd) ==false ? "empty": "")" style="@(item.WorkItems.Any(x => x.Date >= weekStart && x.Date<= weekEnd) ==false ? "display:none": "")" >
+                        <td class="text-left font-weight-bold" style=" vertical-align: middle;display:flex">
+                            @*<img src="@Url.Content(item.Employee.PhotoLink ?? DefaultPictures.default_user)" height="40" class="mt-2 pr-2" />*@
+                            <div class="name-display pt-2">
+
+                                <a class="" asp-action="AddOrUpdateWork" asp-route-id="@item.Id" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure">
+                                    <span class="text-dark">@item.Name</span>
+                                </a>
+                                @if (item.StartTime != item.EndTime)
+                                {
+                                    <br>
+                                    <small style="position: relative;top: -4px;">@item.Duration</small>
+                                }
+                                <br>
+                                <small style="position: relative;top: -4px;">
+                                    @if (item.Type == WorkType.ExpectClockInRecordsBefore)
+                                    {
+                                        <span><i class="ion ion-ios-stopwatch"></i> Clock In before @item.MinsBeforeCheckIn.ToString("#") min(s)</span>
+                                    }
+                                    else
+                                    {
+                                        <span><i class="ion ion-alert"></i> @item.TotalRequiredCount submisson(s)</span>
+                                    }
+                                    @if (item.MoreCredit > 0)
+                                    {
+                                        <br />
+                                        <span class="text-success"><i class="ion ion-arrow-up-c"></i> @(item.MoreCredit.ToString("N0"))</span>
+                                        <span class="text-danger"> &middot; <i class="ion ion-arrow-down-c"></i> @(item.LessDeduct.ToString("N0"))</span>
+
+                                    }
+                                </small>
+                            </div>
+                        </td>
+                        @for (var start = weekStart; start < weekEnd; start = start.AddDays(1))
+                        {
+                        <td class="text-left cell-attndance">
+                            @if (item.WorkItems.Any(x => x.Date == start.Date))
+                            {
+                                foreach (var attn in item.WorkItems.Where(x => x.Date == start.Date))
+                                {
+                                    <div class="item @attn.WorkId" onclick="$(this).next().click()">
+                                        <small>
+                                            <div class="text-left font-weight-bold" style=" vertical-align: middle;display:flex">
+                                                <div class="image-container mr-0">
+                                                    <img src="@Url.Content(attn.Employee.Avatar ?? DefaultPictures.default_user)" height="25" class="mr-2" />
+                                                </div>
+                                                <div class="name-display">
+                                                    <span class="">@attn.Employee.GetSystemName(User)</span>
+                                                    @if (attn.IsCompleted)
+                                                    {
+                                                        <i class="fas fa-check-circle @(attn.Status == WorkItemStatus.FailedWithDeduction ? "text-danger" : "text-success")" title=""></i>
+                                                    }
+                                                    <br>
+                                                    <small style="line-height: 1.3;display: block;">@attn.Employee.Department.Name</small>
+                                                </div>
+                                            </div>
+                                            @*@attn.Duration*@
+                                        </small>
+                                    </div>
+                                    <a asp-action="ViewWorkItem" asp-controller="Schedule" asp-route-id="@attn.Id" asp-route-date="@start" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" aria-label="Change attendance record" role="tooltip" data-microtip-position="top" class="hide" style="display:none">
+                                        XX
+                                    </a>
+                                }
+                                //var attn = @item.WorkItems.First(x => x.Date == start.Date);
+                            }
+                            else
+                            {
+                                <div class="item empty" onclick="$(this).next().click()">
+                                    <small>
+                                        Off
+                                        <br />
+                                        <span>&nbsp;</span>
+                                    </small>
+                                </div>
+                                <a class="text-muted" asp-action="CreateWorkItem" asp-route-workId="@item.Id" asp-route-start="@start" asp-route-end="@start.AddDays(1)" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure" style="display:none"><i class="ion ion-plus"></i> Add </a>
+                            }
+                        </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<script>
+</script>
+
+@*<script>
+    $('#MemberId').select2({
+        ////width:'300px'
+        //placeholder: "Choose days to exclude",
+    });
+</script>*@

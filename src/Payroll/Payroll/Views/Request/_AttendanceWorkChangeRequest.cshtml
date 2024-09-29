@@ -1,0 +1,141 @@
+﻿@model Request
+
+    <form asp-action="ProcessRequest" asp-controller="Request" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" data-ajax-begin="" data-ajax-success="sendNotification('success', 'Attendance record was just saved')" id="addUpdateConnectionForm" data-ajax-failure="handleModalPostFailure">
+        @Html.AntiForgeryToken()
+        <input asp-for="Id" type="hidden" value="@Model.Id"/>
+        <input asp-for="AttendanceId" type="hidden" />
+        <input asp-for="WorkItemId" type="hidden" />
+        <input asp-for="EmployeeId" type="hidden" />
+        <input asp-for="RequestType" type="hidden" />
+        <input asp-for="IsTransferEmployee" type="hidden" />
+        <input asp-for="Status" type="hidden" />
+        <header class="modal__header">
+            <h2 class="modal__title" id="modal-1-title">
+
+
+                @if (Model.RequestType == RequestType.Attendance_Change)
+                {
+
+                    <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewAttendance" asp-controller="Schedule" asp-route-id="@Model.AttendanceId">
+                        <i class="fa fa-arrow-left"></i>
+                    </a>
+                    @(Model == null || Model.Id <= 0 ? "New Attendance Change Request" : "Update Attendance Change Request")
+                }
+                else
+                {
+
+                    <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewWorkItem" asp-controller="Schedule" asp-route-id="@Model.WorkItemId">
+                        <i class="fa fa-arrow-left"></i>
+                    </a>
+                    @(Model == null || Model.Id <= 0 ? "New Work Item Change Request" : "Update Work Item Change Request")
+                }
+
+                <br />
+                <small>@(Model.Attendance?.Date.ToLongDateString() ?? Model.WorkItem.Date.ToLongDateString())</small>
+            </h2>
+            <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        </header>
+        <main class="modal__content" id="modal-1-content">
+            <div class="form-group">
+                <img src="@Url.Content(Model.Employee.Avatar ?? DefaultPictures.default_user)" height="30" /> @Model.Employee.Name
+            </div>
+            @*<div class="form-group">
+            <label asp-for="Attendance.Date" class="control-label">On Date: </label>@Model.Attendance.Date.ToLongDateString()
+        </div>*@
+
+            @if (Model.RequestType == RequestType.Attendance_Change)
+            {
+                <div class="form-group">
+                    <span class="sch-@Model.Attendance.ShiftColor text-white p-2 rounded">Work time: @Model.Attendance.Duration</span>
+                </div>
+            }
+            else
+            {
+                <div class="form-group">
+                    <span class="sch- ">@Model.WorkItem.WorkName</span>
+                </div>
+
+                <div class="form-group">
+                    <span class="sch-">Work time: @Model.WorkItem.WorkDurationTime</span>
+                </div>
+            }
+
+            <div class="form-group">
+                <label class="control-label">Existing records</label>
+                @Model.Start?.ToString("HH:mm tt") &mdash; @Model.End?.ToString("HH:mm tt")
+            </div>
+
+            <hr />
+            <div class="form-group">
+                <div class="btn-group mr-2 btn-group-justified" role="group" aria-label="First group" style="width: 100%;">
+                    <button type="button" class=" btn btn-outline-secondary border-right-0 src" data-target="office_task" style="width: 100%;" onclick="$('.fg').hide();$('.fg-clock').show();  $('.src').removeClass('active');$(this).addClass('active');$('#IsTransferEmployee').val('False')">
+                        <i class="fa fa-clock"></i> Clock
+                    </button>
+                    <button type="button" class=" btn btn-outline-secondary border-left-0 src" data-target="user_task" style="width: 100%;"
+                            onclick=" $('.fg').hide(); $('.fg-transfer').show(); $('.src').removeClass('active'); $(this).addClass('active');$('#IsTransferEmployee').val('True')">
+                        <i class="fa fa-user-plus"></i> Transfer
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group fg fg-clock" style="display:none">
+                <label for="EmployeeIds" class="control-label">New Check-in / Check-out times</label>
+                <div class="row">
+                    <div class="form-group col">
+                        <label asp-for="NewCheckinTime" class="control-label">Check-in</label>
+                        <input type="text" asp-for="NewCheckinTime" class="form-control has-timepicker" value="@Model.NewCheckinTime" />
+                        <span asp-validation-for="NewCheckinTime" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group col">
+                        <label asp-for="NewCheckOutTime" class="control-label">Check-out</label>
+                        <input type="text" asp-for="NewCheckOutTime" class="form-control has-timepicker" value="@Model.NewCheckOutTime" />
+                        <span asp-validation-for="NewCheckOutTime" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group fg fg-transfer" style="display:none">
+                <label for="EmployeeIds" class="control-label">Transfer to employee</label>
+                <select class='form-control itemSearch' type='text' asp-for="TransferredEmployeeId" placeholder='Choose user'></select>
+            </div>
+            <div class="form-group">
+                <textarea asp-for="Reason" class="form-control" placeholder="Change request summary"></textarea>
+                <span asp-validation-for="Reason" class="text-danger"></span>
+            </div>
+
+        </main>
+        <footer class="modal__footer">
+            <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+            @if (Model.Status != WorkItemStatus.Submitted)
+            {
+                <button type="submit" class="modal__btn modal__btn-warning" onclick="$('#Status').val('Submitted')">Send for Approval</button>
+            }
+            <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+            @*@if (Model != null && Model.Id > 0)
+        {
+            <a class="modal__btn modal__btn-danger float-right" asp-action="CancelRequest" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@Model.RequestType.ToString() request from was cancelled');hideModal();$('div.item-@Model.Id').hide()">Remove</a>
+        }*@
+        </footer>
+    </form>
+
+
+<script>
+    if ('@Model.IsTransferEmployee' == "True") {
+        $('.src:last').click();
+    } else {
+        $('.src:first').click();
+    }
+
+    loadEmpddSearch('#TransferredEmployeeId');
+
+    $(".has-datepicker").flatpickr({
+        dateFormat: "j-M-Y"
+    });
+    
+    $(".has-timepicker").flatpickr({
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+    });
+</script>

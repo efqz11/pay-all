@@ -1,0 +1,63 @@
+﻿@model Payroll.Models.EmployeeType
+
+@{
+    ViewData["Title"] = "Change employee details";
+}
+
+    <form asp-action="AddOrUpdateEmployeeType" data-ajax="true" data-ajax-method="POST" data-ajax-update="#employee-content" data-ajax-success="sendNotification('success', 'Employee types was just updated');hideModal();InitializeTabs();" id="employeeTypeCreateForm" data-ajax-failure="handleModalPostFailure">
+        @Html.AntiForgeryToken()
+        <input asp-for="Id" type="hidden" />
+        <input asp-for="EmployeeId" type="hidden" />
+        <header class="modal__header">
+
+            <h2 class="modal__title" id="modal-1-title">
+                @if (Model != null)
+                {
+                    <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdate" asp-controller="Employee" asp-route-id="@Model.Id">
+                        <i class="fa fa-arrow-left"></i>
+                    </a>
+                }
+                @(Model.Id ==0 ? "Create" : "Update") Employment State
+                <br />
+                <small>@Model.EffectiveDate.ToString("dd-MMM-yyyy")</small>
+            </h2>
+            <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        </header>
+        <main class="modal__content" id="modal-1-content">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="EffectiveDate" class="control-label"></label>
+                <input asp-for="EffectiveDate" class="form-control has-datepicker" type="text" value="@Model.EffectiveDate.ToString("dd-MMM-yyyy")" />
+                <span asp-validation-for="EffectiveDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EmploymentStatus" class="control-label">Employment State</label>
+                <select asp-for="EmploymentStatus" class="form-control" asp-items="@Html.GetEnumSelectList<EmployeeStatus>()"></select>
+                <span asp-validation-for="EmploymentStatus" class="text-danger"></span>
+            </div>
+
+            <div class="form-group TerminationReasonId" style="display:none">
+                <label asp-for="TerminationReasonId" class="control-label">Reason for Termination</label>
+                <select asp-items="ViewBag.TerminationReasonId" asp-for="TerminationReasonId" class="form-control"><option value="0">Choose Employee</option></select>
+                <span asp-validation-for="TerminationReasonId" class="text-danger"></span>
+            </div>
+        </main>
+        <footer class="modal__footer">
+            <button class="modal__btn modal__btn-primary">Save</button>
+            <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        </footer>
+
+    </form>
+
+
+<script>
+    initDatePicker();
+
+    $('#EmploymentStatus').change(function (e) {
+        if ($(this).val() === "5")
+            $('.TerminationReasonId').show();
+        else
+            $('.TerminationReasonId').hide();
+    })
+</script>

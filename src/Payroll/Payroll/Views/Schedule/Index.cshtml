@@ -1,0 +1,313 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@model List<WeeklyEmployeeShiftVm>
+@{
+    ViewData["Title"] = "Home Page";
+}
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+@*<style>
+        .select2-container {
+            text-align: left;
+        }
+
+        #weekly-schedule-table-container {
+            overflow-x: scroll;
+        }
+
+        table.table-calendar th,
+        table.table-calendar td {
+            min-width: 130px !important
+        }
+
+        .table-schedule th, .table-schedule td {
+            vertical-align: middle;
+        }
+
+        table.table-schedule th:not(:first-child),
+        table.table-schedule td:not(:first-child) {
+            min-width: 130px !important
+        }
+
+        table.table-schedule:not(.table-calendar) th:first-child,
+        table.table-schedule:not(.table-calendar) td:first-child {
+            min-width: 200px !important
+        }
+        /* TABLE STICKY COLUMN CSS */
+        .cell-attndance {
+            vertical-align: middle !important;
+        }
+
+        .sticky-col {
+            position: sticky;
+            position: -webkit-sticky;
+            background-color: white;
+        }
+
+        .first-col {
+            /*width: 100px;
+            min-width: 100px;
+            max-width: 100px;*/
+            left: 0px;
+        }
+        /* Table week Ribbon */
+        table#weekly-table11 tr td.prova {
+            position: relative;
+            overflow: hidden;
+        }
+
+            table#weekly-table11 tr td.prova:after {
+                content: attr(data-ribbon);
+                position: absolute;
+                width: 90px;
+                height: 40px;
+                background: #428bca;
+                color: white;
+                top: -14px;
+                text-align: center;
+                line-height: 55px;
+                left: -40px;
+                transform: rotate(315deg);
+                box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+            }
+    </style>*@
+
+
+<div class="row mt-8 mb-3">
+    <div class="col-md-8">
+        <h4 class="">@FeatureMenus.GetFeatureMenuItem(FeatureMenus.MenuItem.Schedule) Schedules</h4>
+    </div>
+    <div class="col-md-4 text-right">
+        <span class="text-primary">
+            @Html.Raw(HttpContextAccessor.HttpContext.Session.GetString(SessionVariables.EmployeeSelectorSummary) ?? "(no filter)")
+            <a class="text-muted " data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="SelectEmployees" asp-controller="Base" asp-route-onsuccess="reloadTab()" style="">
+                <i class="fa fa-angle-down"></i>
+            </a>
+        </span>
+
+        @*<select class="form-control form-control-sm empId" style="width:250px !important" name="empId" id="empId" onchange="pdateWorkingEmployee()" data-initvalue="@HttpContextAccessor.HttpContext.Session.GetString(SessionVariables.EmployeeSelector)"></select>*@
+    </div>
+</div>
+
+<a asp-action="Index" asp-controller="Schedule" data-ajax="true" data-ajax-method="GET" data-ajax-update="#weekly-schedule" data-ajax-failure="handleModalPostFailure" id="_loadSchedule" style="display:none" data-ajax-success="InitTab_MemberSchedules()" data-ajax-begin="clearHome(this)">
+</a>
+<div id="weekly-schedule">
+    <partial name="_Weekly" model="@Model" />
+</div>
+
+
+
+@section scripts {
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
+    <script>
+        $(function () {
+
+            loadEmpddSearch('#empId');
+            InitTab_MemberSchedules();
+        })
+        //$('#_loadSchedule').click();
+    </script>
+
+    <script>
+        function pdateWorkingEmployee() {
+            var empId = $('#empId').val() || 0;
+            var url = GetAppRootPath() + '/Payroll/UpdateWorkingEmployee/' + empId + '?text=' + $('#empId :selected').text();
+            $.post(url);
+            console.log('employee updated: ' + empId);
+        }
+
+        var searchTerm = "";
+        $(document).on('keyup', '.txt-search-tasks', debounce(function () {
+            console.log('starting... ');
+            table_search($('.txt-search-tasks').val(), $('#tableTasks tbody tr'), '0');
+            searchTerm = $('.txt-search-tasks').val();
+        }, 500));
+
+
+        $('.txt-search-weekly').keyup(debounce(function () {
+            console.log('starting... ');
+            table_search($('.txt-search-weekly').val(), $('#weekly-table11 tbody tr'), '01234567');
+        }, 500));
+
+
+        function UpdateSeach() {
+            $('.txt-search-tasks').val(searchTerm)
+            $('.txt-search-tasks').trigger('keyup');
+            console.log('txt-search-tasks updated to ' + searchTerm)
+        }
+
+        $('.tab-link').click(function (e) {
+            console.log($(this));
+            var indx = parseInt($(this).data('tab'));
+            if (indx === 1)
+                $('#_loadSchedule').click();
+            else if (indx === 2)
+                $('#_loadTasks').click();
+            else if (indx === 3)
+                $('#_loadCalendar').click();
+        });
+
+        function reloadTab() {
+            hideModal();
+            location.reload();
+        }
+
+
+        function clearHome(e) {
+            // clear all html not in active tab
+            $('.tab-content').find('> div').empty();
+
+            // set loading element
+            $(e).next().html(getLoaderHtml());
+        }
+
+
+        var canFetch = true;
+        $(function () {
+            $(window).on("scroll", function () {
+                var docHeight = $(document).height();
+                var winScrolled = $(window).height() + $(window).scrollTop(); // Sum never quite reaches
+                if ((docHeight - winScrolled) < 1) {
+                    console.log('scrolled to bottom of page');
+
+                    if (canFetch == false) return;
+                    $('.btn-loading').show();
+
+                    makeAjaxRequest();
+                }
+            });
+        })
+
+        function makeAjaxRequest() {
+            var page = $('.btn-loading').data('page');
+            var unscheduled = $('.switch-schedule').prop('checked');
+            var url = '/schedule?page=' + page + "&showUnScheduled=" + (unscheduled ? "True" : "False");
+            $.post(url, function (data) {
+                //console.log(data);
+
+                var len = $(data).find('.table-schedule tbody tr').length;
+                //console.log(len);
+
+                console.log(rows);
+                if (len > 0) {
+                    var rows = $(data).find('.table-schedule tbody tr');
+                    var hasTdColspan = $(rows).find('td[colspan]').length;
+                    console.log('hasTdColspan', hasTdColspan)
+
+                    if (hasTdColspan > 0) {
+                        // no schedules
+                        console.log('no data found :: empty');
+
+                        data = null;
+                        canFetch = false;
+                        $('.btn-loading').hide();
+                    }
+                    else {
+
+                        $('.table-schedule tbody').append(rows);
+                        console.log('data updated');
+
+                        var newPage = (parseInt(page) + 1);
+                        console.log('newpage: ' + newPage);
+                        $('.btn-loading').data('page', newPage);
+                    }
+                }
+                else {
+                    console.log('no data found!');
+                    canFetch = false;
+                    $('.btn-loading').hide();
+                }
+            }).done(function (e) {
+                //}).always(function (data) {
+                //    if ($.isEmptyObject(data) || data == undefined || data == "") {
+                //        canFetch = false;
+                //        $('.btn-loading').hide();
+                //    } else {
+                //        var newPage = (parseInt(page) + 1);
+                //        console.log('newpage: ' + newPage);
+                //        $('.btn-loading').data('page', newPage);
+                //    }
+                //    $('.btn-loading').hide();
+            }).fail(function (e) {
+                canFetch = false;
+                $('.btn-loading').hide();
+            });;
+        }
+
+        $(document).on('change', '.switch-schedule', function () {
+
+            onCheckChange(this);
+
+            $('.table-schedule tbody').fadeOut();
+            $('.table-schedule tbody').empty();
+            
+            $('.btn-loading').data('page', 1);
+            //convertToLoadingTable('.table-schedule')
+            canFetch = false;
+            makeAjaxRequest(true);
+            $('.table-schedule tbody').fadeIn();
+        });
+
+        // TAB - Employees
+        function InitTab_MemberSchedules() {
+            console.log('InitTab_MemberSchedules');
+
+            $('#datefilter').daterangepicker({
+                autoUpdateInput: false,
+                locale: {
+                    cancelLabel: 'Clear'
+                },
+                opens: 'bottom',
+
+                ranges: {
+                    'This Week': [moment().startOf('week'), moment().endOf('week')],
+                    'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                }
+            });
+
+
+            @* <a asp-action="Index" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-date="@(((DateTime)ViewBag.WeekEnd).AddDays(1))" data-ajax="true" data-ajax-update="#weekly-schedule" class="btn-sm btn btn-outline-secondary border-left-0"><i class="ion ion-arrow-right-c"></i></a> *@
+
+
+            $('#datefilter').on('apply.daterangepicker', function (ev, picker) {
+                console.log(picker);
+                //var days = picker.endDate.diff(picker.startDate, 'days');
+                //if (days <= 0)
+                //    $(this).parent().find('#textBtn').val(picker.startDate.format('ddd, MMM DD, YYYY'));
+                //else
+                //    $(this).parent().find('#textBtn').val(picker.startDate.format('MMM DD') + ' - ' + picker.endDate.format('DD, YYYY') + " (" + days + " days)");
+
+                // 1/10/2020 12:34:32 PM
+                var date = picker.startDate.format('MM/DD/YYYY HH:mm:ss');
+                var end = picker.endDate.format('MM/DD/YYYY HH:mm:ss');
+                var url = GetAppRootPath() + '/Schedule?date=' + date + '&end=' + end;
+
+                    $.get(url, function (data) {
+                        $('#weekly-schedule').html(data);
+                        InitTab_MemberSchedules();
+                    }).fail(function () {
+                        sendNotification('error', 'Failed to load schedules');
+                    }).done(function () {
+
+                    });
+
+                //$('#requestFilterForm').submit();
+            });
+        }
+    </script>
+
+    <script>
+
+        InitializeTabs();
+
+    </script>
+
+}

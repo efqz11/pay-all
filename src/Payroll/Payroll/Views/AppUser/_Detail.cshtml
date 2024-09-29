@@ -1,0 +1,87 @@
+﻿@model AppUser
+@{ 
+    var roles = (Dictionary<string, string>)ViewBag.RolesDict;
+}
+
+<table class="table table-sm table-borderless table-responsive table-details">
+    <tbody>
+        <tr>
+            <td class="text-muted">User name</td>
+            <td>@Model.UserName</td>
+        </tr>
+        <tr>
+            <td>Email Address</td>
+            <td>@Model.Email <i class="fa @(Model.EmailConfirmed ? "fa-check-circle" : "fa-exclamation")"></i></td>
+        </tr>
+        <tr>
+            <td>Phone</td>
+            <td>@Model.PhoneNumber <i class="fa @(Model.EmailConfirmed ? "fa-check-circle" : "fa-exclamation")"></i></td>
+        </tr>
+        <tr>
+            <td>TimeZone</td>
+            <td>@Model.TimeZone</td>
+        </tr>
+        <tr>
+            <td>Failed Attempts</td>
+            <td>@Model.AccessFailedCount attempt(s)</td>
+        </tr>
+        <tr>
+            <td>User Type</td>
+            <td>@Model.UserType</td>
+        </tr>
+        <tr>
+            <td>Active Status</td>
+            <td>@Model.IsActive</td>
+        </tr>
+        <tr>
+            <td>Security Stamp</td>
+            <td>@Model.SecurityStamp</td>
+        </tr>
+        <tr>
+            <td>last Login TimeStamp</td>
+            <td>@Model.LastLoginTimeStamp.ToSystemFormat(User)</td>
+        </tr>
+        <tr>
+            <td><i class="fa fa-user-shield"></i> Roles</td>
+            <td>
+                @if (@Model.AppUserRoles != null)
+                {
+                    @(string.Join(" | ", @Model.AppUserRoles?.Select(a => roles[a.RoleId])))
+                }
+                else
+                {
+                    <span>None</span>
+                }
+            </td>
+        </tr>
+        <tr>
+            <td>User login security</td>
+            <td>
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" asp-for="LockoutEnabled" class="custom-control-input" disabled>
+                    <span class="custom-control-label" for="LockoutEnabled">
+                        Lock out Status
+                    </span>
+                </label>
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" asp-for="TwoFactorEnabled" class="custom-control-input" disabled>
+                    <span class="custom-control-label" for="TwoFactorEnabled">
+                        Two factor Status
+                    </span>
+                </label>
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" asp-for="ChangePasswordOnLogin" class="custom-control-input" disabled>
+                    <span class="custom-control-label" for="ChangePasswordOnLogin">
+                        Require to change password on next login attempt
+                    </span>
+                </label>
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" asp-for="SendOtpAndLoginFirst" class="custom-control-input" disabled>
+                    <span class="custom-control-label" for="SendOtpAndLoginFirst">
+                        Allow user to login using OTP code sent to email
+                    </span>
+                </label>
+            </td>
+        </tr>
+    </tbody>
+</table>

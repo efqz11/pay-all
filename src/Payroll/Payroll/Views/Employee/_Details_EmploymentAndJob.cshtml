@@ -1,0 +1,107 @@
+﻿@model Employee
+
+@{
+    Layout = "_LayoutCard";
+    ViewBag.CardHeader = "Employment & Job Information";
+}
+
+
+
+<div class="tab-wrapper bnb">
+    <ul class="tabs scroll">
+        @*<li class="tab-link active" data-tab="1">Employment and Job</li>*@
+        <li class="tab-link active" data-tab="1">Actions</li>
+        <li class="tab-link" data-tab="2">Job Information</li>
+        <li class="tab-link" data-tab="3">Organization Chart</li>
+        <li class="tab-link" data-tab="4">Roles & Access</li>
+    </ul>
+</div>
+<div class="content-wrapper bnb p-0" id="">
+
+    <div id="tab-1" class="tab-content active">
+
+        <a class="btn btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddEmployment" asp-route-id="@Model.Id">
+            <i class="fad fa-plus-circle"></i> Update Employment
+        </a>
+
+        <partial name="_JobActionHistory" model="@Model.JobActionHistories"></partial>
+    </div>
+
+    <div id="tab-2" class="tab-content">
+        @if (Model.Job != null)
+        {
+            <partial name="~/Views/Job/_Details.cshtml" model="Model.Job" />
+        }
+        else
+        {
+            <p>No Active job information(s)</p>
+        }
+
+        @if (Model.ReportingEmployee != null)
+        {
+
+            <div class="text-left" style=" vertical-align: middle;display:flex">
+                <span class="text-muted">Reporting To &nbsp;&nbsp;</span>
+                <div class="image-container">
+                    <a asp-controller="Employee" asp-action="Detail" asp-route-id="@Model.ReportingEmployee.Id">
+                        <img src="@Url.Content(Model.ReportingEmployee?.Avatar ?? DefaultPictures.default_user)" height="35" class="" />
+                    </a>
+                </div>
+                <a asp-controller="Employee" asp-action="Detail" asp-route-id="@Model.ReportingEmployee.Id">
+                    <div class="" style="line-height: 1.5;">
+                        <span class="">@Model.ReportingEmployee?.GetSystemName(User)</span>
+                        <br>
+                        <small class="text-muted" style="position: relative;top: -5px;">@(Model.ReportingEmployee?.Job?.JobTitle ?? "No Designation")</small>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+
+
+    <div id="tab-3" class="tab-content">
+
+        <div id="chart-container">
+
+        </div>
+
+
+        @*@if (Model.EmployeeDirectReports.Any())
+            {
+                foreach (var emp in Model.EmployeeDirectReports)
+                {
+
+                    <div class="text-left" style=" vertical-align: middle;display:flex">
+                        <div class="image-container">
+                            <a asp-controller="Employee" asp-action="Detail" asp-route-id="@emp.Id">
+                                <img src="@Url.Content(emp?.Avatar ?? DefaultPictures.default_user)" height="35" class="" />
+                            </a>
+                        </div>
+                        <a asp-controller="Employee" asp-action="Detail" asp-route-id="@emp.Id">
+                            <div class="" style="line-height: 1.5;">
+                                <span class="">@emp?.GetSystemName(User)</span>
+                                <br>
+                                <small class="text-muted" style="position: relative;top: -5px;">@(emp?.JobTitle ?? "No Designation")</small>
+                            </div>
+                        </a>
+                    </div>
+                    <hr />
+                }
+            }
+            else
+            {
+                <p>No Direct reporting employee(s)</p>
+            }*@
+
+    </div>
+    <div id="tab-4" class="tab-content">
+    <div class="list-group">
+        <div class="list-group-item border-0"><span class="badge-primary p-1 rounded">@Roles.Company.all_employees</span></div>
+        @foreach (var item in Model.EmployeeRoles)
+        {
+            <div class="list-group-item border-0"><span class="badge-primary p-1 rounded">@item.EmployeeRole.Role</span></div>
+        }
+    </div>
+    </div>
+
+</div>

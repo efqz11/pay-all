@@ -1,0 +1,43 @@
+﻿@model List<AuditLog>
+@inject Payroll.Database.PayrollDbContext dbContext
+@{
+    ViewBag.ShowSummary = true;
+}
+<form asp-action="AddOrUpdateAttendance" asp-controller="Schedule" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__Container" data-ajax-begin="showModal()" data-ajax-success="sendNotification('success', 'Attendance record was just saved');hideModal()" id="addUpdateConnectionForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            Audit Log Summary
+            <br />
+            <small>
+                @ViewBag.Modal &middot; @ViewBag.Count record(s)
+            </small>
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+
+    <main class="modal__content" id="modal-1-content">
+        <div class="list-group border-0 border">
+            @foreach (var item in Model)
+            {
+                <div class="list-group-item list-group-item-action border-0">
+                    <div class="row">
+                        <div class="col-md-2">@item.AuditAction</div>
+                        <div class="col-md-10">
+                            <p class="mb-0">@item.Message</p>
+                            <small class="text-muted">@item.AuditUser &middot; @item.AuditDateTimeUtc.ToSystemFormat(User, true)</small>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <a class="modal__btn modal__btn-primary" asp-action="Index" asp-controller="AuditLog" asp-route-keyId="@ViewBag.KeyId" asp-route-modal="@ViewBag.Modal" target="_blank">
+            <i class="fa fa-external-link"></i> View full
+        </a>
+        &nbsp;
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>
+

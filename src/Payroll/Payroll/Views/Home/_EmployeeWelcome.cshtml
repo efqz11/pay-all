@@ -1,0 +1,437 @@
+﻿@model HomeEmployeeVm
+@inject ScheduleService service
+@{
+    Layout = "_LayoutCard";
+    ViewBag.CardHeader = "Welcome back, " + @Model.Employee.GetSystemName(User);
+    var width = 0;
+    string css = "";
+    ViewBag.IsEmployee = true;
+    var timeWorkedThisWeek = Model.ThisWeekTimeSheetStats != null && Model.ThisWeekTimeSheetStats.Any(a=> a.Item2 != null) ? Model.ThisWeekTimeSheetStats.Sum(a => a.Item2).GetHourMinString() : "";
+    
+}
+
+<style>
+    .wrapper .icon {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+        color:white
+    }
+    .wrapper .text-muted {
+        font-size: smaller;
+        line-height: 1.4;
+        letter-spacing: 0px;
+        display: block;
+        color: inherit !important;
+    }
+
+    .table-time-sheet-stats tbody td {
+        height: 60px;
+        text-align: center;
+        margin: 0 auto;
+        width: 5px;
+        vertical-align: bottom;
+    }
+    .table-time-sheet-stats td {
+        text-align:center;
+        color:cadetblue;
+    }
+        .table-time-sheet-stats tbody td div.bar {
+            width: 10px;
+            margin: 0 auto;
+            border-radius:2px;
+        }
+    .table-time-sheet-stats tbody td div.actual {
+        position: relative;
+        top: 52px;
+    }
+    .table-time-sheet-stats tbody td div.dummy {
+        
+    }
+
+    .wrapper .time-sheet {
+        background-color: rgb(23 162 184 / 0.09) !important;
+    }
+    .wrapper .weekly-tasks {
+        background-color: rgb(255 193 7 / 0.09) !important;
+    }
+    .wrapper .timeoff-bal {
+        background-color: rgb(40 167 69 / 0.09) !important;
+    }
+</style>
+<div class="row">
+    <div class="col-md-4">
+        <div class="wrapper">
+            <div class="time-sheet border-0 p-3 text-white">
+                <h5 class="head1  text-primary"><i class="fad fa-user-clock"></i> Weekly Timesheet</h5>
+                <span class="text-primary">@service.thisWeekStart.GetDuration(service.thisWeekEnd, User)</span>
+                <table class="table table-sm table-time-sheet-stats table-borderless mb-1">
+                    <tbody>
+                        <tr>
+                            @foreach (var item in Model.ThisWeekTimeSheetStats)
+                            {
+                                <td>
+                                    <div class="bar bg-primary actual" style="height:@((item.Item2/8)*100)%" title="@item.Item2.GetHourMinString()"></div>
+
+                                    <div class="bar dummy" style="height:100%"></div>
+                                </td>
+                            }
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            @foreach (var item in Model.ThisWeekTimeSheetStats)
+                            {
+                                <td class="">@item.Item1.ToString("ddd").Substring(0, 1)</td>
+                            }
+                        </tr>
+                    </tfoot>
+                </table>
+                <div class="text-center" style="font-size: 16px;margin: 10px 0px;">
+                    <span class=" badge-outline-primary " style="border-radius:4px;padding: 7px 10px;">
+                        <i class="far fa-stopwatch"></i> @(timeWorkedThisWeek)
+                    </span>
+                </div>
+            </div>
+
+            @*<a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="@RequestType.Document" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-loading=".loader" class="">
+                    <div class="bg-info border-0 p-3 text-left" style=" vertical-align: middle;display:flex">
+                        <div class="name-display pt-0 text-white">
+                            <span class="mb-0">
+                                New Request
+                            </span>
+                            <h4>0.00</h4>
+
+                            <span class="text-muted">Request for leave, overtime or documents</span>
+                        </div>
+                        <div class="icon"><i class="fa fa-paper-plane fa-2x mt-1 mr-3"></i></div>
+                    </div>
+                </a>*@
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="wrapper">
+            <a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="@RequestType.Document" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" data-ajax-loading=".loader" class="">
+                <div class="timeoff-bal border-0 p-3 text-left" style=" ">
+                    <div class="name-display pt-0 ">
+                        <h5 class="head1 mb-2 text-success"><i class="fa fa-ball-pile"></i> Time-off Balance</h5>
+                        <div id="chartdiv_timeOffBalance" style="height:155px"></div>
+                        @*<span class="text-muted">Day offs and holidays balance and status</span>*@
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="wrapper">
+            <div class="weekly-tasks border-0 p-3 text-left" style=" ">
+                <div class="name-display pt-0 text-warning">
+                    <h5 class="head1  text-warning"><i class="fad fa-tasks"></i> Weekly Tasks</h5>
+                    <div id="chartdiv_weekTasks" style="height:155px"></div>
+                    @*<span class="text-muted">Upcoming and ongoing Tasks</span>*@
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<br />
+
+<div class="row">
+    <div class="col-md-6">
+        <h6 class="head1 mb-3"><i class="fad fa-umbrella-beach"></i> Upcoming Public Holidays</h6>
+
+        @foreach (var item in Model.PublicHolidaysUpcoming.Take(2))
+        {
+            <p class="mb-1">
+                <div class="row" style="@(Model.PublicHolidaysUpcoming.IndexOf(item)%2==0 ?"border-right: 0px solid #e9e9e9;" :"") ">
+                    <div class="col-md-4">
+                        <time datetime="@item.Date.ToString("yyyy-MM-dd")" class="icon">
+                            <em>@item.Date.ToString("dddd")</em>
+                            <strong>@item.Date.ToString("MMMM")</strong>
+                            <span>@item.Date.ToString("dd")</span>
+                        </time>
+                    </div>
+                    <div class="col-md-8 pl-0">
+                        <h6 class="mb-1"><b>@item.Name</b></h6>
+                        <span class="text-muted">@item.Description.LimitTo(100)</span>
+                    </div>
+                </div>
+            </p>
+        }
+
+        <br />
+        @* Day offs *@
+        @*<h5 class="head1"><i class="far fa-calendar-times"></i> Time off balance</h5>
+
+        <a asp-action="GetEmployeeCard" asp-controller="Home" data-ajax="true" data-ajax-update="#employe-card" data-ajax-begin="" title="Click to make changes" class="hide" id="employe-card-refresh">
+        </a>*@
+
+        @if (Model.Announcements != null)
+        {
+        <partial name="~/Views/NewsUpdate/_Announcements.cshtml" model="@Model.Announcements" />
+        }
+
+    </div>
+<div class="col-md-6">
+
+@*@if(Model.Interactions.Count > 0)
+{
+    <h6 class="head1"><i class="fa fa-bell"></i> Wating on desk</h6>
+    <table class="table emp-home-sidebar">
+        <tbody>
+            @foreach (var item in Model.Interactions)
+            {
+                <tr>
+                    @if(item.TriggerSource == NotificationTriggerSource.ScheduleVerification)
+                    {
+                        <td>
+                            <span>Schedule</span> 
+                        <br />
+                            <small>@item.Schedule.Duration</small>
+                        </td>
+                        <td>
+                            <a asp-action="InteractionApproved" asp-controller="Interaction" asp-route-id="@item.Id" asp-route-approve="1" data-ajax="true" data-ajax-method="GET" data-ajax-update=".modal__container" data-ajax-begin="showModal()" title="Send for Approval" class="btn btn-sm btn-outline-success" style="">
+                                <i class="fas fa-check-circle"></i>
+                            </a>
+
+                            &mdash;
+
+                            <a asp-action="InteractionRejected" asp-controller="Interaction"  asp-route-id="@item.Id" data-ajax="true" data-ajax-method="GET" data-ajax-update=".modal__container" data-ajax-begin="showModal()" title="Send for Approval" class="btn btn-sm btn-outline-danger" style="">
+                                <i class="fas fa-times-circle"></i>
+                            </a>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}*@
+
+
+<h6 class="head1"><i class="ion ion-ios-clock"></i> Today's Tasks</h6>
+<table class="table emp-home-sidebar">
+
+    <tr>
+        <td colspan="2">
+            <form class="text-left " asp-action="CreateUserTask" asp-route-wtId="@Model.WorkTimes.First().Id" asp-route-onDate="@DateTime.Now" data-ajax-method="POST" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure" data-ajax-success="function dd(itm, data) { console.log(itm, dd); $(itm).find('input').val(''); $(itm).parents('.table').append(data); }">
+                @*<div class="text-muted" style=""><i class="ion ion-plus"></i> Add Task for Today</div>*@
+
+                <input type="text" class="mb-2 form-control border-0 form-control-sm" name="Name" placeholder="Add Task for Today" onfocus="$(this).next().toggleClass('hide')" />
+
+                <button type="submit" class=" position-absolute btn btn-outline-dark btn-sm hide" style="visibility:hidden"><i class="ion ion-plus"></i> Save</button>
+            </form>
+        </td>
+    </tr>
+
+    @foreach (var item in Model.WeekScheduleTasks.Where(x => x.Date.Date == DateTime.Now.Date))
+    {
+
+        <partial name="_SideBarTasks" model="@item" />
+
+        @*<tr>
+                <td>
+                    @(item.Work?.Name ?? item.TaskName)
+                    <br />
+                    <small class="text-danger"><i class="ion ion-android-stopwatch"></i> Due in @item.WorkEndTime.GetTimeDifference()</small>
+                    <br />
+                    <a asp-action="ViewAttendance" asp-controller="Schedule" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" aria-label="Change attendance record" role="tooltip" data-microtip-position="top" class="btn btn-sm btn-outline-primary" style="display:none">
+                        <i class="ion ion-plus-round"></i> Submission
+                    </a>
+                    @*<br /><small>@item.Address</small>*
+                </td>
+                <td>
+                    @if (item.Work?.IsAdvancedCreate ?? false)
+                    {
+                        <div class="progress-display mt-2">
+                            <div class="progress-bar">
+                                <span class="bar">
+                                    <span class="progress @item.GetCssStyleFromPercent(item.PercentSubmitted) p-0 pr-2 text-right" style="width:@item.PercentSubmitted%;height:7px;"><b></b></span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <small>
+                            <span class="text-warning"><i class="fa fa-fa fa-share"></i> @(item.TotalSubmitted)</span>
+                            &middot;
+                            <span class="text-success">
+                                <i class="fa fa-check-double"></i>
+                                <b>@(item.PercentApproved + "%")</b>
+                            </span>
+                        </small>
+                    }
+                </td>
+            </tr>*@
+    }
+    @foreach (var item in Model.WeekScheduleTasks.Where(x => x.Date.Date == DateTime.Now.Date && x.Status == WorkItemStatus.Completed))
+    {
+        <partial name="_SideBarTasks" model="@item" />
+    }
+
+</table>
+
+
+@if (Model.WeekScheduleTasks.Any(x => x.WorkStartTime.Date > DateTime.Now.Date))
+{
+    <h5 class="head1"><i class="ion ion-android-time"></i> Upcoming Tasks</h5>
+    <table class="table emp-home-sidebar">
+        @foreach (var item in Model.WeekScheduleTasks.Where(x => x.WorkStartTime.Date > DateTime.Now).OrderBy(x => x.Date).ThenBy(x => x.WorkStartTime.TimeOfDay))
+        {
+            <partial name="_SideBarTasks" model="@item" />
+        }
+    </table>
+}
+@*<partial name="_Announcements" model="@Model.Announcements" />*@
+</div>
+</div>
+
+
+<div class="loader loader-blue btn-loading" data-page="2" style="line-height: 85px;display:none;white-space: pre">
+    <div class="ball-beat"><div></div><div></div><div></div></div>
+</div>
+
+
+
+
+<script>
+    $('#datefilter').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear'
+        },
+        opens: 'left',
+
+        ranges: {
+            'This Week': [moment().startOf('week'), moment().endOf('week')],
+            'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        }
+    });
+
+    
+    var data = [];
+    var dataDayOff = [];
+    @foreach(var item in (Dictionary<string, int>)ViewBag.weeklyTaskStatus)
+    {
+        <text>data.push({ key: '@item.Key', value: '@item.Value' });</text>
+    }
+    
+    @foreach(var item in (Dictionary<string, int>)ViewBag.dayOffBalances)
+    {
+        <text>dataDayOff.push({ key: '@item.Key', value: '@item.Value' });</text>
+    }
+
+    //data.push({key: 'Pending', value: '1'});
+    //data.push({key: 'Completed', value: '3'});
+    //data.push({key: 'UpComing', value: '10'});
+
+    console.log('data', data);
+    console.log('dataDayOff', dataDayOff);
+    drawActionPie(data);
+    drawTimeOffBalancePie(dataDayOff);
+    function drawActionPie(data) {
+
+        am4core.ready(function () {
+
+            // Themes begin
+            am4core.useTheme(am4themes_animated);
+            // Themes end
+
+            // Create chart instance
+            var chart = am4core.create("chartdiv_weekTasks", am4charts.PieChart);
+
+            // Add data
+            chart.data = data;
+
+            // Set inner radius
+            chart.innerRadius = am4core.percent(50);
+
+
+            // Add and configure Series
+            var pieSeries = chart.series.push(new am4charts.PieSeries());
+            pieSeries.dataFields.value = "value";
+            pieSeries.dataFields.category = "key";
+            pieSeries.slices.template.stroke = am4core.color("#fff");
+            pieSeries.slices.template.strokeWidth = 1;
+            pieSeries.slices.template.strokeOpacity = 1;
+
+            var colorSet = new am4core.ColorSet();
+            colorSet.list = ["#FBC02D", "#388E3C", "#0288d1", "#F44336", "#8E24AA"].map(function (color) {
+                return new am4core.color(color);
+            });
+            pieSeries.colors = colorSet;
+
+            // This creates initial animation
+            pieSeries.hiddenState.properties.opacity = 1;
+            pieSeries.hiddenState.properties.endAngle = -90;
+            pieSeries.hiddenState.properties.startAngle = -90;
+
+            pieSeries.ticks.template.disabled = true;
+            pieSeries.labels.template.disabled = false;
+            pieSeries.labels.template.text = "";
+
+            var label = pieSeries.createChild(am4core.Label);
+            label.text = "{values.value.sum}";
+            label.horizontalCenter = "middle";
+            label.verticalCenter = "middle";
+            label.fontSize = 30;
+
+            hidelogos();
+        }); // end am4core.ready()
+    }
+
+
+    function drawTimeOffBalancePie(data) {
+
+        am4core.ready(function () {
+
+            // Themes begin
+            am4core.useTheme(am4themes_animated);
+            // Themes end
+
+            // Create chart instance
+            var chart = am4core.create("chartdiv_timeOffBalance", am4charts.PieChart);
+
+            // Add data
+            chart.data = data;
+
+            // Set inner radius
+            chart.innerRadius = am4core.percent(50);
+
+
+            // Add and configure Series
+            var pieSeries = chart.series.push(new am4charts.PieSeries());
+            pieSeries.dataFields.value = "value";
+            pieSeries.dataFields.category = "key";
+            pieSeries.slices.template.stroke = am4core.color("#fff");
+            pieSeries.slices.template.strokeWidth = 1;
+            pieSeries.slices.template.strokeOpacity = 1;
+
+            //var colorSet = new am4core.ColorSet();
+            //colorSet.list = ["#FBC02D", "#388E3C", "#0288d1", "#F44336", "#8E24AA"].map(function (color) {
+            //    return new am4core.color(color);
+            //});
+            //pieSeries.colors = colorSet;
+
+            // This creates initial animation
+            pieSeries.hiddenState.properties.opacity = 1;
+            pieSeries.hiddenState.properties.endAngle = -90;
+            pieSeries.hiddenState.properties.startAngle = -90;
+
+            pieSeries.ticks.template.disabled = true;
+            pieSeries.labels.template.disabled = false;
+            pieSeries.labels.template.text = "";
+
+            var label = pieSeries.createChild(am4core.Label);
+            label.text = "{values.value.sum}";
+            label.horizontalCenter = "middle";
+            label.verticalCenter = "middle";
+            label.fontSize = 30;
+
+            hidelogos();
+        }); // end am4core.ready()
+    }
+</script>

@@ -1,0 +1,221 @@
+﻿@model HomeEmployeeVm
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+@inject UserResolverService userResolverService
+<link href="~/css/employee-grade.css" rel="stylesheet" />
+<link href="~/css/tabs.css" rel="stylesheet" />
+
+<link href="~/css/timeline.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link href="~/css/card.css" rel="stylesheet" />
+<link href="~/css/employee.css" rel="stylesheet" />
+<link href="~/css/calendar-icon.css" rel="stylesheet" />
+
+
+<div class="row">
+    <div class="col-md-3">
+        <div id="home-sidebar">
+            <partial name="_SideBar" model="Model" />
+        </div>
+    </div>
+
+    <div class="col-md-9" id="employee-content">
+
+    </div>
+</div>
+
+
+@section scripts {
+    <!-- Resources -->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+
+
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-piechart-outlabels@0.1.4/dist/chartjs-plugin-piechart-outlabels.min.js"></script>*@
+
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <script>
+
+
+    </script>
+
+    <script>
+
+        function setActiveTab(e) {
+            console.log('tab', e);
+            var newTab = $(e).parent();
+            $('#empl-sidebar').find('.list-group-item').not(newTab).removeClass('active');
+            $(newTab).addClass('active');
+            $(newTab).find('a').addClass('active');
+        }
+
+        function clearHome() {
+
+            $("#weekly-schedule").children().fadeOut();
+            var loader = getLoaderHtmlWithLineHeight(25);
+            $("#weekly-schedule").empty();
+
+
+            $("#weekly-schedule").append(loader).fadeIn();
+        }
+
+
+
+        // For Empl Working View
+
+        $(function () {
+            $('#empl-sidebar-menu >').eq(7).find('a').click();
+        });
+
+        function updateActiveTab() {
+            $('.p-actions').find('a.active').click();
+        }
+
+
+
+        function reload() {
+            convertToLoadingTable('.pay-components-table')
+            var url = GetAppRootPath() + "/comparison/index?source=" + $('#SourcePeriodId :selected').val() + "&compare=" + $('#ComaprePeriodId :selected').val() + "&empId=" + $('#empId :selected').val();
+            console.log(url);
+
+            location.href = url;
+        }
+
+
+        function getPerformanceChart() {
+            $.get(GetAppRootPath() + '/employee/GetPerfromanceAndSalaryChart?start=' + start + '&end=' + end, function (data) {
+                console.log(data);
+                //chart.data = d.chartdata;
+                drawSalaryChart(data.salaryChart);
+            });
+        }
+
+        function drawSalaryChart(data) {
+
+            // Create chart instance
+            var chart = am4core.create("chartdiv", am4charts.XYChart);
+            chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
+            chart.data = data;
+            chart.numberFormatter.numberFormat = "#a";
+
+            console.log('chart.data');
+            console.log(chart.data);
+
+
+            // Create axes
+            var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+            //dateAxis.renderer.minGridDistance = 50;
+
+            var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+            valueAxis.valueFormatString = "#,###,.##K";
+            valueAxis.renderer.minGridDistance = 30;
+
+            // Create series
+            var series = chart.series.push(new am4charts.ColumnSeries());
+            series.dataFields.valueY = "item2";
+            series.dataFields.dateX = "item1";
+            series.strokeWidth = 2;
+            series.minBulletDistance = 10;
+            //series.tooltipText = "{valueY}";
+            series.name = "Gross Salary";
+            series.tooltipText = "{name}\n[font-size: 14] MVR {valueY}[/]";
+            series.tooltip.pointerOrientation = "vertical";
+            series.tooltip.background.cornerRadius = 20;
+            series.tooltip.background.fillOpacity = 0.5;
+            series.tooltip.label.padding(12, 12, 12, 12)
+
+            //// as by default columns of the same series are of the same color,
+            //// we add adapter which takes colors from chart.colors color set
+            //series.columns.template.adapter.add("fill", function (fill, target) {
+            //    return chart.colors.getIndex(target.dataItem.index);
+            //});
+
+            var series2 = chart.series.push(new am4charts.ColumnSeries());
+            series2.dataFields.valueY = "item3";
+            series2.dataFields.dateX = "item1";
+            series2.strokeWidth = 4;
+            series2.minBulletDistance = 10;
+            series2.name = "Net Salary";
+            series2.tooltipText = "{name}\n[font-size: 14] MVR {valueY}[/]";
+            series2.tooltip.pointerOrientation = "vertical";
+            series2.tooltip.background.cornerRadius = 20;
+            series2.tooltip.background.fillOpacity = 0.5;
+            series2.tooltip.label.padding(12, 12, 12, 12)
+
+
+            // Add cursor
+            chart.cursor = new am4charts.XYCursor();
+            chart.cursor.yAxis = valueAxis;
+            chart.cursor.snapToSeries = series;
+
+            // Add legend
+            chart.legend = new am4charts.Legend();
+            chart.legend.position = "top";
+
+            hidelogos();
+
+
+        }
+
+
+        // TAB - Employees
+        function InitTab_Schedules() {
+            console.log('InitTab_Schedules');
+
+            $('#datefilterSchedule').daterangepicker({
+                autoUpdateInput: false,
+                locale: {
+                    cancelLabel: 'Clear'
+                },
+                opens: 'bottom',
+
+                ranges: {
+                    'This Week': [moment().startOf('week'), moment().endOf('week')],
+                    'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                }
+            });
+
+
+            @* <a asp-action="Index" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-date="@(((DateTime)ViewBag.WeekEnd).AddDays(1))" data-ajax="true" data-ajax-update="#weekly-schedule" class="btn-sm btn btn-outline-secondary border-left-0"><i class="ion ion-arrow-right-c"></i></a> *@
+
+
+            $('#datefilterSchedule').on('apply.daterangepicker', function (ev, picker) {
+                console.log(picker);
+                //var days = picker.endDate.diff(picker.startDate, 'days');
+                //if (days <= 0)
+                //    $(this).parent().find('#textBtn').val(picker.startDate.format('ddd, MMM DD, YYYY'));
+                //else
+                //    $(this).parent().find('#textBtn').val(picker.startDate.format('MMM DD') + ' - ' + picker.endDate.format('DD, YYYY') + " (" + days + " days)");
+
+                // 1/10/2020 12:34:32 PM
+                var date = picker.startDate.format('MM/DD/YYYY HH:mm:ss');
+                var end = picker.endDate.format('MM/DD/YYYY HH:mm:ss');
+                var url = GetAppRootPath() + '/Home/UpdateWeeklySchedule?date=' + date + '&end=' + end;
+
+                $.get(url, function (data) {
+                    $('#weekly-schedule').html(data);
+                    InitTab_Schedules();
+                }).fail(function () {
+                    sendNotification('error', 'Failed to load schedules');
+                }).done(function () {
+
+                });
+
+                //$('#requestFilterForm').submit();
+            });
+
+        }
+
+    </script>
+}
+

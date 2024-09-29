@@ -1,0 +1,145 @@
+﻿@model List<Payroll.Model.Logs.ApplicationLog>
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="text-lg-left">
+            <h4 class="display">Observer</h4>
+            <p>Total @Model.Count Log(s) found</p>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="filters float-right">
+            <form asp-action="Index" style="display: inline-flex;" id="rosterFilterForm">
+                <input type="hidden" name="start" id="start" />
+                <input type="hidden" name="end" id="end" />
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Status</label>
+                    <select name="limit" id="limit" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                        <option value="All">All</option>
+                        <option value="Created">Created</option>
+                        <option value="On Going">On Going</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Environment</label>
+                    <select name="env" id="env" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                        <option value="None">All</option>
+                        <option value="Development">Development</option>
+                        <option value="Production">Production</option>
+                    </select>
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Limit</label>
+                    <select name="limit" id="limit" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="clearfix"></div>
+
+<div class="row">
+    <table class="table table-hover data-container-table table-sm">
+        @*<thead>
+            <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Net Salary</th>
+                <th>Net Salary Last</th>
+                <th>State</th>
+                <th></th>
+            </tr>
+        </thead>*@
+        <tbody>
+            @foreach (var item in Model)
+            {
+            <tr>
+                <td class="text-right" width="20px">
+                    <a asp-action="ViewSummary" asp-route-id="@item.Id" class="btn-link" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()"><i class="fad fa-search"></i></a>
+                </td>
+                <td>
+                    <b>@item.Message.LimitTo(300)</b>
+                    @*<br>
+                    @item.Exception*@
+                </td>
+                @*<td>@item.Level</td>*@
+                <td>@item.Environment</td>
+                <td><span title="@item.UserId">@item.UserName</span> </td>
+                <td width="130">@item.TimeStamp.ToSystemFormat(User)</td>
+                <td width="130">@item.TimeStamp.ToSystemFormat(User, true, true)</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section scripts{
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script>
+        var limit = '@ViewBag.limit';
+        if (limit)
+        $('#limit').val(limit);
+
+        var empId = '@ViewBag.empId';
+        if (empId)
+        $('#empId').val(empId);
+
+        var sort = '@ViewBag.sort';
+        if (sort)
+        $('#sort').val(sort);
+
+        var type = '@ViewBag.type';
+        if (type)
+        $('#type').val(type);
+
+        function submitFIlterForm() { $('#rosterFilterForm').submit() }
+
+        $('input[name="date"]').on('apply.daterangepicker', function (ev, picker) {
+            submitFIlterForm();
+        });
+
+        $('#datefilter').daterangepicker({
+            autoUpdateInput: false,
+            locale: {
+                cancelLabel: 'Clear'
+            },
+            opens: 'bottom',
+
+            ranges: {
+                'This Week': [moment().startOf('week'), moment().endOf('week')],
+                'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        });
+
+
+        $('#datefilter').on('apply.daterangepicker', function (ev, picker) {
+            console.log(picker);
+
+            var date = picker.startDate.format('MM/DD/YYYY HH:mm:ss');
+            var end = picker.endDate.format('MM/DD/YYYY HH:mm:ss');
+            var url = GetAppRootPath() + '/Schedule?date=' + date + '&end=' + end;
+            $('#start').val(date);
+            $('#end').val(end);
+
+            $(this).val(picker.startDate.format('MMM DD') + ' - ' + picker.endDate.format('DD, YYYY'));
+
+        });
+    </script>
+}

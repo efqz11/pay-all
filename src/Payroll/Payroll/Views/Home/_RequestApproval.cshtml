@@ -1,0 +1,151 @@
+﻿@model List<Request>
+@inject Payroll.Database.PayrollDbContext dbContext
+@{ 
+    var empId = -1;
+}
+<div class="row">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col">
+
+                <h5 class="head1 text-left">
+
+                    @(ViewBag.Header ?? "Requests")
+                    <br />
+                    <small class="pt-1">Total @Model.Count() record(s) found</small>
+                </h5>
+            </div>
+            <div class="col">
+                <div class="float-right"><select class="form-control form-control-sm" style="width:250px !important" name="empId" id="empId"></select></div>
+            </div>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="p-4 mt-1 mb-2 text-success">
+                <h5><i class="fa fa-check-double fa-2x"></i>All requests are approved</h5> 
+            </div>
+        }
+        else
+        {
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    @*<th></th>*@
+                    <th>Employee</th>
+                    <th>Type</th>
+                    <th>Details</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                @foreach (var item in Model)
+                {
+                    <tr class="submitted-@item.Id">
+                        <td class="text-left">
+                            @if (empId != item.EmployeeId)
+                            {
+                                <partial name="_EmployeeSummary" model="@item.Employee" />
+                            }
+                        </td>
+                        <td>
+                            <a class="" asp-action="ViewRequest" asp-controller="Request" asp-route-id="@item.Id" asp-route-type="@item.RequestType" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="handleModalPostFailure">
+
+                                <partial name="~/Views/Request/_DisplayRequestType.cshtml" model="@item" />
+
+                            </a>
+                        </td>
+                        <td>
+                            @if (item.RequestType == RequestType.Attendance_Change || item.RequestType == RequestType.Work_Change)
+                            {
+                                @if (item.IsTransferEmployee == false)
+                                {
+                                    <p>
+                                        @(item.Attendance?.DurationCheckin ?? item.WorkItem?.DurationCheckin) <br />
+                                        <i class="fa fa-arrow-down"></i><br />
+                                        @item.GetNewCheckInCheckOutDuration(User)
+                                    </p>
+                                        }
+                                else
+                                {
+                                    <p>
+                                        <span class="text-muted">Transfer</span>
+                                        <i class="fa fa-arrow-right"></i>
+                                        <a href="@Url.Action("Detail", "Employee", new { id = @item.TransferredEmployeeId })" target="_blank">
+                                            @item.TransferredEmployeeName
+                                        </a>
+                                        @if (item.TransferredEmployee != null)
+                                        {
+                                            <a href="@Url.Action("Detail", "Employee", new { id = @item.TransferredEmployeeId })" target="_blank">
+                                                <i class="fa fa-link"></i>
+                                            </a>
+                                        }
+                                    </p>
+                                }
+                            }
+                            @if (item.RequestType == RequestType.Leave)
+                                    {
+                                <p>
+                                    @item.GetRequestedDuration()
+                                </p>
+                            }
+                                    @if (item.RequestType == RequestType.Overtime)
+                                    {
+                                <p>
+                                    @item.GetRequestedDuration()
+                                    <br>
+                                    @item.Duration
+                                </p>
+                                    }
+                                    @if (item.RequestType == RequestType.Document && item.DocumentsData != null)
+                                    {
+                                        @foreach (var xxx in item.DocumentsDataArray)
+                                        {
+                                        <span class="text-muted">@string.Join(" · ", xxx)</span><br />
+                                        }
+
+                                @*<small>
+                                    @item.Reason
+                                </small>*@
+                                }
+                            @if (item.FileDatas.Any())
+                            {
+                                <a class="" asp-action="UploadDocument" asp-controller="Request" asp-route-id="@item.Id" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure">
+                                    <i class="fas fa-file"></i> Files (@item.FileDatas.Count())
+                                </a>
+                            }
+                        </td>
+                        <td>
+                            <partial name="_DisplayRequestStatus" model="@item.Status" />
+                        <br />
+                        <small class="text-muted">created abt @(((DateTime)dbContext.Entry(item).Property("ModifiedDate").CurrentValue).GetTimeDifference()) ago</small></td>
+
+                        <td>
+                            <a asp-action="ViewRequestAction" asp-controller="Request" asp-route-id="@item.Id" asp-route-approve="True" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" data-ajax-begin="showModal();$(this).parents('tr').toggleClass('active')" title="Send for Approval" class="btn btn-sm btn-outline-success" style="">
+                                <i class="fas fa-check-circle"></i> Approve
+                            </a>
+
+                            &mdash;
+
+                            <a asp-action="ViewRequestAction" asp-controller="Request" asp-route-id="@item.Id" asp-route-approve="False" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" data-ajax-begin="showModal();$(this).parents('tr').toggleClass('active')" title="Send for Approval" class="btn btn-sm btn-outline-danger" style="">
+                                <i class="fas fa-times-circle"></i> Reject
+                            </a>
+                        </td>
+                    </tr>
+
+                    empId = item.EmployeeId;
+                }
+            </tbody>
+        </table>
+        }
+    </div>
+</div>
+
+
+<script>
+    
+    loadEmpddSearch('#empId');
+
+</script>

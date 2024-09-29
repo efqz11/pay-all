@@ -1,0 +1,136 @@
+﻿@model List<Announcement>
+@inject Payroll.Database.PayrollDbContext dbContext
+@inject UserResolverService UserResolverService
+@*<div class="row mb-4">
+        <div class="col pl-0">
+            <h6 class="head1 text-center"><i class="fad fa-bullhorn"></i> Announcements</h6>
+        </div>
+        <div class="col">
+            <div class="float-right">
+                @if (!(ViewBag.IsEmployee != null && (bool)ViewBag.IsEmployee))
+                {
+                    <a class="btn btn-outline-primary btn-sm" asp-action="NewAnnouncement" data-ajax-update=".modal__container" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-begin="showModal()">
+                        + Add
+                    </a>
+                }
+            </div>
+        </div>
+    </div>*@
+
+
+
+<div class="qa-message-list" id="wallmessages">
+    @foreach (var item in Model)
+    {
+        <div class="message-item message-item-@item.Id" id="m6">
+            <div class="message-inner">
+                <div class="message-head clearfix">
+                    <div class="avatar pull-left"><a asp-action="Detail" asp-controller="Employee" asp-route-id="@item.CreatedEmployeeId"><img src="@Url.Content(item.CreatedEmployee?.Avatar ?? DefaultPictures.default_user)"></a></div>
+                    <div class="user-detail">
+                        <h5 class="handle">
+
+                            <a class="" asp-action="Announcement" asp-route-id="@item.Id" data-ajax-update=".modal__container" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-begin="showModal()">
+                                @item.Title
+                            </a>
+                        </h5>
+                        <div class="post-meta">
+                            <div class="asker-meta">
+                                <span class="qa-message-what"></span>
+                                <span class="qa-message-when">
+                                    <span class="qa-message-when-data"> @(((DateTime)dbContext.Entry(item).Property("CreatedDate").CurrentValue).ToSystemFormat(User))</span>
+                                </span>
+                                <span class="qa-message-who">
+                                    <span class="qa-message-who-pad">by </span>
+                                    <span class="qa-message-who-data"><a asp-action="Detail" asp-controller="Employee" asp-route-id="@item.CreatedEmployeeId">@item.CreatedEmployee.NameDisplay</a></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="position: absolute;right: 10px;">
+                        @if (ViewBag.IsAdminView == null)
+                        {
+                            <partial name="_DisplayRequestStatus" model="@item.Status" />
+                            @if (item.HasPeriodDefined())
+                            {
+                            <span titie="@item.Start.GetDuration(item.End, User)"><i class="far fa-alarm-exclamation"></i></span>
+                            }
+                        }
+                    </div>
+                </div>
+                <div class="qa-message-content">
+                    @Html.Raw(item.Summary.Escape())
+
+                    @if (item.FileDatas.Any())
+                    {
+                        <br />
+                        <ul>
+                            @foreach (var file in item.FileDatas)
+                            {
+                                <li>
+                                    <a href="@Url.Content(file.FileUrl)" target="_blank">@file.Name</a>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+
+
+                <div class="row">
+                    <div class="col">
+                        @if (item.ViewedCount > 0)
+                        {
+                            <div class="text-left pt-2">
+                                <i class="fa fa-eye"></i> @item.ViewedCount Views
+                            </div>
+                        }
+                    </div>
+                    <div class="col">
+                        @*@if (!item.EmployeeInteractions.FirstOrDefault(x => x.EmployeeId == UserResolverService.GetEmployeeId())?.IsRecieved ?? true)
+                        {
+                            <div class="text-right">
+
+                                <a class="btn btn-outline-info btn-sm mt-1" asp-action="MarkAnnouncement" asp-route-id="@item.Id" data-ajax-update=".modal__container" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-begin="showModal()" data-ajax-success="shideModal('Announcement was marked as read!')">
+                                    Okay, got it!
+                                </a>
+
+                            </div>
+                        }*@
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    }
+
+    @if (Model.Any() == false)
+    {
+        <partial name="_SmartMessages" />
+    }
+</div>
+
+@*<div class="col-md-3">
+        <p>New Companies Registering</p>
+
+        <table class="table">
+            @foreach (var item in Model.NewCompaniesRegistering)
+            {
+                <tr>
+                    <td>
+                        <img src="@Url.Content(item.LogoUrl)" stylee="height" height="30">
+                        @item.Name
+                        <br />
+                        <small>@item.Address</small>
+                    </td>
+                    <td>
+                        <span class="badge">@item.Status</span>
+                        <br />
+
+                        <i class="@(item.IsConfigured ? "text-success ion ion-check-circle" : "text-danger ion ion-alert") float-right"
+                           title="@(item.IsConfigured ? "Company is not configured" : "Configured")"></i>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>*@

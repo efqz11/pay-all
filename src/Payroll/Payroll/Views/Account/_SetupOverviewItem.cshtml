@@ -1,0 +1,94 @@
+﻿@model Payroll.ViewModels.SetupOverviewPageVm
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+<div>
+    <div class="layout-main-landing">
+        <div class="row">
+            <div class="layout-main-landing-header col-sm-12">
+                <div class="border-bottom pb-3 relative mb-5">
+                    <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                        @*<img class="zp-icon-image large content-block-with-icon__icon hidden-xs flex-self-start" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-map-288f54db.svg" alt="">*@
+                        <div class="content-block-with-icon__content">
+                            <h1 class="page-title margin-top-none margin-bottom-none"><span class="fa-2x">@Model.Icon</span> @Model.Title</h1>
+                        </div>
+                    </div><div class="layout-landing-header-details"><p class="layout-landing-header-pricing margin-bottom-none"></p></div>
+                </div>
+            </div>
+        </div>
+        <div class="layout-main-landing-row row margin-bottom-20px">
+
+            <div class="layout-main-landing-column mb-3 col-md-6">
+
+                @foreach (var item in Model.QuestionsAnswers)
+                {
+                    <div class="">
+                        <h4 class="h-5 text-weight-semibold margin-bottom-none">@item.Key</h4>
+                        <div class="pt-2 mb-3">@item.Value</div>
+                    </div>
+                }
+
+                    @*<h4 class="h-5 text-weight-semibold margin-bottom-none"></h4>
+            <strong>Why do we need to ask for this?</strong>
+            <div class="pt-2 mb-3">We need to know where your employees are located in order to calculate and file your taxes accurately. Please enter every address where you have employees physically working in the United States, including remote employees and employees who work from home.</div>*@
+
+                <a class="btn btn-primary" data-ajax="true" data-ajax-update="#main-content" href="@Model.btnLink/@ViewBag.Id" data-ajax-success="startStep()"><span class="gwb_2CP_q">@Model.BtnName</span></a>
+
+                <br>
+                @*<a class="link-summary-underline">I’m not sure what my address is</a>*@
+            </div>
+
+            <div class="layout-main-landing-column mb-2 col-md-6 overview-requirements">
+                <h4 class="h-5 text-weight-semibold margin-bottom-none"></h4>
+                <h4 class="h-5">What to have ready:</h4>
+                <ul class="pt-1 list-icon">
+                    @foreach (var item in Model.ItemsToHaveReady)
+                    {
+                        <li class="list-item"><i class="far fa-check text-success" aria-hidden="true"></i> @item</li>
+                    }
+                </ul>
+                <div>
+                    <h4 class="h-5">Need help?</h4>
+                    <ul class="pt-2 help-center-details  list-bulleted">
+                        @foreach (var item in Model.UserManualLinks)
+                        {
+                            <li class="list-item"> <a class="gusto-link" target="_blank" data-bypass="true" rel="noopener noreferrer">@item.Key</a></li>
+                        }
+                    </ul>
+                </div>
+
+                <div class="requirements__children"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@*<link href="~/css/schedules.css" rel="stylesheet" />
+    <link href="~/css/step-progress.css" rel="stylesheet" />
+
+    <div class="row">
+        <div class="col-md-8">
+            <div id="change-form-wrapper">
+                @if (ViewBag.NewEmployee != null)
+                {
+                    <partial name="_AddOrUpdate" model="Model" />
+                }
+                else
+                {
+                    <partial name="_ChangeOverview" model="Model" />
+                }
+            </div>
+        </div>
+        <div class="col-md-4"></div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.css"  />
+
+
+    @section scripts {
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js" ></script>
+    }*@

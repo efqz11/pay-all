@@ -1,0 +1,254 @@
+﻿@model PayrollVm
+
+@{
+    var daysInStartMonth = DateTime.DaysInMonth(Model.PayrollPeriod.StartDate.Year, Model.PayrollPeriod.StartDate.Month);
+    var colspan = daysInStartMonth - (Model.PayrollPeriod.StartDate.Date.Day - 1);
+    var endColspan = (Model.PayrollPeriod.EndDate.Date - Model.PayrollPeriod.StartDate.Date).TotalDays - colspan;
+    var emp = (Employee)ViewBag.Employee;
+    Layout = "_LayoutCard";
+    ViewBag.CardHeader = emp == null ? "Attendance Records for " + @Model.SelectedDate.Value.ToLocalFormat() : "Worktime and Time Sheet for " + emp.GetSystemName(User);
+    ViewBag.PayrollVm = Model;
+
+}
+
+    <div class="row">
+
+        @if (Model.SelectedDate.HasValue)
+        {
+        <div class="col-md-5">
+            @if (emp == null)
+            {
+                <h6 class="head1">Atteandance Chart</h6>
+                <div id="attendanceChart" style="height:350px"></div>
+            }
+            else
+            {
+                if (Model.RelatedAttendances?.Any() ?? false)
+                {
+                    <partial name="_AttendanceMapView" model="Model.RelatedAttendances.First()" />
+                }
+                else
+                {
+                    <h6 class="head1">Work time not found</h6>
+
+                }
+
+                if ((Model.RelatedAttendances?.Count() ?? 0) > 1)
+                {
+                    <small class="text-muted">@(Model.RelatedAttendances.Count() - 1) more attendance records found</small>
+
+                }
+            }
+        </div>
+            <div class="col-md-7">
+                @if (emp != null)
+                   {
+                    <h6 class="head1">
+                        Time Sheet
+
+                        <a class="btn btn-sm btn-outline-info border-0 float-right" asp-action="AddBioMetricRecord" asp-controller="Payroll" asp-route-attnId="@(Model.RelatedAttendances?.FirstOrDefault()?.Id)" asp-route-onDate="@Model.SelectedDate" asp-route-empId="@emp.Id" asp-route-pId="@Model.PayrolPeriodId" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure" style=""><i class="ion ion-plus"></i> Add New Record </a>
+                    </h6>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Date / Time</th>
+                                <th>State</th>
+                                <th>Location</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var rec in Model.RelatedTimeSheet.OrderBy(a=> a.DateTime))
+                   {
+                                <tr class="item-bioMe-@rec.Id">
+                                    <td></td>
+                                    <td>
+                                        <a class="" asp-action="AddBioMetricRecord" asp-controller="Payroll" asp-route-id="@(rec.Id)" asp-route-pId="@Model.PayrolPeriodId" asp-route-date="@Model.SelectedDate" asp-route-empId="@emp.Id" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure" style="">
+                                        @rec.DateTime.ToSystemFormat(User, true)
+                                        </a>
+                                    </td>
+                                    <td>@rec.BiometricRecordState</td>
+                                    <td>@rec.Location</td>
+                                    <td>
+                                        <a class="btn btn-sm btn-outline-danger float-right" title="at: @rec.AttendanceId" asp-action="RemoveBioMetricRecord" asp-route-id="@rec.Id" asp-route-pId="@Model.PayrolPeriodId" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', 'Record was just removed and time sheet was updated');hideModal();" data-ajax-update="#attendanceDayView" data-ajax-confirm="Are you sure you want to remove this @rec.BiometricRecordState record">Remove</a>
+                                    </td>
+                                </tr>
+                            }
+                   @if (Model.RelatedTimeSheet.Count() <= 0)
+                   {
+                                <tr>
+                                    <td colspan="5">
+                                        No records found on @Model.SelectedDate.ToLocalFormat()
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <h6 class="head1">Employee attendance & Clock records</h6>
+                    @*<p>
+                            <small class="table-filters"><span class="src btn-outline-secondary btn-sm btn" data-target="all">All Items</span> · <span class="src btn-outline-primary btn-sm btn shift" data-target="shift"> <small class="item-c shift"></small> @Model.RelatedAttendances.Count(x => x.CurrentStatus == AttendanceStatus.OnTime) Shifts</span> · <span class="src btn-outline-danger btn-sm btn late" data-target="late"><small class="item-c late"></small> @Model.RelatedAttendances.Count(x => x.CurrentStatus == AttendanceStatus.Late) Late</span> · <span class="src btn-outline-dark btn-sm btn shift" data-target="absent"> <small class="item-c absent"></small> @Model.RelatedAttendances.Count(x => x.CurrentStatus == AttendanceStatus.Absent) Absent</span>  · <span class="src btn-outline-info btn-sm btn overtime" data-target="overtime"><small class="item-c overtime"></small> @Model.RelatedAttendances.Count(x => x.CurrentStatus == AttendanceStatus.Early) Overtime</span></small>
+                        </p>*@
+
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <td class="text-left">Employee</td>
+                                <td>Worked (hrs)</td>
+                                <td>Status</td>
+                                <td></td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var rec in Model.RelatedAttendances)
+                            {
+                                <tr class="att att-stat-@(rec.CurrentStatus)">
+                                    <td class="text-left font-weight-bold" style=" vertical-align: middle;display:flex">
+                                        <img src="@Url.Content(rec.Employee.Avatar ?? DefaultPictures.default_user)" height="30" class="mt-1 pr-2" />
+                                        <div class="name-display pt-1">
+                                            <a asp-action="AttendanceDayView" asp-controller="Payroll" asp-route-date="@rec.Date.Date" asp-route-id="@Model.PayrollPeriod.Id" asp-route-empId="@rec.EmployeeId" data-ajax-begin="clearAttendanceDayView(this)" data-ajax="true" data-ajax-method="GET" data-ajax-update="#attendanceDayView" data-ajax-success="" data-ajax-failure="handleModalPostFailure" id="" style="">
+                                                <span class="">@rec.Employee.GetSystemName(User)</span>
+                                            </a>
+                                            <span class="badge sch-@rec.ShiftColor rounded text-white">@rec.ShiftName</span>
+                                            @foreach (var item in rec.BiometricRecords.OrderByDescending(a => a.DateTime).Take(2))
+                                            {
+                                                <p style="position: relative;top: -4px;" class="mb-0">
+                                                    <small><i class="ion ion-clock"></i> @item.DateTime.ToLocalFormat(true) &middot; @item.BiometricRecordState</small>
+                                                </p>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>@rec.TotalWorkedHours.ToString("N2")</td>
+                                    <td>
+                                        <small>@Html.Raw(rec.StatusString)</small>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            }
+                            @if (Model.RelatedAttendances.Count() <= 0)
+                            {
+                                <tr>
+                                    <td colspan="4">
+                                        No employee attendances records found for @Model.SelectedDate.ToLocalFormat()
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        }
+    </div>
+
+<script>
+    loadEmpddSearch('#empId');
+
+    am4core.ready(function () {
+
+        // Themes begin
+        am4core.useTheme(am4themes_animated);
+        // Themes end
+
+        // Create chart instance
+        var chart = am4core.create("attendanceChart", am4charts.PieChart);
+
+        // Add and configure Series
+        var pieSeries = chart.series.push(new am4charts.PieSeries());
+        pieSeries.dataFields.value = "value";
+        pieSeries.dataFields.category = "key";
+
+        // Let's cut a hole in our Pie chart the size of 30% the radius
+        chart.innerRadius = am4core.percent(30);
+
+        // Put a thick white border around each Slice
+        pieSeries.slices.template.stroke = am4core.color("#fff");
+        pieSeries.slices.template.strokeWidth = 2;
+        pieSeries.slices.template.strokeOpacity = 1;
+        pieSeries.slices.template
+            // change the cursor on hover to make it apparent the object can be interacted with
+            .cursorOverStyle = [
+                {
+                    "property": "cursor",
+                    "value": "pointer"
+                }
+            ];
+
+        pieSeries.alignLabels = false;
+        pieSeries.labels.template.bent = true;
+        pieSeries.labels.template.radius = 3;
+        pieSeries.labels.template.padding(0, 0, 0, 0);
+
+        pieSeries.ticks.template.disabled = true;
+
+        // Create a base filter effect (as if it's not there) for the hover to return to
+        var shadow = pieSeries.slices.template.filters.push(new am4core.DropShadowFilter);
+        shadow.opacity = 0;
+
+        // Create hover state
+        var hoverState = pieSeries.slices.template.states.getKey("hover"); // normally we have to create the hover state, in this case it already
+        // Slightly shift the shadow and make it more prominent on hover
+        var hoverShadow = hoverState.filters.push(new am4core.DropShadowFilter);
+        hoverShadow.opacity = 0.7;
+        hoverShadow.blur = 5;
+
+        pieSeries.slices.template.events.on("hit", function (ev) {
+            let series = ev.target.dataItem.component;
+            console.log("series", series);
+            console.log("ev", ev);
+            console.log("ev.target.isActive", ev.target.isActive);
+            var key = ev.target.dataItem.category;
+
+            var _selRows = $('tr.att-stat-' + key);
+
+            // isactive ? going to expose : back to original]
+            if (ev.target.isActive) {
+                $('tr.att').not(_selRows).fadeOut();
+                _selRows.fadeIn();
+            } else {
+                $('tr.att').not(_selRows).fadeIn();
+                _selRows.fadeIn();
+            }
+
+            //console.log("target.dataItem", ev.target.dataItem);
+            //series.slices.each(function (item) {
+            //    if (item.isActive && item != ev.target) {
+            //        item.isActive = false;
+            //    }
+            //})
+
+            //let columnTemplate = series.slices.template;
+            //if (columnTemplate.states.hasKey("active")) {
+            //    /* "hover" state already exists; use getKey() to retrieve it */
+            //    //hoverState = columnSeries.columns.template.states.getKey("hover");
+
+            //    console.log("has active");
+            //}
+
+
+        });
+
+
+
+        // Add a legend
+        chart.legend = new am4charts.Legend();
+
+        var data = [];
+        @foreach (var item in Model.RelatedAttendanceChart)
+        {
+            <text> 
+            data.push({
+                key: '@item.Key', value: '@item.Value'
+            });
+            </text>
+        }
+        chart.data = data;
+    
+        console.log(data);
+
+    }); // end am4core.ready()
+    hidelogos();
+</script>
+

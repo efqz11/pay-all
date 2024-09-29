@@ -1,0 +1,57 @@
+﻿@model List<AuditLog>
+@{
+    ViewData["Title"] = "Report - Data Review";
+    var showSummary = (ViewBag.ShowSummary != null ? (bool)ViewBag.ShowSummary : false);
+}
+
+@if (Model != null)
+{
+
+    <table class="table table-hover data-container-table">
+        <thead>
+            <tr>
+                @if (!showSummary)
+                {
+                <th></th>
+                <th>KeyId</th>
+                <th>Entity Set Name</th>
+                }
+                <th>Action</th>
+                <th>Summary</th>
+                <th>Created By</th>
+                <th>Created Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    @if (!showSummary) {
+                        
+                        <td class="text-right" width="20px">
+                            <a asp-action="ViewChangedColumns" asp-route-id="@item.Id" class="btn-link" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()"><i class="fal fa-columns"></i></a>
+                        </td>
+                        <td>@item.KeyId</td>
+                        <td>
+                            @item.ModelName
+                        </td>
+                    }
+                    <td>
+                        @item.AuditAction
+                    </td>
+                    <td>
+                        @item.Message
+                    </td>
+                    <td>
+                        <a asp-action="Detail" asp-controller="AppUser" asp-route-id="@item.AuditUserId">
+                            @item.AuditUser
+                        </a>
+                    </td>
+                    <td>
+                        <small>@item.AuditDateTimeUtc.ToSystemFormat(User, true)</small>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

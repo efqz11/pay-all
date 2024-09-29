@@ -1,0 +1,105 @@
+﻿@{
+    ViewData["Title"] = "Import Jobs";
+    var cmpId = (int)ViewBag.Id;
+    //Model.PayrollPeriodEmployees = Model.PayrollPeriodEmployees.OrderBy(x => x.PayrollPeriod.StartDate).ToList();
+    decimal perc = 0;
+    decimal calcChange = 0;
+    decimal previousTotal = 0;
+}
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/step-progress.css" rel="stylesheet" />
+<link href="~/css/calendar-icon.css" rel="stylesheet" />
+
+
+<h2>Import Jobs</h2>
+
+<div class="tab-wrapper bnb">
+    <ul class="tabs scroll">
+        <li class="tab-link active" data-tab="1"><i class=""></i> Import</li>
+        <li class="tab-link" data-tab="2"><i class=""></i> Summary</li>
+        <li class="tab-link" data-tab="3"><i class=""></i> Result</li>
+    </ul>
+</div>
+
+<div class="content-wrapper bnb p-0 pt-1">
+    <div id="tab-1" class="tab-content active">
+        <partial name="_ImportJobsData"  />
+    </div>
+    <div id="tab-2" class="tab-content">
+        <div id="importSumm"></div>
+    </div>
+    <div id="tab-3" class="tab-content">
+    </div>
+</div>
+
+<style>
+    .badge {
+        font-size: 13px;
+        font-weight: 300;
+    }
+</style>
+
+
+@section scripts {
+
+    <script>
+        $(function () {
+            InitializeTabs();
+            $('#btn-load-more').click();
+        });
+
+        //$(document).ready(function () {
+        //    $("div.bhoechie-tab-menu>div.list-group>a").click(function (e) {
+        //        e.preventDefault();
+        //        $(this).siblings('a.active').removeClass("active");
+        //        $(this).addClass("active");
+        //        var index = $(this).index();
+        //        $("div.bhoechie-tab>div.bhoechie-tab-content").removeClass("active");
+        //        $("div.bhoechie-tab>div.bhoechie-tab-content").eq(index).addClass("active");
+        //    });
+        //});
+
+        /// Temp fix to routing issue
+        function GetAppRootPath() {
+            var url = window.location.href;
+            if (url.indexOf('hr') != -1)
+                return '/hr';
+            else return '';
+        }
+
+
+        //function reload() {
+        //    var url = GetAppRootPath() + "/employee/detail/" + $('#empId :selected').val();
+        //    console.log(url);
+
+        //    location.href = url;
+        //}
+
+        function initTimePicker() {
+
+            $(".has-timepicker").flatpickr({
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                time_24hr: true,
+                onClose: function () {
+                    $("#IsSaveOtf").val(true);
+                    //$('#changeworktypeform').attr("data-ajax-success", "sendnotification('success', 'wo')");
+                    $('#changeworktypeform').attr("data-ajax-update", ".modal__container");
+                    $('.btn-save-master').trigger('click');
+                    $("#createnewbreakhour").val(false);
+                }
+            });
+        }
+
+
+        function setActiveTab(item) {
+            var lg = $(item).parents('.list-group');
+            console.log(lg, item);
+            $(lg).find('.list-group-item').removeClass("active");
+            $(item).addClass("active");
+            $('.data-list').html(getLoaderHtml());
+        }
+    </script>
+}

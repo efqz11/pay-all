@@ -1,0 +1,182 @@
+﻿@using System.Reflection;
+
+@{
+    ViewData["Title"] = "Diagnostics";
+    Assembly asm = Assembly.Load("Payroll");
+    var types = new[] { 
+        typeof(Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute), 
+        typeof(Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute),
+        typeof(Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute)
+     };
+    var controlleractionlist = asm.GetTypes()
+            .Where(type => typeof(Microsoft.AspNetCore.Mvc.Controller).IsAssignableFrom(type))
+            .SelectMany(type => type.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public))
+            .Where(method => method.IsPublic && !method.IsDefined(typeof(NonActionAttribute)))
+            // .Where(m => !m.GetCustomAttributes(typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute), true).Any())
+            .Select(x => new { Controller = x.DeclaringType.Name, Action = x.Name, ReturnType = x.ReturnType.Name, Attributes = String.Join(", ", x.GetCustomAttributes().Select(a => a.GetType().Name.Replace("Attribute", "Attribute"))), Param = string.Join(", ", x.GetParameters().Select(a => a.Name + ":" + a.ParameterType.Name )) })
+                        .OrderBy(x => x.Controller).ThenBy(x => x.Action).ToList();
+    //var controlleractionlist2 = asm.GetTypes()
+    //        .Where(type => type.BaseType == typeof(Microsoft.AspNetCore.Mvc.Controller))
+    //        .SelectMany(type => type.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public))
+    //        //.Where(method => method.IsPublic && !method.IsDefined(typeof(NonActionAttribute)))
+    //        // .Where(m => !m.GetCustomAttributes(typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute), true).Any())
+    //        .Select(x => new { Controller = x.DeclaringType.Name, Action = x.Name, ReturnType = x.ReturnType.Name, Attributes = String.Join(",", x.GetCustomAttributes().Select(a => a.GetType().Name.Replace("Attribute", ""))) })
+    //        .OrderBy(x => x.Controller).ThenBy(x => x.Action).ToList();
+            }
+            @inject Payroll.Services.UserResolverService userResilveReso
+            @inject Microsoft.Extensions.Hosting.IHostingEnvironment env
+
+<h1>@ViewData["Title"]</h1>
+
+<p>Use this page to detail your site's privacy policy.</p>
+
+<div class="alert alert-danger">
+    <p><b>Account</b></p>
+    <span class="text-danger">Connection String: @TempData["CONSTIRNG_ACCOUNT"]</span>
+    <br />
+    <span class="text-danger">Server Time: @DateTime.Now</span>
+</div>
+
+<div class="alert alert-danger">
+    <p><b>Master</b></p>
+    <span class="text-danger">Connection String: @TempData["CONSTIRNG_MASTER"]</span>
+</div>
+<div class="alert alert-danger">
+    <p><b>Logs</b></p>
+    <span class="text-danger">Connection String: @TempData["CONSTIRNG_LOG"]</span>
+</div>
+
+<br />
+<h4>User logged in Information</h4>
+<table class="table table-details table-borderless">
+    <tbody>
+        <tr>
+            <td>Environment</td>
+            <td>@env.EnvironmentName</td>
+        </tr>
+        <tr>
+            <td>GetUserID()</td>
+            <td>@userResilveReso.GetUserId()</td>
+        </tr>
+        <tr>
+            <td>GetCompanyId()</td>
+            <td>@userResilveReso.GetCompanyId()</td>
+        </tr>
+        <tr>
+            <td>GetEmployeeId()</td>
+            <td>@userResilveReso.GetEmployeeId()</td>
+        </tr>
+    </tbody>
+</table>
+
+<br>
+
+<table class="table table-striped">
+    <tbody>
+
+        @if (User.Identity.IsAuthenticated)
+        {
+            <tr>
+                <td>IsAuthenticated</td>
+                <td>@User.Identity.IsAuthenticated</td>
+            </tr>
+            <tr>
+                <td>UserId</td>
+                <td>@User.Identity.Name | @userResilveReso.GetUserId()</td>
+            </tr>
+
+            @foreach (var item in User.Claims)
+            {
+                <tr>
+                    <td>@item.Type</td>
+                    <td>@item.Value</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="2">
+                    <span class="text-danger">User not logged in</span>
+                </td>
+            </tr>
+            
+        }
+    </tbody>
+</table>
+
+<h4>System Actions Attributed (@controlleractionlist.Count)</h4>
+<table class="table table-sm">
+    <thead>
+        <tr>
+            @*<th>Controller</th>*@
+            <th>Action</th>
+            <th>Attributes</th>
+            <th>ReturnType</th>
+            <th>Parameters</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in controlleractionlist.GroupBy(a => a.Controller))
+        {
+            <tr>
+                <th colspan="4" class="p-3 text-white bg-aqua">@item.Key</th>
+                @*<td rowspan="@item.Count()">@item.Key</td>
+                <td>@item.First().Action</td>
+                <td>@item.First().Attributes</td>
+                <td>@item.First().ReturnType</td>
+                <td>@item.First().Param</td>*@
+            </tr>
+            @foreach (var it in item)
+            {
+                <tr>
+                    @*<td rowspan="">
+                        @item.Controller
+                    </td>*@
+                    <td>@it.Action</td>
+                    <td>@it.Attributes</td>
+                    <td>@it.ReturnType</td>
+                    <td>@it.Param</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+
+
+
+<div class="modal micromodal-slide" id="modal-1" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+            <header class="modal__header">
+                <h2 class="modal__title" id="modal-1-title">
+                    Micromodal
+                </h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+            </header>
+            <main class="modal__content" id="modal-1-content">
+                <p>
+                    Try hitting the <code>tab</code> key and notice how the focus stays within the modal itself. Also, <code>esc</code> to close modal.
+                </p>
+            </main>
+            <footer class="modal__footer">
+                <button class="modal__btn modal__btn-primary">Continue</button>
+                <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+            </footer>
+        </div>
+    </div>
+</div>
+<br>
+<br>
+<button type="button" data-micromodal-trigger="modal-1">Open modal</button>
+
+
+@section scripts {
+    @*<script>
+        MicroModal.init({
+            awaitOpenAnimation: true, // [7]
+            awaitCloseAnimation: true, // [8]
+        })
+    </script>*@
+}

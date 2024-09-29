@@ -1,0 +1,54 @@
+﻿
+
+<style>
+</style>
+
+
+<div>
+    <div class="layout-main-landing">
+        <div class="row">
+            <div class="layout-main-landing-header col-sm-12">
+                <div class="border-bottom pb-3 relative mb-5">
+                    <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                        @*<img class="zp-icon-image large content-block-with-icon__icon hidden-xs flex-self-start" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-map-288f54db.svg" alt="">*@
+                        <div class="content-block-with-icon__content">
+                            <h1 class="page-title margin-top-none margin-bottom-none">
+                                Setup access
+                            </h1>
+                        </div>
+                    </div><div class="layout-landing-header-details"><p class="layout-landing-header-pricing margin-bottom-none"></p></div>
+                </div>
+            </div>
+        </div>
+        <div class="layout-main-landing-row row margin-bottom-20px">
+
+            <form asp-action="SetupRolesForCompany" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" data-ajax-success="sendNotification('Company roles were just configured')" data-ajax-failure="handleModalPostFailure" id="form">
+                <div class="layout-main-landing-column mb-3 col-md-8">
+                    <h4 class="pb-4 fs-unmask">Choose roles that you wish to include?</h4>
+                    <p class="text-weight-normal">
+                        Select all that apply
+                    </p>
+                    <input type="hidden" value="@ViewBag.Id" name="id" />
+                    <div class="mt-2">
+                        @foreach (var item in typeof(Roles.Company).GetFields())
+                        {
+                            <div class="form-group">
+                                <label class="custom-control custom-checkbox custom-checkbox-large">
+                                    <input type="checkbox" name="roles" class=" custom-control-input" onchange="" value="@item.Name" @(item.Name == Roles.Company.all_employees ? "checked disabled" : "")>
+                                    <span class="custom-control-label text-weight-bold">
+                                        @item.Name
+                                    </span>
+                                    <div class="text-muted">@Roles.Company.GetDescription(item.Name)</div>
+                                </label>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+                    <button class="btn btn-lg btn-outline-primary  mr-2" type="button">Back</button>
+                    <button class="btn btn-lg btn-primary " type="submit">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,160 @@
+﻿@*@model List<WeeklyEmployeeShiftVm>*@
+@model RosterVm
+
+@{
+    Layout = "_LayoutCard";
+    ViewBag.CardHeader = Model.SelectedMenuString;
+
+    var worktimes = (Dictionary<int, CompanyWorkTime>)ViewBag.WorkTime;
+}
+
+<form asp-action="Process" asp-controller="Roster" data-ajax="true" data-ajax-method="POST" data-ajax-update="#card-placeholder" data-ajax-failure="handleModalPostFailure" data-ajax-success="setActiveTabByIndex(3)">
+
+    <input type="hidden" asp-for="SelectedMenu" />
+    <input type="hidden" asp-for="ScheduleId" />
+
+
+    <div class="mt-3" id="weekly-schedule-table-container">
+
+
+        <table class="table table-schedule" id="weekly-table33">
+            <thead>
+                <tr>
+                    <td class="text-left">
+                        Employee
+                        <br />
+
+                        <div style="display:flex">
+                            <small>For example </small>
+                        </div>
+                    </td>
+                    @for (int i = 1; i <= 7; i++)
+                    {
+                        <td class="">
+                            <p class="text-center">Day @i</p>
+
+                            @*<div class="row">
+                                        <div class="col pl-2 text-right">
+                                            <h5>Day @i</h5>
+                                        </div>
+                                        <div class="col text-left pl-0">
+                                            <small>@start.ToString("ddd").ToUpper()</small>
+                                <div class="clearfix"></div>
+                                <small class="text-muted">@start.ToString("MMM").ToString()</small>
+                                        </div>
+                                    </div>*@
+                        </td>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    var weeks = (Model.DaysData?.Count() ?? 0) == 0 ? 0 : Math.Ceiling(Model.DaysData.Count() / 7m);
+                    var skip = 0;
+                    var daysDataIndex = 0;
+                }
+
+                @for (int w = 1; w <= weeks; w++)
+                {
+                    <tr>
+                        <td class="text-left font-weight-bold" style=" vertical-align: middle;display:flex">
+                            <div class="name-display pt-1">
+                                <span class="">Week @w</span>
+                                <br>
+                                <small style="position: relative;top: -4px;">
+
+                                    <a asp-action="RemovePatternWeek" asp-controller="Roster" asp-route-week="@w" asp-route-id="@Model.ScheduleId" data-ajax="true" data-ajax-update="#card-placeholder" data-ajax-begin="" data-ajax-method="POST" aria-label="Change attendance record" role="tooltip" data-microtip-position="top" class="hide" style="" data-ajax-confirm="Are you sure you want to remove this Weeks data?">
+                                        Remove
+                                    </a>
+                                </small>
+                            </div>
+                        </td>
+                        @*@item.Attendances.Count*@
+                        @*<select class="form-control" asp-items="@new SelectList(worktimes)"></select>*@
+                        @if (Model.DaysData.Skip(skip).Take(7).Any())
+                        {
+                            foreach (var attn in Model.DaysData.Skip(skip).Take(7))
+                            {
+
+                                <td class="text-left cell-attndance">
+                                    @if (worktimes.ContainsKey(attn.ShiftId))
+                                    {
+                                        <div class="item item-@attn.ShiftId @worktimes[attn.ShiftId].ColorCombination"
+                                             onclick="$(this).next().click()">
+                                            <small>
+                                                <span>
+                                                    @*@if (attn.IsOvertime)
+                                                        {
+                                                            <i class="fa fa-hourglass-start"></i>
+                                                        }
+                                                        @(attn.IsOvertime ? "Overtime" : @attn.ShiftName)*@
+
+                                                    @worktimes[attn.ShiftId].ShiftName
+                                                    &nbsp;
+                                                    (@attn.Day)
+                                                    @*@Html.Raw(attn.CurrentStatus != AttendanceStatus.Created ? @attn.StatusString : "")*@
+                                                </span>
+                                                @*@item.Attendances.First(x => x.Date == start.Date).CompanyWorkType*@
+                                                <br />
+                                                @worktimes[attn.ShiftId].Duration
+                                            </small>
+                                        </div>
+                                        <a class="text-muted" asp-action="AddShiftOnDay" asp-route-id="@Model.ScheduleId" asp-route-day="@attn.Day" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure" style="display:none"><i class="ion ion-plus"></i> Add </a>
+                                    }
+                                    else
+                                    {
+
+                                        <div class="item empty" onclick="$(this).next().click()">
+                                            <small>
+                                                Off
+                                                <br />
+                                                <span>&nbsp;</span>
+                                            </small>
+                                        </div>
+                                        <a class="text-muted" asp-action="AddShiftOnDay" asp-route-id="@Model.ScheduleId" asp-route-day="@attn.Day" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure" style="display:none"><i class="ion ion-plus"></i> Add </a>
+                                    }
+
+                                    @*<span>@attn.Day - Shift @attn.ShiftId</span>*@
+                                </td>
+                            }
+                            //var attn = @item.Attendances.First(x => x.Date == start.Date);
+
+                        }
+                    </tr>
+
+
+                    skip += 7;
+                }
+
+
+
+                <tr>
+                    <td colspan="8">
+                        <div class="p-2 text-lead text-left" style="width:100%">
+                            @*<p class="text-lead mt-5">Add new week</p>*@
+                            <a class="btn btn-primary btn-sm" asp-action="AddPatternWeek" asp-route-id="@Model.ScheduleId" data-ajax-method="GET" data-ajax-failure="HandleModalPostFailure" data-ajax-update="#card-placeholder" data-ajax="true"><i class="ion ion-plus"></i> Add another week</a>
+
+
+                            <a class="btn btn-danger btn-sm" asp-action="RemoveWholePattern" asp-route-id="@Model.ScheduleId" data-ajax-method="POST" data-ajax-failure="HandleModalPostFailure" data-ajax-update="#card-placeholder" data-ajax="true"><i class="fa fa-minus-circle"></i> Remove All</a>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+    </div>
+
+
+    <div class="card-footer ">
+        <div class="btn-toolbar float-left" style="">
+            <span>@Model._PattenString</span>
+        </div>
+        <div class="btn-toolbar float-right">
+            <a class="btn btn-lg btn-light " asp-action="Process" asp-route-id="@Model.ScheduleId" asp-route-t="1" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-update="#card-placeholder" data-ajax-success="setActiveTabByIndex(1)"><i class="fa fa-arrow-left"></i> &nbsp; Back</a>
+
+            <button type="submit" class="btn btn-primary btn-lg">Next &nbsp; <i class="fa fa-arrow-right"></i></button>
+        </div>
+    </div>
+</form>
+

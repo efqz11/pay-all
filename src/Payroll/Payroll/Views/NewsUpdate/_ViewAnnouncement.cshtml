@@ -1,0 +1,31 @@
+﻿@model Announcement
+@{
+    var noti = (Notification)ViewBag.Noti;
+}
+@inject Payroll.Database.PayrollDbContext dbContext
+@inject  UserResolverService UserResolverService
+
+
+<form asp-action="MarkAnnouncement" asp-controller="NewsUpdate" asp-route-id="@Model.Id" data-ajax="true" data-ajax-method="POST" data-ajax-update="#announcementArea" data-ajax-success="shideModal('Announcement was just marked as read')" id="userForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            View Announcement
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <partial name="_ShowAlertMessage" />
+
+        <partial name="_Announcements" model="new List<Announcement>() { Model }" />
+    </main>
+    <footer class="modal__footer">
+        @if (noti != null && !noti.IsRead)
+        {
+            <button type="submit" class="modal__btn modal__btn-primary">
+                <i class="fa fa-user-shield"></i> Okay
+            </button>
+        }
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>

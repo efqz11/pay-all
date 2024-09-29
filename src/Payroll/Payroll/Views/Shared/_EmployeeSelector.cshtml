@@ -1,0 +1,182 @@
+﻿@model EmployeeSelectorVm
+@inject Payroll.Database.PayrollDbContext dbContext
+
+<style>
+    .select2-container {
+        width: 100% !important;
+    }
+</style>
+<form asp-action="SelectEmployees" asp-controller="Base" data-ajax="true" data-ajax-method="POST" data-ajax-update="@Model.Update" data-ajax-begin="showModal()" data-ajax-success="sendNotification('success', 'Employee selection was just saved');@Model.OnSuccess" id="addUpdateConnectionForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Action" />
+    <input type="hidden" asp-for="Controller" />
+    <input type="hidden" asp-for="RouteDataId" />
+    <input type="hidden" asp-for="GroupByCategory" />
+    <input type="hidden" asp-for="GroupByCategoryValue" />
+    <input type="hidden" asp-for="IsEditView" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            Select Employee(s)
+            <br />
+            <small>
+            </small>
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+
+    <main class="modal__content" id="modal-1-content">
+        <div class="">
+        <p class="text-right"><i class="fad fa-users"></i> <span id="counter">@(Model.TotalMatchedEmployees)</span> Employees matched</p>  
+
+            <div class="accordion employee-selector" id="accordionExample">
+                <div class="card">
+                    <div class="card-header" id="headingOne">
+                        <h2 class="mb-0 collapsed" data-toggle="collapse" data-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                            Department
+                        </h2>
+                    </div>
+
+                    <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample" data-cat="@GroupByCategory.Department">
+                        <div class="card-body">
+                            @foreach (var item in Model.ByDept)
+                            {
+                                <div class="form-group">
+                                    <label class="custom-control custom-checkbox">
+                                        <input type="checkbox" name="dept_@item.Item1" data-id="@item.Item1" value="False" class="custom-control-input single-role" data-cnt="@item.Item3" onchange="calculateTotal(this)">
+                                        <span class="custom-control-label" for="dept_@item.Item1">
+                                            @item.Item2
+                                        </span>
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" id="headingTwo">
+                        <h2 class="mb-0 collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                            Location
+                        </h2>
+                    </div>
+                    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample" data-cat="@GroupByCategory.Location">
+                        <div class="card-body">
+                            @foreach (var item in Model.ByLocation)
+                            {
+                                <div class="form-group">
+                                    <label class="custom-control custom-checkbox">
+                                        <input type="checkbox" name="loc_@item.Item1" data-id="@item.Item1" value="False" class="custom-control-input single-role" data-cnt="@item.Item3" onchange="calculateTotal(this)">
+                                        <span class="custom-control-label" for="loc_@item.Item1">
+                                            @item.Item2
+                                        </span>
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" id="headingThree">
+                        <h2 class="mb-0 collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                            Job Type
+                        </h2>
+                    </div>
+                    <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample" data-cat="@GroupByCategory.JobType">
+                        <div class="card-body">
+                            @foreach (var item in Model.ByJobType)
+                            {
+                                <div class="form-group">
+                                    <label class="custom-control custom-checkbox">
+                                        <input type="checkbox" name="emps_@item.Item1" data-id="@item.Item1" value="False" class="custom-control-input single-role" data-cnt="@item.Item3" onchange="calculateTotal(this)">
+                                        <span class="custom-control-label" for="emps_@item.Item1">
+                                            @item.Item2.GetDisplayName()
+                                        </span>
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header" id="headingFour">
+                        <h2 class="mb-0 collapsed" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                            Choose
+                        </h2>
+                    </div>
+                    <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionExample" data-cat="@GroupByCategory.ChooseEmployees">
+                        <div class="card-body">
+                            <div class="form-group dept-emp">
+                                <select name="EmployeeIds" id="EmployeeIds" class="form-control" multiple style="width:100%" data-initvalue ="@(Model.ChosenEmployeeDataString)">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary" onclick="setFields()" >Next</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>
+
+
+<script>
+    if ('@Model.IsEditView' === "True") {
+        console.log('IsEditView');
+        var area = $('.collapse[data-cat="@Model.GroupByCategory"]');
+        area.collapse('show');
+        @foreach(var item in Model.GroupByCategoryValue.Split(","))
+        {
+            <text> $(area).find('input[data-id="@item"]').click(); </text>
+        }
+
+        $('#counter').html("@Model.TotalMatchedEmployees");
+    }
+
+    loadEmpddSearch("#EmployeeIds");
+    $('.collapse').on('show.bs.collapse', function () {
+        //$(this).siblings('.panel-heading').addClass('active');
+        console.log('show');
+        console.log($(this));
+    });
+
+    $('.collapse').on('hide.bs.collapse', function () {
+        console.log('hide');
+        $('#counter').html("0");
+        //$(this).siblings('.panel-heading').removeClass('active');
+    });
+    
+
+    function calculateTotal(e) {
+        var parent = $(e).parents('.collapse');
+        console.log('calculating...', e, parent);
+        $(parent).find('input :checked');
+
+        var someArray = $(parent).find('input:checked').map(function () {
+            return parseInt($(this).data('cnt') || 0);
+        }).get();
+        console.log('someArray', someArray);
+        var total = 0;
+        for (var i = 0; i < someArray.length; i++) {
+            total += someArray[i] << 0;
+        }
+
+        $('#counter').html(total);
+    }
+
+    function setFields() {
+        if ($('.collapse.show').length > 0) {
+            $('#GroupByCategory').val($('.collapse.show').data('cat'));
+
+            var ids = $('.collapse.show').find('input:checked').map(function () {
+                return $(this).data('id');
+            }).get().join(',');
+            $('#GroupByCategoryValue').val(ids);
+        }
+    }
+
+
+</script>

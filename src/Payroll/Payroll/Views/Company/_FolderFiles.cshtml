@@ -1,0 +1,50 @@
+﻿@model Company
+
+
+<a class="" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddFile" asp-route-id="@Model.Id">
+    <i class="fa fa-plus-circle"></i> Add File
+</a>
+
+<div class="box">
+    <ul class="directory-list">
+        @foreach (var folder in Model.CompanyFolders)
+        {
+            <li>
+                @folder.Name
+                <ul>
+                    @foreach (var file in folder.CompanyFiles)
+                    {
+                        <li>@file.Name</li>
+                    }
+                </ul>
+            </li>
+        }
+    </ul>
+</div>
+
+
+@*<script>
+    // get all folders in our .directory-list
+    var allFolders = $(".directory-list li > ul");
+    allFolders.each(function () {
+        // add the folder class to the parent <li>
+        var folderAndName = $(this).parent();
+        folderAndName.addClass("folder");
+
+        // backup this inner <ul>
+        var backupOfThisFolder = $(this);
+        // then delete it
+        $(this).remove();
+        // add an <a> tag to whats left ie. the folder name
+        folderAndName.wrapInner("<a href='#' />");
+        // then put the inner <ul> back
+        folderAndName.append(backupOfThisFolder);
+
+        // now add a slideToggle to the <a> we just added
+        folderAndName.find("a").click(function (e) {
+            $(this).siblings("ul").slideToggle("slow");
+            e.preventDefault();
+        });
+    });
+
+</script>*@

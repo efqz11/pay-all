@@ -1,0 +1,227 @@
+/*#finals-table th.td-adj,
+    #finals-table td.td-adj{
+        display: none;
+    }*/
+.tab-content {
+  color: #212529 !important; }
+
+.select2-selection.select2-selection--single {
+  font-size: 0.875rem;
+  text-align: left; }
+
+.select2-selection.select2-selection--single span.select2-selection__rendered {
+  line-height: 2; }
+
+#contractMainTable_pp tbody tr td {
+  vertical-align: middle; }
+
+tbody.one-emp-detail td div.item-c {
+  color: white !important;
+  height: auto !important; }
+
+.table-payAdj thead th {
+  border-top: 0px solid #dee2e6;
+  /*font-weight: 400 !important;
+      font-size: 90% !important;*/
+  text-align: left;
+  padding: 0.75rem; }
+
+.table-payAdj tr {
+  display: table-row; }
+
+.table-payAdj td {
+  vertical-align: middle;
+  text-align: left;
+  /*border-top: none !important;*/
+  /*padding: 2px*/ }
+
+.table-payAdj td:first-child {
+  border-top: 1px solid #dee2e6; }
+
+.table-payAdj td .name {
+  text-align: left;
+  padding: 2px; }
+
+.table-filters span {
+  display: inline-flex; }
+
+.table-filters span .item-c {
+  width: 25px;
+  line-height: 9;
+  margin-top: 5px;
+  margin-right: 9px;
+  border: 1px solid white; }
+
+.table-filters span .item-c.active {
+  background-color: white; }
+
+.table-filters span .item-c:hover {
+  background-color: white; }
+
+.btn.shift,
+.btn.overtime,
+.btn.dayoff,
+.btn.absent {
+  display: inline-flex; }
+
+.item-c {
+  border-radius: 3px;
+  /*padding: 5px 7px;*/
+  /* text-decoration: none; */
+  cursor: pointer;
+  transition: all 0.5s ease-out;
+  display: block;
+  line-height: 1.5;
+  height: 7px;
+  margin-bottom: 3px !important;
+  opacity: 0.6; }
+
+.item-c:hover {
+  opacity: 1; }
+
+.item-c.shift {
+  background-color: #007bff; }
+
+.item-c.absent {
+  background-color: #343a40 !important; }
+
+.item-c.overtime {
+  background-color: #17a2b8 !important; }
+
+.item-c.late {
+  background-color: red !important; }
+
+.item-c.dayoff {
+  background-color: #e6a60d; }
+
+.item-c.work-c {
+  background-color: #28a745; }
+
+.item-c.work-d {
+  background-color: #540bdd; }
+
+.btn-outline-purple {
+  color: #540bdd;
+  border-color: #3d02ad; }
+
+.text-purple {
+  color: #540bdd; }
+
+.btn-outline-purple:hover {
+  color: white;
+  background-color: #540bdd; }
+
+/*.table-schedule td {
+        padding-left: 0px !important;
+        padding-right: 0px !important;
+    }*/
+/*.cell-attndance{
+        width:35px !important;
+    }*/
+table#bioMetricDataInP tr.row-hrs td {
+  left: -4px !important; }
+
+/*.card-header .p-actions span.title {
+        font-size: 12pt;
+        font-weight: 500;
+        color: #5c5a59;
+    }*/
+.head1 {
+  font-size: 15px;
+  color: #4e4e4e;
+  font-weight: 500 !important;
+  margin-bottom: 10px !important; }
+
+.card {
+  box-shadow: 0px 10px 20px -10px rgba(0, 0, 0, 0.75); }
+
+.table-schedule tr td:not(:first-child) {
+  border-left: none; }
+
+table#tableAttendance tr td.selected {
+  width: 20px;
+  background-color: #3590e0;
+  color: white;
+  border-radius: 6px; }
+
+table#tableAttendance tr td.date:hover {
+  border-radius: 6px;
+  background-color: #f1f4f4; }
+
+table#tableAttendance tr td.selected .text-muted {
+  color: white !important; }
+
+table#tableAttendance tr td.selected small {
+  color: white !important; }
+
+.tab-link {
+  padding: 10px 25px;
+  letter-spacing: 0px; }
+
+.table-master-data thead tr th {
+  border: none;
+  /*font-size: 90%;*/
+  padding: 0.75rem; }
+
+.table-master-data tbody tr td {
+  vertical-align: middle; }
+
+.table-master-data tbody tr td:first-child {
+  display: flex;
+  width: 200px;
+  table-layout: fixed; }
+
+.table-master-data tbody tr td span {
+  /*font-size: 12px;
+          font-weight: 400;*/ }
+
+.table-master-data tfoot tr td {
+  padding: 0.75rem; }
+
+.table-master-data tfoot tr td b {
+  padding-left: 1px;
+  padding-right: 1px;
+  /*font-size: 12px;
+      font-weight: 700;*/ }
+
+.text-rotate {
+  writing-mode: vertical-rl;
+  float: right;
+  transform: rotate(180deg); }
+
+.dirty {
+  background-color: #ffffca; }
+
+#tblCalculationTable {
+  text-align: left;
+  position: relative;
+  border-collapse: collapse; }
+
+/* The sticky class is added to the header with JS when it reaches its scroll position */
+.sticky {
+  position: fixed;
+  top: 0;
+  width: 100%; }
+
+/* Add some top padding to the page content to prevent sudden quick movement (as the header gets a new position at the top of the page (position:fixed and top:0) */
+.sticky + .content {
+  padding-top: 102px; }
+
+.list-group-item.active {
+  color: white !important; }
+
+.list-group-item {
+  cursor: pointer;
+  border-radius: 7px;
+  border: none !important; }
+
+.wrapper {
+  width: auto !important; }
+
+.wrapper a {
+  text-decoration: none !important; }
+
+.wrapper .inside:hover {
+  height: 100%; }
+
+/*# sourceMappingURL=payroll.css.map */

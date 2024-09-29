@@ -1,0 +1,59 @@
+﻿@model List<PayrollPeriodEmployee>
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+
+@{
+    var firstRow = Model.FirstOrDefault() == null ? null : Model.FirstOrDefault();
+    if (firstRow != null)
+    {
+        firstRow.VariationKeyValues = firstRow.VariationKeyValues.OrderBy(x => x.MultiOrder).ToList();
+    }
+}
+
+@if (Model.Any())
+{
+
+    @foreach (var item in Model)
+    //.OrderBy(x=> x.Employee.Department.Name).ThenBy(x=>  x.Employee.Name))
+    {
+        <tr>
+            <td class="text-left font-weight-bold" style=" vertical-align: middle;display:flex;width:300px;table-layout: fixed">
+                <div class="image-container">
+                    <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.Employee.Id">
+                        <img src="@Url.Content(item.Employee.Avatar ?? DefaultPictures.default_user)" height="35" class="mt-1 mr-2 rounded-circle" />
+                    </a>
+                </div>
+                <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.Employee.Id">
+                    <div class="name-display pt-1">
+                        <span class="">@item.Employee.EmpID &sim; @item.Employee.GetSystemName(User)</span>
+                        <br>
+                        <small class="text-dark" style="position: relative;top: -4px;">@item.Employee.JobTitle &middot; @item.Employee.Department.Name</small>
+                    </div>
+                </a>
+            </td>
+            @*<td>
+                @(item.Employee?.Department?.Name ?? "NA")
+            </td>*@
+            @foreach (var add in firstRow.VariationKeyValues.Where(v => v.Type == VariationType.ConstantAddition || v.Type == VariationType.VariableAddition))
+            {
+                <td class="p-2 td-adj">
+                    <span >
+                    @item.VariationKeyValues.Where(x => (x.Type == VariationType.ConstantAddition || x.Type == VariationType.VariableAddition) && x.KeyId == add.KeyId)?.Sum(x => x.Value).ToSystemFormat(User)</span>
+                </td>
+            }
+            <td><span class="font-weight-bold p-2 text-bold">@item.GrossPay.ToSystemFormat(User)</span></td>
+            @foreach (var ddd in firstRow.VariationKeyValues.Where(v => v.Type == VariationType.ConstantDeduction || v.Type == VariationType.VariableDeduction))
+            {
+                <td class="p-2 td-adj">
+                    <span>
+                        @(item.VariationKeyValues.Where(x => (x.Type == VariationType.ConstantDeduction || x.Type == VariationType.VariableDeduction) && x.KeyId == ddd.KeyId)?.Sum(x => x.Value).ToSystemFormat(User))
+                    </span>
+                </td>
+            }
+            <td><span class="font-weight-bold p-2 text-bold">@item.NetSalary.ToSystemFormat(User)</span></td>
+        </tr>
+    }
+}

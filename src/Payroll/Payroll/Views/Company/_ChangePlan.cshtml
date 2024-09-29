@@ -1,0 +1,233 @@
+﻿@model Company 
+<style>
+    .gwb_1gvhf {
+        --templateColumnsMd: repeat(3, 1fr);
+        --templateColumnsSm: 1fr;
+        --columnGap: 2rem;
+        --display: grid;
+        grid-template-columns: var(--templateColumnsMd);
+        display: var(--display);
+        column-gap: var(--columnGap);
+    }
+
+    .radioCard-module__radiocardCard___20ka_ {
+        align-items: stretch;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background: transparent;
+        border: 1px solid #dcdcdc;
+        border-radius: 4px;
+        display: inline-block;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        position: relative;
+        text-align: left;
+        transition: border-color .3s ease;
+        width: 100%;
+    }
+
+    .radioCard-module__radiocardFooter___3O8qs {
+        background-color: #fbfafa;
+        border-bottom-left-radius: 4px;
+        border-bottom-right-radius: 4px;
+        border-top: 1px solid #dcdcdc;
+        display: flex;
+        justify-content: center;
+        margin: auto -20px -20px;
+        padding: 10px;
+        transition: border-color .3s ease;
+    }
+
+    .tier-cards-item {
+        display: flex;
+        width: 100%;
+    }
+
+    .radioCard-module__radiocard___1fXLz {
+        display: grid;
+        grid-auto-rows: auto 1fr;
+        width: 100%;
+    }
+
+    .hide {
+        display: none;
+    }
+</style>
+
+
+<form asp-action="ChoosePlan" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" data-ajax-success="sendNotification('success', 'Day off was just @(Model == null || Model.Id == 0 ? "created" : "updated")'); hideModal()" id="form" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    @if (Model != null && Model.Id > 0)
+    {
+        <input asp-for="Id" type="hidden" />
+    }
+    @*<input asp-for="CompanyId" type="hidden" />*@
+    <nav aria-label="Breadcrumb">
+        <ol class="breadcrumb">
+            <li class=""><a class="gusto-link" href="/company/settings/billing">Settings</a></li>
+            <li class="active" aria-current="page">Select a plan</li>
+        </ol>
+    </nav>
+
+    @*<h1 class="title page-title border-bottom padding-bottom-10px margin-bottom-30px">Select Plan</h1>*@
+
+    <div class="title page-title border-bottom padding-bottom-10px mb-3 text-center">
+        <div class="btn-group d-inline-flex">
+            <button class="btn btn-lg btn-primary btnPlanner" type="button">Select Plan</button>
+            <button class="btn btn-lg btnPlanner own" type="button">Make your own plan</button>
+        </div>
+    </div>
+
+
+
+    <div></div>
+    <div class="gwb_1gvhf gwb_16ApM gwb_sr9ac gwb_2xaD_ select-plan" style="--templateColumnsMd:repeat(3, 1fr); --templateColumnsSm:1fr; --columnGap:2rem; --display:grid;">
+        <section class="tier-cards-item card-button">
+            <div class="radioCard-module__radiocard___1fXLz tier-radiocard">
+                <div class="radioCard-module__radiocardCard___20ka_ card-button card-default" role="radio" type="button" aria-checked="false">
+                    <h3 id=""></h3><div class="radioCard-module__radiocardContentMain___27XT6">
+                        <div class="card-header pt-3 pb-3 pl-0 bg-transparent border-0"><h4 class="tier-card-title">Core</h4></div><p class="tier-description c-salt-900">Smart, streamlined payroll and benefits built for smaller teams.</p><div class="margin-top-25px margin-bottom-30px c-salt-900"><div class="margin-bottom-5px"> <span class="c-salt-1000 text-weight-bold h-3">$39/mo</span> base price</div><div>plus <span class="c-salt-1000 text-weight-bold h-5">$6/mo</span> per person</div></div><p class="c-salt-700">Features</p><ul class="c-salt-900 list-bulleted"><li class="margin-bottom-10px list-item"><span>Full-service payroll across all 50 states</span></li><li class="margin-bottom-10px list-item"><span>Employee self service and profiles</span></li><li class="margin-bottom-10px list-item"><span>Workers' comp administration</span></li><li class="margin-bottom-10px list-item"><span>2-day direct deposit</span></li><li class="margin-bottom-10px list-item"><span>Basic PTO policies</span></li><li class="margin-bottom-10px list-item"><span>Best-in-class support</span></li><li class="margin-bottom-10px list-item"><span>Employee onboarding tools</span></li><li class="margin-bottom-10px list-item"><span>Accounting and time tracking integrations</span></li><li class="margin-bottom-10px list-item"><span>Payroll on AutoPilot®</span></li><li class="margin-bottom-10px list-item"><span>Health benefits administration</span></li><li class="margin-bottom-10px list-item"><span>Employee access to Gusto Cashout™<div class="popover-container" role="tooltip"><div><i class="zp-icon popover-icon c-kale-500 zp-icon-circle-info" aria-hidden="true"></i></div></div></span></li><li class="margin-bottom-10px list-item"><span>Employee offers and document management</span></li></ul>
+                    </div><div class="radioCard-module__radiocardFooter___3O8qs"><div class="radio"><input type="radio" class="gusto-radio-input radioCard-module__radiocardInput___rHxe-" readonly="" aria-hidden="true" tabindex="-1" group="plan"></div></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="tier-cards-item card-button"><div class="radioCard-module__radiocard___1fXLz tier-radiocard"><div class="radioCard-module__radiocardCard___20ka_ card-button card-default" role="radio" type="button" aria-checked="false"><h3 id=""></h3><div class="radioCard-module__radiocardContentMain___27XT6"><div class="card-header pt-3 pb-3 pl-0 bg-transparent border-0"><h4 class="tier-card-title">Complete</h4></div><p class="tier-description c-salt-900">Better team tools to create a great place to work.</p><div class="margin-top-25px margin-bottom-30px c-salt-900"><div class="margin-bottom-5px"> <span class="c-salt-1000 text-weight-bold h-3">$39/mo</span> base price</div><div>plus <span class="c-salt-1000 text-weight-bold h-5">$12/mo</span> per person</div></div><p class="c-salt-700">Features</p><ul class="c-salt-900 list-bulleted"><li class="margin-bottom-10px list-item"><span>Full-service payroll across all 50 states</span></li><li class="margin-bottom-10px list-item"><span>Employee self service and profiles</span></li><li class="margin-bottom-10px list-item"><span>Workers' comp administration</span></li><li class="margin-bottom-10px list-item"><span>Next-day direct deposit</span></li><li class="margin-bottom-10px list-item"><span>Advanced PTO policies and time-off requests</span></li><li class="margin-bottom-10px list-item"><span>Best-in-class support</span></li><li class="margin-bottom-10px list-item"><span>Customizable employee onboarding tools</span></li><li class="margin-bottom-10px list-item"><span>Accounting and time tracking integrations</span></li><li class="margin-bottom-10px list-item"><span>Payroll on AutoPilot®</span></li><li class="margin-bottom-10px list-item"><span>Health benefits administration</span></li><li class="margin-bottom-10px list-item"><span>Employee access to Gusto Cashout™<div class="popover-container" role="tooltip"><div><i class="zp-icon popover-icon c-kale-500 zp-icon-circle-info" aria-hidden="true"></i></div></div></span></li><li class="margin-bottom-10px list-item"><span>Employee offers and document management</span></li><li class="margin-bottom-10px list-item"><span>Permissions</span></li><li class="margin-bottom-10px list-item"><span>Employee directory and surveys</span></li><li class="margin-bottom-10px list-item"><span>Time management tools</span></li></ul></div><div class="radioCard-module__radiocardFooter___3O8qs"><div class="radio"><input type="radio" class="gusto-radio-input radioCard-module__radiocardInput___rHxe-" readonly="" aria-hidden="true" tabindex="-1" group="plan"></div></div></div></div></section>
+
+
+        <section class="tier-cards-item card-button"><div class="radioCard-module__radiocard___1fXLz radioCard-module__radiocardSelected___2N7sh tier-radiocard selected"><div class="radioCard-module__radiocardCard___20ka_ card-button card-default" role="radio" type="button" aria-checked="true"><h3 id=""></h3><div class="radioCard-module__radiocardContentMain___27XT6"><div class="card-header pt-3 pb-3 pl-0 bg-transparent border-0"><span class="card-header-status default">Current Plan</span><h4 class="tier-card-title">Concierge</h4></div><p class="tier-description c-salt-900">Certified HR pros and resources for even more peace of mind.</p><div class="margin-top-25px margin-bottom-30px c-salt-900"><div class="margin-bottom-5px"> <span class="c-salt-1000 text-weight-bold h-3">$149/mo</span> base price</div><div>plus <span class="c-salt-1000 text-weight-bold h-5">$12/mo</span> per person</div></div><p class="c-salt-700">Features</p><ul class="c-salt-900 list-bulleted"><li class="margin-bottom-10px list-item"><span>Full-service payroll across all 50 states</span></li><li class="margin-bottom-10px list-item"><span>Employee self service and profiles</span></li><li class="margin-bottom-10px list-item"><span>Workers' comp administration</span></li><li class="margin-bottom-10px list-item"><span>Next-day direct deposit</span></li><li class="margin-bottom-10px list-item"><span>Advanced PTO policies and time-off requests</span></li><li class="margin-bottom-10px list-item"><span>Dedicated best-in-class support</span></li><li class="margin-bottom-10px list-item"><span>Customizable employee onboarding tools</span></li><li class="margin-bottom-10px list-item"><span>Accounting and time tracking integrations</span></li><li class="margin-bottom-10px list-item"><span>Payroll on AutoPilot®</span></li><li class="margin-bottom-10px list-item"><span>Health benefits administration</span></li><li class="margin-bottom-10px list-item"><span>Employee access to Gusto Cashout™<div class="popover-container" role="tooltip"><div><i class="zp-icon popover-icon c-kale-500 zp-icon-circle-info" aria-hidden="true"></i></div></div></span></li><li class="margin-bottom-10px list-item"><span>Employee offers and document management</span></li><li class="margin-bottom-10px list-item"><span>Permissions</span></li><li class="margin-bottom-10px list-item"><span>Employee directory and surveys</span></li><li class="margin-bottom-10px list-item"><span>Time management tools</span></li><li class="margin-bottom-10px list-item"><span>Certified HR pros</span></li><li class="margin-bottom-10px list-item"><span>HR resource center</span></li></ul></div><div class="radioCard-module__radiocardFooter___3O8qs"><div class="radio"><input type="radio" class="gusto-radio-input radioCard-module__radiocardInput___rHxe-" readonly="" aria-hidden="true" tabindex="-1" checked="" group="plan"></div></div></div></div></section>
+    </div>
+
+
+    <div class="make-own hide">
+        <div class="card-column-group">
+            @foreach (var item in PresetPlanComponents.List)
+            {
+                <div class="gusto-button-link card card-default card-button" type="button">
+                    <div class="">
+                        <div class="card-header-icon">
+                            <i class="@item.icon fa-2x mb-3"></i>
+                        </div>
+                        <h4 class="card-title">@item.title</h4>
+                    </div>
+                    <div class="card-content-main">
+                        <p>@item.desc</p>
+                    </div>
+                    <div class="mt-2">
+                        <div class="card-actions">
+                            <a data-ajax="true" data-ajax-update="#main-content" data-ajax-method="post" asp-action="AddPayComponent" asp-controller="Company" asp-route-id="@ViewBag.Id" asp-route-n="@item.title" class="btn btn-md btn-primary">Select</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="form-actions ajax-spinner formActions-module__spinner___12v5R text-center mt-5">
+        <div>
+            <button class="btn btn-primary btn-next" type="button" id="tier-selection-select-plan-button" disabled="">Select Plan</button>
+            &nbsp;
+            <button class="btn btn-secondary" type="button" id="tier-selection-compare-plans-button">Compare Plans</button>
+        </div>
+        <div><a class="gwb_3mDu- gwb_1PlqG gwb_2L75N gwb_TSu0C gwb_2ImaZ gwb_2CevI mt-4 mb-2" target="_blank" rel="noreferrer noopener nofollow" href="https://hello.gusto.com/calendar/team/t/52"><span class="gwb_2qnNf">Schedule a call with an expert</span></a></div>
+    </div>
+</form>
+
+
+
+
+
+    @*<div>
+            <div class="layout-main-landing">
+                <div class="row">
+                    <div class="layout-main-landing-header col-sm-12">
+                        <div class="border-bottom pb-3 relative mb-5">
+                            <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                                <div class="content-block-with-icon__content">
+                                    <h1 class="page-title margin-top-none margin-bottom-none">
+                                        Select Plan
+                                    </h1>
+                                </div>
+                            </div><div class="layout-landing-header-details"><p class="layout-landing-header-pricing margin-bottom-none"></p></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layout-main-landing-row row margin-bottom-20px">
+
+                    <div class="layout-main-landing-column mb-3 col-md-12">
+                        <div class="mt-2 mb-3">
+                            <div class="accordion-wrapper accordion-unstyled" role="tablist" aria-multiselectable="true">
+                                <div class="accordion-item">
+                                    <div class="accordion-heading" role="button" data-parent="#undefined" data-toggle="collapse" data-target="#suggested-policies-accordion-body" aria-controls="suggested-policies-accordion-body" aria-expanded="true" onclick="$(this).next().toggleCLass('collapse')">
+                                        <i class="fa fa-chevron-down" aria-hidden="true"></i> Suggested pay components
+                                    </div>
+                                    <div id="suggested-policies-accordion-body" class="panel-collapse in" aria-expanded="true">
+                                        <div class="accordion-body">
+                                            <div class="card-column-group">
+                                                @foreach (var item in PresetPlanComponents.List)
+                                                {
+                                                    <div class="gusto-button-link card card-default card-button" type="button">
+                                                        <div class="">
+                                                            <div class="card-header-icon">
+                                                                <i class="@item.icon fa-2x mb-3"></i>
+                                                            </div>
+                                                            <h4 class="card-title">@item.title</h4>
+                                                        </div>
+                                                        <div class="card-content-main">
+                                                            <p>@item.desc</p>
+                                                        </div>
+                                                        <div class="mt-2">
+                                                            <div class="card-actions">
+                                                                <a data-ajax="true" data-ajax-update="#main-content" data-ajax-method="post" asp-action="AddPayComponent" asp-controller="Company" asp-route-id="@ViewBag.Id" asp-route-n="@item.title" class="btn btn-md btn-primary">Select</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+
+
+
+
+
+    <script>
+        $('.btnPlanner').click(function () {
+            var toOwnPlanner = $(this).hasClass('own');
+            $('.btnPlanner').toggleClass('btn-primary');
+            //var toShow = toOwnPlanner ? ".make-own" : ".select-plan";
+            $('.make-own,.select-plan').toggleClass('hide');
+        });
+
+        $('div.card-button').click(function () {
+            $('div.card-button').removeClass('active');
+            $(this).addClass('active');
+
+            $('div.card-button input:radio').prop('checked', false);
+            $(this).find('input:radio').prop('checked', true);
+            $('.btn-next').removeAttr('disabled');
+        });
+    </script>
+
+    @if (TempData["ProgressPercent"] != null)
+    {
+
+        <script>
+
+        var dd = parseFloat('@TempData["ProgressPercent"]');
+        var stp = parseInt('@TempData["Step"]');
+
+        $('.nav-steps:eq(' + (stp - 1) + ')').find('svg').attr('data-prefix', 'fa');
+        $('.percentage-bar-foreground').css('width', dd + '%');
+        $('.percentage-bar-progress').text(dd + '% complete');
+        </script>
+    }

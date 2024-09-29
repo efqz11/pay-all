@@ -1,0 +1,32 @@
+﻿@using Payroll.Services
+@model List<BackgroundJob>
+
+<table class="table">
+    <thead>
+        <tr>
+            <td>ID</td>
+            <td>Task</td>
+            <td>Detail</td>
+            @*<td>Name</td>*@
+            <td>Run Date</td>
+            <td>End Date</td>
+            <td>Next Run Date</td>
+            <td>Status</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.HangfireJobId</td>
+                <td>@item.TaskType</td>
+                <td>@item.Details</td>
+                @*<td>@item.Name</td>*@
+                <td>@item.RunDate.ToSystemFormat(User,true)</td>
+                <td>@item.EndedDate.ToSystemFormat(User,true)</td>
+                <td>@item.NextRunDate.ToSystemFormat(User, true)</td>
+                <td><partial name="_DisplayRequestStatus" model="@item.TaskStatus" /></td>
+            </tr>
+        }
+    </tbody>
+</table>

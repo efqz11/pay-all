@@ -1,0 +1,9 @@
+﻿@model List<Dictionary<String, String>>
+@{
+    ViewData["Title"] = "Report - Gender Profile";
+
+    ViewData["Title"] = "Report - Generated";
+    string[] fields = (String[])ViewBag.Fields;
+}
+
+<partial name="_GeneratedReport" />

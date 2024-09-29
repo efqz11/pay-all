@@ -1,0 +1,88 @@
+﻿@model CompanyPublicHoliday
+
+<form asp-action="AddOrUpdatePublicHoliday" asp-controller="Company" data-ajax="true" data-ajax-method="POST"  data-ajax-update="#publicHoliday_table" data-ajax-success="sendNotification('success', 'Public holiday was just saved');hideModal()" id="addUpdateConnectionForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="CompanyId" type="hidden" value="@Model.CompanyId" />
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    <input asp-for="Year" type="hidden" value="0000" />
+    <input name="Date" id="Date" type="hidden" value="@(Model.Date.ToString("dd-MMM-yyyy"))" />
+    <input name="Date2" id="Date2" type="hidden" value="" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @(Model == null || Model.Id <= 0 ? "Create New Public Holiday" : "Change Public Holiday")
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <input asp-for="Name" placeholder="Name of holiday" class="form-control" />
+            <span class="text-danger" asp-validation-for="Name"></span>
+        </div>
+        <div class="form-group">
+            <textarea asp-for="Description" placeholder="Short description of holiday" class="form-control"></textarea>
+            <span class="text-danger" asp-validation-for="Description"></span>
+        </div>
+
+        <div class="form-group" style="">
+            <label asp-for="Date" class="control-label"></label>
+            <input id="DateInput" type="text" class="form-control has-datepicker" value="@(Model.Date.ToString("dd-MMM-yyyy"))" />
+            <span asp-validation-for="Date" class="text-danger"></span>
+        </div>
+        @*@if (Model == null || Model.Id < 0)
+        {*@
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" asp-for="HasRange" class="date-chooser custom-control-input" onchange="onCheckChange(this); toggleRange(this)" value="false">
+                    <span class="custom-control-label" for="chbxTerms">
+                        Select range of days
+                    </span>
+                </label>
+            </div>
+        @*}*@
+
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        @if (Model != null && Model.Id > 0)
+        {
+            <a class="modal__btn modal__btn-danger float-right" asp-action="RemovePublicHoliday" asp-route-id="@Model.Id" asp-route-cmpid="@Model.CompanyId"  data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@Model.Name was just removed');hideModal();$('tr.i-ph-@Model.Id').hide()" data-ajax-confirm="Are you sure you want to remove this public holiday" data-ajax-begin="">Remove</a>
+        }
+    </footer>
+</form>
+
+
+
+<script>
+    $(".has-datepicker").flatpickr({
+        dateFormat: "j-M-Y",
+        onChange: function (selectedDates) {
+            $("#Date").val(this.formatDate(selectedDates[0], "j-M-Y"));
+        }
+    });
+
+    function toggleRange(e) {
+        if ($(e).val() == "true") {
+
+            flatpickr(".has-datepicker", {
+                mode: 'range', dateFormat: "j-M-Y",
+                onChange: function (selectedDates) {
+                    if (selectedDates.length == 2) {
+                        const dateArr = selectedDates.map(date => this.formatDate(date, "j-M-Y"));
+                        $("#Date").val(dateArr[0]);
+                        $("#Date2").val(dateArr[1]);
+                    }
+                }
+            });
+        }
+        else {
+
+            $(".has-datepicker").flatpickr({
+                dateFormat: "j-M-Y",
+                onChange: function (selectedDates) {
+                    $("#Date").val(this.formatDate(selectedDates[0], "j-M-Y"));
+                }
+            });
+        }
+    }
+</script>

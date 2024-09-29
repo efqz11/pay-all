@@ -1,0 +1,83 @@
+﻿@model Payroll.ViewModels.SetupOverviewPageVm
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+<div>
+    <div class="layout-main-landing">
+        <div class="row">
+            <div class="layout-main-landing-header col-sm-12">
+                <div class="border-bottom pb-3 relative mb-5">
+                    <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                        @*<img class="zp-icon-image large content-block-with-icon__icon hidden-xs flex-self-start" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-map-288f54db.svg" alt="">*@
+                        <div class="content-block-with-icon__content">
+                            <h1 class="page-title margin-top-none margin-bottom-none"><span class="fa-2x">@Model.Icon</span> @Model.Title</h1>
+                        </div>
+                    </div><div class="layout-landing-header-details"><p class="layout-landing-header-pricing margin-bottom-none"></p></div>
+                </div>
+            </div>
+        </div>
+        <div class="layout-main-landing-row row margin-bottom-20px">
+            <div class="layout-main-landing-column mb-3 col-md-6">
+
+                <h4 class="h-5 text-weight-semibold margin-bottom-none">
+                <i class="fa fa-check-circle text-success"></i> 
+                <span>You have completed this step</span></h4>
+
+
+                <a class="btn btn-primary mt-4 btn-step-completed"><span class="gwb_2CP_q">Continue Setup</span></a>
+            </div>
+
+            <div class="layout-main-landing-column mb-2 col-md-6 overview-requirements">
+                
+                <a class="link-summary" data-ajax="true" data-ajax-update="#main-content" href="@Model.btnLink/@ViewBag.Id" data-ajax-success="startStep()"><span class="gwb_2CP_q"><i class="fad fa-edit"></i> edit this step</span></a>
+
+                @if(Model.Step == 3)
+                {
+                    <div>
+                        <img src="@Model.Company.LogoUrl" height="50" />
+                    </div>
+                }
+
+
+                @*<h4 class="h-5 text-weight-semibold margin-bottom-none"></h4>
+                <h4 class="h-5">What to have ready:</h4>
+                <ul class="pt-1 list-icon">
+                    @foreach (var item in Model.ItemsToHaveReady)
+                    {
+                        <li class="list-item"><i class="far fa-check text-success" aria-hidden="true"></i> @item</li>
+                    }
+                </ul>
+                <div>
+                    <h4 class="h-5">Need help?</h4>
+                    <ul class="pt-2 help-center-details  list-bulleted">
+                        @foreach (var item in Model.UserManualLinks)
+                        {
+                            <li class="list-item"> <a class="gusto-link" target="_blank" data-bypass="true" rel="noopener noreferrer">@item.Key</a></li>
+                        }
+                    </ul>
+                </div>
+
+                <div class="requirements__children"></div>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if (ViewBag.AlreadyCompleted == null)
+{
+<script>
+    var dd = parseFloat('@Model.Company.ProgressPercent');
+    var stp = parseInt('@Model.Step');
+
+    $('.nav-steps:eq(' + (stp - 1) + ')').find('svg').attr('data-prefix', 'fa');
+    $('.percentage-bar-foreground').css('width', dd + '%');
+    $('.percentage-bar-progress').text(dd + '% complete');
+
+    var nxtSte = (stp + 1);
+    $('.btn-continue-to-step').text('Continue to step ' + nxtSte);
+    $('.btn-continue-to-step').attr('data-step', nxtSte);
+</script>
+}

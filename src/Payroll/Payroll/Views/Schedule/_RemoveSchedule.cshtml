@@ -1,0 +1,36 @@
+﻿@model Schedule
+ 
+   <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            Are you sure
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <label class="control-label">Schdule details of @Model.ScheduleFor.ToString().ToLower() record</label>
+            <p>Model.Summary</p>
+        </div>
+        <div class="form-group">
+            <label class="control-label">For employees</label>
+            @foreach (var item in Model.EmployeeIdsData.Take(5))
+            {
+                <div class="item">
+                    <img src="@Url.Content(item.Photo ?? DefaultPictures.default_user)" height="30" /> @item.Name
+                </div>
+            }
+        </div>
+
+        <small>Reeats @Model.Repeat</small>
+        <br />
+        <small>Period: @Model.Duration</small>
+
+    </main>
+    <footer class="modal__footer">
+        <a class="modal__btn modal__btn-danger" asp-action="RemoveScheduledData" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-update=".modal__content" data-ajax-success="shideModal('@Model.ScheduleFor.ToString() record(s) created with this schedule was just removed');">Remove only @Model.ScheduleFor.ToString().ToLower()</a>
+        <a class="modal__btn modal__btn-danger" asp-action="RemoveScheduledData" asp-route-id="@Model.Id" asp-route-removeSelf="True" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="shideModal('@Model.ScheduleFor.ToString() record(s) and schedule item was just removed');" data-ajax-update="#created-schedules">Remove all</a>
+
+        @*<button type="submit" class="modal__btn modal__btn-primary">Save</button>*@
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+

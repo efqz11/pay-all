@@ -1,0 +1,119 @@
+﻿@{ 
+    Layout = "_LayoutAccountWelcome1";
+}
+@* <link href="~/css/webSetup.css" rel="stylesheet" /> *@
+@model AppUser
+<style>
+    .flex-items-start {
+    align-items: flex-start!important;
+    }
+
+    .h-6, h6 {
+    font-size: 16px;
+    line-height: 24px;
+    }
+    .gwb_1RbKo {
+    font-size: 1.4rem;
+    font-weight: 400;
+    line-height: 2rem;
+    letter-spacing: 0.02rem;
+    color: #525257;
+    margin-bottom: 0;
+    margin-top: 0;
+}
+.hide{display:none}
+
+</style>
+<main class="layout-main">
+    <div class="container">
+    <div class="row">
+      <div class="col-md-5 text-align-left d-flex flex-column">
+        <div class="pt-1 pt-sm-3 pl-sm-2px">
+        <img class="img-square-50px" alt="Gusto Mailer" srcset="//prod.gusto-assets.com/assets/shared/icons/icon-paper-airplane-1055f36266a426414c4aa103842245b6da149c66f28c4690a50801602ed2615a.png.webp 1x, //prod.gusto-assets.com/assets/shared/icons/icon-paper-airplane@2x-651e196f17ad9b43f05ce240ca803b8b563b76e80a6327bdc32dbb8188889f32.png.webp 2x" src="//prod.gusto-assets.com/assets/shared/icons/icon-paper-airplane-1055f36266a426414c4aa103842245b6da149c66f28c4690a50801602ed2615a.png">
+        <h1 class="h2 padding-top-20px pb-3 padding-lg-bottom-45px">Check your email</h1>
+          <div class="pb-2">
+            <p class="text-large margin-bottom-none">
+              Almost there! We sent an email to
+                <strong class="fs-block">@Model.UserName.</strong>
+            </p>
+          </div>
+          <p class="text-large">
+            Click the link in your inbox to verify your email. Once that’s done, we can get
+              <strong>Kieven</strong>
+            set up with better payroll and benefits.
+          </p>
+          
+            <p class="text-small pt-3">
+              Questions? <a href="mailto:success@gusto.com" class="text-decoration-none" id="contactus">Contact us</a>
+            </p>
+
+          <div class="mt-3">
+        <form class="simple_form edit_company" id="edit_company" novalidate="novalidate" action="#" accept-charset="UTF-8"
+            method="post"><input type="hidden" name="_method" value="patch"><input type="hidden" name="authenticity_token"
+                value="BOAUKprocJeByXHPGStSUSCcHa6+qRl8SkAXPfm735rNMQPPJR1m0Yftifz1UEHENWCL6sXzG5OqEmnjTWlGcg==">
+            <div class="form-group select optional company_how_did_you_hear_about_us"><label
+                    class="control-label select optional text-large margin-bottom-none"
+                    for="company_how_did_you_hear_about_us">How did you hear about us?</label><select
+                    class="form-control select optional c-black-700 margin-top-10px padding-right-30px has-value"
+                    name="company[how_did_you_hear_about_us]" id="company_how_did_you_hear_about_us">
+                    <option value="">Select an option</option>
+                    <option value="Gusto's website or social media">Gusto's website or social media</option>
+                    <option value="Social media ads (e.g. Facebook, LinkedIn)">Social media ads (e.g. Facebook, LinkedIn)
+                    </option>
+                    <option value="Friend, family, or colleague recommendation">Friend, family, or colleague recommendation
+                    </option>
+                    <option value="Press or news about Gusto">Press or news about Gusto</option>
+                    <option value="Other advertising">Other advertising</option>
+                    <option value="Gusto reviews or review websites">Gusto reviews or review websites</option>
+                    <option value="Google or other online search">Google or other online search</option>
+                    <option value="Podcasts or radio ads">Podcasts or radio ads</option>
+                </select>
+            </div>
+            <input type="submit" name="commit" value="Submit" class="btn btn-primary margin-top-md-10px" data-disable-with="Submit">
+        </form>
+<div class="hide text-large" id="success-message">
+<strong>Thanks!</strong>
+We've heard good things about you too.
+</div>
+</div>
+
+        </div>
+      </div>
+    </div>
+      </div>
+</main>
+
+
+@section scripts {
+    
+<script>
+  const dropdown = document.querySelector('#company_how_did_you_hear_about_us')
+  const form = document.querySelector('#edit_company');
+  const submitButton = form.querySelector('input[type="submit"]');
+  const successMessage = document.querySelector('#success-message');
+  const trackSubmission = (answer) => {
+    @* GustoAnalytics.track({
+      eventCategory: 'VisitorEvent',
+      eventName: 'LearnedAboutGusto',
+      data: {
+        learn_source: answer,
+      },
+    }); *@
+  };
+  const handleSelectChange = event => {
+    if (event.target.value) {
+      event.target.classList.add('has-value');
+    } else if (event.target.classList.contains('has-value')) {
+      event.target.classList.remove('has-value');
+    }
+  };
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    successMessage.classList.remove('hide');
+    form.classList.add('hide');
+    const answer = dropdown.value !== '' ? dropdown.value : 'none';
+    trackSubmission(answer);
+  });
+  dropdown.addEventListener('change', handleSelectChange);
+</script>
+}

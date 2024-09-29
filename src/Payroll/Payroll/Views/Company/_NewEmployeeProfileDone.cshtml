@@ -1,0 +1,21 @@
+﻿@model Payroll.ViewModels.EmploymentProfileVm
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div>
+
+    <div class="gwb_2-YFS gwb_3YnzF text-center" style="--maxWidth:70rem; --margin:0 auto;">
+        <img src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-musicians-1b672799.svg" alt="Congrats on growing your team!" class="layout-main-simple-icon">
+        <div class="layout-main-flow-subheader text-full">
+            <h2 class="h-3 margin-top-10px">@Model.Employee.NameDisplay has been invited to onboard</h2>
+            <p>An email has been sent to @Model.Employee.UserName inviting Rolse to onboard. We’ll securely collect Rolse’s personal, tax, and bank account details. Rolse will also be able to sign onboarding documents.</p><p>We’ll send you an email once Rolse completes onboarding.</p>
+        </div>
+        <div class="layout-main-flow-content content-full">
+            <div class="form-actions ajax-spinner formActions-module__spinner___12v5R">
+                <a class="btn btn-secondary" href="/">I’ve Added All Current Employees</a>
+                <a class="btn btn-primary" href="/employees/step_1"><i class="zp-icon zp-icon-circle-plus" aria-hidden="false">Add Another Employee</i></a>
+            </div>
+        </div>
+    </div>
+</div>

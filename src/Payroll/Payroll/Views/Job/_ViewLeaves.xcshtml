@@ -1,0 +1,44 @@
+﻿@model Job
+
+@{
+    Layout = "_LayoutCard";
+    ViewBag.CardHeader = "Leaves";
+    var leaves = (List<DayOff>)ViewBag.leaves;
+}
+
+
+<partial name="_ShowAlertMessage" />
+@if (leaves != null)
+{
+<table class="table">
+    <thead>
+        <tr colspan="">
+            <th width="10px"></th>
+            <th>Effective Date</th>
+            <th>Adjustment</th>
+            @*<th>Frequency</th>*@
+            <th>Total</th>
+            <th>Change Reason</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in leaves)
+        {
+            <tr>
+                @*<td><i class="@(item.RecordStatus == RecordStatus.Active ? "fad fa-dot-circle" : "")"></i></td>
+                <td>@item.EffectiveDate.ToSystemFormat(User)</td>
+                <td>@item.PayAdjustment.Name</td>
+                <td>@item.Total.ToSystemFormat(User)</td>
+                <td>@item.PayComponentChangeReason</td>*@
+                <td>
+                    <a class="btn-link" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateCompensation" asp-route-id="@item.Id" asp-route-eid="@Model.Id">
+                        <i class="fad fa-edit"></i>
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+}

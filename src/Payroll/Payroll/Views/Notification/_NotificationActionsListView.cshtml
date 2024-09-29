@@ -1,0 +1,86 @@
+﻿@model List<Notification>
+@*@inject Payroll.Database.PayrollDbContext dbContext
+    @inject UserResolverService UserResolverService*@
+@{
+    int srcId = (int)ViewBag.SourceId;
+    var i = 0;
+}
+
+@if (Model.Count() > 0)
+{
+    <div class="search-wrapper">
+        <div class="form-group has-search mb-1">
+            <span class="form-control-feedback"><i class="fad fa-search"></i></span>
+            <input type="text" class="form-control mb-1 intrrAction-search" placeholder="Start typing names here" name="query">
+        </div>
+    </div>
+}
+<ul class="list-group intrrAction">
+    <li class="list-group-item intrrAction first" style="">
+        <div style="display:flex; line-height: 1.2;">
+            <a class=" text-primary" data-ajax="true" data-ajax-method="GET" data-ajax-failure="handleModalPostFailure" asp-action="AddOrUpdate" data-ajax-update=".modal__container" asp-controller="Interaction" asp-route-annId="@srcId" style="">
+                <i class="fa  fa-user-plus"></i>
+                <span>Sent to employee</span>
+            </a>
+        </div>
+    </li>
+
+    @foreach (var n in Model.OrderByDescending(x => x.IsRead).ThenByDescending(x => x.SentDate))
+    {
+        <li class="list-group-item intrrAction" style="@((i>5 ? "display:none" : ""))">
+
+            <div class="text-left font-weight-bold sticky-col first-col" style=" vertical-align: middle;display:flex">
+                <div class="image-container">
+                    <a asp-controller="AppUser" asp-action="Detail" asp-route-id="@n.ActionTakenUserId">
+                        <img src="@Url.Content(n.User?.Avatar ?? DefaultPictures.default_user)" height="35" class="mt-1 mr-2 rounded-circle" />
+                    </a>
+                </div>
+                <a asp-controller="AppUser" asp-action="Detail" asp-route-id="@n.ActionTakenUserId">
+                    <div class="name-display pt-1">
+                        <span class="">@n.User.NameDisplay</span>
+                        <br>
+                        <span class="text-muted" style="position: relative;top: -4px;">
+                            @if (n.IsRead)
+                            {
+                                <small class="text-success">Received @n.ReceivedDate.Value.GetTimeDifference() ago</small>
+                            }
+                            else
+                            {
+                                <small>Sent on @n.SentDate.ToSystemFormat(User, true)</small>
+                            }
+                        </span>
+
+
+                    </div>
+                </a>
+
+                @if (@User.IsInRole(Roles.PayAll.admin))
+                {
+                    <a class="text-danger" data-ajax="true" data-ajax-method="DELETE" data-ajax-failure="handleModalPostFailure" data-ajax-success="$(this).parent().parent().fadeOut();sendNotification('success', 'Notification was just removed');" asp-action="Remove" asp-controller="Notification" asp-route-id="@n.Id" style="position:absolute;right: 0px;top: 10px;" data-ajax-confirm="Are you sure you wish to remove?">
+                        <i class="fad fa-trash"></i>
+                    </a>
+                }
+            </div>
+        </li>
+
+        i++;
+
+        if (i == Model.Count() && (Model.Count() - 5) > 1)
+        {
+            <li class="list-group-item intrrAction intrrAction-custom">
+                <div style="display:flex; line-height: 1.2;text-align:center">
+                    There are more @(Model.Count() - 5) records.
+                </div>
+            </li>
+        }
+    }
+
+    @if (Model.Count() <= 0)
+    {
+        <li class="list-group-item intrrAction intrrAction-custom">
+            <div style="display:flex; line-height: 1.2;text-align:center">
+                There are no records to show here.
+            </div>
+        </li>
+    }
+</ul>

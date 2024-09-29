@@ -1,0 +1,107 @@
+﻿@model Schedule
+
+
+<form asp-action="RunSchedule" asp-controller="Schedule" data-ajax="true" data-ajax-method="POST" data-ajax-update="#weekly-schedule" data-ajax-begin="" data-ajax-success="shideModal('@Model.ScheduleFor records created successfully')" id="addUpdateConnectionForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    @*<input asp-for="ScheduleFor" type="hidden" value="@Model.ScheduleFor" />
+    <input asp-for="Id" type="hidden" value="@Model.ShiftId" />*@
+    @*@foreach (var item in Model.EmployeeIds)
+    {
+        <input asp-for="EmployeeIds" type="hidden" value="@item" />
+    }
+    @foreach (var item in Model.IgnoreDays)
+    {
+        <input asp-for="IgnoreDays" type="hidden" value="@item" />
+    }*@
+
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            Run Schedule
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            @*<label class="control-label">Schdule details of @Model.ScheduleFor.ToString().ToLower() record</label>*@
+            @*<p>@Model.Summary</p>*@
+        </div>
+        <div class="form-group">
+            <label class="control-label">For employees (@Model.EmployeeIdsData.Count)</label>
+            @foreach (var item in Model.EmployeeIdsData.Take(5))
+            {
+                <div class="item">
+                    <img src="@Url.Content(item.Photo ?? DefaultPictures.default_user)" height="30" /> @item.Name
+                </div>
+            }
+        </div>
+
+        <label class="control-label">Run Schedule in this date range</label>
+        <div class="row">
+            <div class="form-group col">
+                <input type="text" asp-for="Start" value="@Model.Start.ToString("dd-MMM-yyyy")" class="form-control has-datepicker" />
+                <span asp-validation-for="Start" class="text-danger"></span>
+            </div>
+
+            @*<div class="form-group col">
+                <input type="text" asp-for="End" value="@Model.End.ToString("dd-MMM-yyyy")" class="form-control has-datepicker" />
+                <span asp-validation-for="End" class="text-danger"></span>
+            </div>*@
+        </div>
+
+        <div class="row">
+            <div class="form-group col">
+                <label asp-for="Repeat" class="control-label">Repeat schedule</label>
+                <select asp-for="Repeat" asp-items="@Html.GetEnumSelectList<RecurringFrequency>()" class="form-control"></select>
+            </div>
+
+            <div class="form-group repeat-item">
+                <label class="control-label">Repeat until</label>
+                <input type="text" asp-for="RepeatEndDate" value="@Model.RepeatEndDate?.ToString("dd-MMM-yyyy")" class="form-control has-datepicker" />
+                <span asp-validation-for="RepeatEndDate" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group repeat-item">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" asp-for="IsRepeatEndDateNever" value="@Model.IsRepeatEndDateNever" class="custom-control-input"
+                       onchange="onCheckChange(this)" />
+                <span class="custom-control-label" for="chbxTerms">
+                    Keep Repeating forever
+                </span>
+            </label>
+        </div>
+
+
+        @*@if (Model.IgnoreDaysData != null && Model.IgnoreDaysData.Any())
+        {
+            <small class="control-label">Exclude: @string.Join(", ", Model.IgnoreDaysData.Select(x => (DayOfWeek)x))</small>
+            <br />
+        }*@
+        <small>Recurring: @Model.Repeat</small>
+        <br />
+        <small>Period: @Model.Duration</small>
+
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">Run</button>
+        @*<button type="submit" class="modal__btn modal__btn-danger">Run</button>*@
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>
+
+
+<script>
+    
+    $(".has-datepicker").flatpickr({
+        dateFormat: "j-M-Y"
+    });
+
+    $('#Repeat').change(function (e) {
+        if (parseInt($(this).val()) > 0)
+            $('.repeat-item').show();
+        else
+            $('.repeat-item').hide();
+    }).change();
+
+</script>

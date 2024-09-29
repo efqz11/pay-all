@@ -1,0 +1,270 @@
+﻿@model PayItemVm
+@{
+    Layout = null;
+}
+
+@{
+    int _tab = ViewBag.FollowUpTabIndex ?? 0;
+    int i = 0;
+    int j = 0;
+}
+
+<input type="hidden" value="@Model.ItemId" id="itemId" />
+<div class="row">
+    <div class="col pr-0">
+        <h4>
+            <div class="btn-group btn-group-cntrol mr-2 mb-2" role="group" aria-label="Third group">
+
+                <a class="text-primary mr-4 @(ViewBag.PrevItemId == null ? "hide" : "") " asp-controller="Payroll" asp-action="GetPayAdjustmentFieldValues" asp-route-id="@Model.PayrolPeriodId" asp-route-addId="@ViewBag.PrevItemId" asp-route-page="1" data-ajax="true" data-ajax-update="#tasks-schedule">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                <a class="text-primary btn-go-next @(ViewBag.NextItemId == null ? "hide" : "")" asp-controller="Payroll" asp-action="GetPayAdjustmentFieldValues" asp-route-id="@Model.PayrolPeriodId" asp-route-addId="@ViewBag.NextItemId" asp-route-page="1" data-ajax="true" data-ajax-update="#tasks-schedule">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+
+            @ViewBag.ItemName
+        </h4>
+    </div>
+    <div class="col pl-0">
+        <div class="btn-toolbar float-right mr-2 mb-2">
+
+
+            @if (Model.PayrolPayAdjustments.Count > 0 || Model.PayrolPayAdjustments.SelectMany(x => x.PayrollPeriodPayAdjustmentFieldValues).Count() > 0)
+            {
+                <div class="btn-group btn-group-afjustment" role="group" aria-label="Third group">
+
+                    <a class="btn-recreate-table btn btn-sm btn-outline-primary" asp-action="UpdatePayAdjustmentFields" asp-route-addId="@(Model.ItemId)" asp-route-id="@(Model.PayrolPeriodId)" data-ajax-begin="openLoadingModal('Recreating Table', 'Please wait while we re-create table for @ViewBag.ItemName')" data-ajax-method="POST" data-ajax-success="shideModal('@ViewBag.ItemName records were created successfully');loadPayAdjustmentFieldValues();" data-ajax-failure="hideFailedLoadingModalCustom('There was an error while creating table');" role="tooltip" data-microtip-position="top" aria-label="Re-create table to calculate @ViewBag.ItemName" data-ajax="true" data-ajax-update=".data-container" data-ajax-confirm="Are you sure? Recreating will create new field values using latest configuration and will also create missing employees. Any values having same key will be copied to new table">
+                        <i class="fa fa-exclamation-circle "></i> Re-Create table
+                    </a>
+
+                    <button class="btn-save btn btn-sm btn-outline-primary" method="post" data-ajax="false" onclick="SaveForm()"><i class="ion-refresh spin"></i>  Save All</button>
+                    <button class="btn-save btn btn-sm btn-outline-primary" method="post" data-ajax="false" onclick="SaveForm(true)"><i class="ion ion-file-check"></i>  Save & Continue</button>
+                    <a class="btn-remove-payDss btn btn-sm btn-outline-danger" data-ajax-begin="convertToLoadingTable('.data-container-table')" data-ajax-method="POST" asp-action="RemovePayAdjustmentFieldValues" asp-route-addId="@(Model.ItemId)" asp-route-id="@(Model.PayrolPeriodId)" data-ajax-success="loadPayAdjustmentFieldValues();" data-ajax-failure="handleModalPostFailure" title="Remove all employees data for @ViewBag.ItemName" data-ajax="true" data-ajax-update="#adjustment-table-fv" data-ajax-confirm="Are you sure? This action will remove all field values for adjustment '@ViewBag.ItemName'">
+                        <i class="fa fa-minus-circle "></i> Clear
+                    </a>
+                </div>
+            }
+
+            @*<a class="btn-recreate-table btn btn-warning" asp-action="UpdatePayAdjustmentFields" asp-route-addId="@(Model.ItemId)" asp-route-payrolId="@(Model.PayrolPeriodId)" data-ajax-method="POST" data-ajax-update=".data-container" data-ajax-success="sendNotification('success', 'Table to calculate pay adjustment @ViewBag.ItemName was just re-created')" data-ajax-confirm="Are you sure? Recreating will create new field values using latest configuration and will also create missing employees. Any values having same key will be copied to new table" data-ajax-begin="convertToLoadingTable('.data-container-table')" data-ajax-failure="handleModalPostFailure" data-ajax="true">Re-Create table</a>*@
+
+        </div>
+    </div>
+</div>
+
+<div class="clearfix"></div>
+@if (Model.PayrolPayAdjustments.Count <= 0 || Model.PayrolPayAdjustments.SelectMany(x => x.PayrollPeriodPayAdjustmentFieldValues).Count() <= 0)
+{
+
+
+    <div class="row justify-content-center text-center">
+        <div class="col-12 col-md-10 mt-3">
+            <h2>
+                No Records
+            </h2>
+
+            <i class="fa fa-braille fa-5x mb-2"></i>
+
+            <!-- <p class="text-muted">
+                You do not have any records yet. Refresh data by clicking the <strong>Re-create table</strong> button below.
+            </p> -->
+
+            <p class="text-muted">
+                There is <b>no data</b> or @Model.ItemName <b>doesn't have fields configured</b> to create table.
+            </p>
+
+            <a class="btn btn-lg btn-warning d-none d-md-inline-block mt-3" asp-action="UpdatePayAdjustmentFields" asp-route-addId="@(Model.ItemId)" asp-route-id="@(Model.PayrolPeriodId)" data-ajax-begin="openLoadingModal('Recreating Table', 'Please wait while we re-create table for @ViewBag.ItemName')" data-ajax-method="POST" data-ajax-success="shideModal('@ViewBag.ItemName records were created successfully');loadPayAdjustmentFieldValues()" data-ajax-failure="hideFailedLoadingModalCustom('There was an error while creating table');" role="tooltip" data-microtip-position="top" aria-label="Re-create table to calculate @ViewBag.ItemName" data-ajax="true" data-ajax-confirm="Are you sure? Recreating will create new field values using latest configuration and will also create missing employees. Any values having same key will be copied to new table">
+                <i class="fa fa-exclamation-circle "></i> Re-Create table
+            </a>
+
+            @*<a class="btn btn-lg btn-warning d-none d-md-inline-block mt-3" asp-action="UpdatePayAdjustmentFields" asp-route-addId="@(Model.ItemId)" asp-route-payrolId="@(Model.PayrolPeriodId)" data-ajax-method="POST" data-ajax-update=".data-container" data-ajax-success="sendNotification('success', 'Table to calculate pay adjustment @ViewBag.ItemName was just re-created');$('#tblCalculationTable tr').removeClass('dirty')" data-ajax-confirm="Are you sure? Recreating will create new field values using latest configuration and will also create missing employees. Any values having same key will be copied to new table" data-ajax-begin="convertToLoadingTable('.data-container-table')" data-ajax-failure="handleModalPostFailure" data-ajax="true">Re-Create Table</a>*@
+
+            @*<a class="btn btn-lg btn-warning d-none d-md-inline-block mt-3" href="#" onclick="$('.btn-recreate-table').click()">Re-calculate Table</a>*@
+            <p class="text-muted mt-1">
+                <small>Recreating will create new field values using latest configuration <br />and will also create missing employees. Any values having same key will be copied to new table</small>
+            </p>
+        </div>
+    </div> <!-- / .row -->
+}
+else
+{
+    <table class="table table-sm data-container-table table-payAdj" id="tblCalculationTable">
+        <thead>
+            <tr>
+                <th class="">Employee(s)</th>
+                @foreach (var item in Model.PayrolPayAdjustments[0].PayrollPeriodPayAdjustmentFieldValues
+           .Where(x => x.Key != "Name").OrderBy(x => x.CalculationOrder))
+                {
+                    <th>
+                        <span title="@item.CalculationIdentifier">@item.Key</span>
+
+                        @if (item.BaseType == BaseType.Calculated)
+                        {
+                            <i class="ion-calculator text-primary" title="@item.Calculation"></i>
+                        }
+                        @if (item.IsAggregated)
+                        {
+                            <i class="text-info fa fa-signal"></i>
+                        }
+                        @if (item.IsReturn)
+                        {
+                            <i class="ion-cube text-success" title="Values in this column will be considered as final for @Model.ItemName"></i>
+                        }
+                    </th>
+                }
+
+                <th>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @foreach (var item in Model.PayrolPayAdjustments.OrderBy(z => z.CalculationOrder))
+            {
+                <tr id="item-pa-@item.Id">
+                    <input type="hidden" value="@item.Id" name="PayrolPayAdjustments[i].Id" />
+                    <input type="hidden" value="@item.PayAdjustmentId" name="PayrolPayAdjustments[i].PayAdjustmentId" />
+                    <input type="hidden" value="@item.PayrollPeriodId" name="PayrolPayAdjustments[i].PayrollPeriodId" />
+
+                    <td class="text-left font-weight-bold" style=" vertical-align: middle;display:flex">
+                        <div class="image-container">
+                            <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.Employee.Id">
+                                <img src="@Url.Content(item.Employee.Avatar ?? DefaultPictures.default_user)" class="mt-1 mr-2 rounded-circle" />
+                            </a>
+                        </div>
+                        <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.Employee.Id">
+                            <div class="name-display pt-1">
+                                <span class="">@item.Employee.EmpID &sim; @item.Employee.GetSystemName(User)</span>
+                                <br>
+                                <small class="text-dark" style="position: relative;top: -4px;">@item.Employee.JobTitle &middot; @item.Employee.Department.Name</small>
+                            </div>
+                        </a>
+
+                        @*<img src="@Url.Content(item.Employee.PhotoLink ?? DefaultPictures.default_user)" height="40" class="mt-1 pr-2" />
+                            <div class="name-display pt-1">
+                                <small class="">@item.Employee.Name</small>
+                                <br>
+                                <small style="position: relative;top: -4px;">@item.Employee.Department.Name</small>
+                            </div>*@
+                    </td>
+
+                    @foreach (var fieldValue in item.PayrollPeriodPayAdjustmentFieldValues.OrderBy(z => z.CalculationOrder))
+                    {
+                        <input type="hidden" value="@fieldValue.Id" name="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[@j].Id" />
+                        <input type="hidden" value="@fieldValue.PayrollPeriodPayAdjustmentId" name="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[@j].PayrollPeriodPayAdjustmentId" />
+                        @*<td>
+                                @fieldValue.CalculationOrder
+                            </td>*@
+
+                        @if (fieldValue.BaseType == BaseType.ComputedList && fieldValue.Key != "Name")
+                        {
+                            <td>
+                                @fieldValue.ListSelect
+                                @*@fieldValue.Value
+                                    @fieldValue.CalculationOrder*@
+                                @*@fieldValue.ListSelect
+                                    @HPtml.DisplayFor(m => Model.PayrolPayAdjustments[i].Id)
+                                    @Html.DisplayFor(m => Model.ayrolPayAdjustments[i].PayAdjustmentId)
+                                    | @i | @j| @_tab*@
+                                @*@_tab*@
+
+                                <input type="hidden" class="hide" value="@fieldValue.Value" name="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[@j].Value" />
+                            </td>
+                        }
+
+
+                        @if (fieldValue.BaseType == BaseType.ManualEntry)
+                        {
+
+                            if (fieldValue.FieldType == FieldType.Number || fieldValue.FieldType == FieldType.Decimal)
+                            {
+                                <td>
+                                    <input type="number" tabindex="@(_tab++)" class="form-control form-control-lg manual-entry" data-identifier="@fieldValue.CalculationIdentifier" value="@fieldValue.Value" name="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[@j].Value" data-updateInputClass="@fieldValue.UpdateInputClass" data-evalMethod="@fieldValue.EvalMethod" />
+                                </td>
+                            }
+
+                            if (fieldValue.FieldType == FieldType.Text)
+                            {
+                                <td><input type="text" tabindex="@(_tab++)" class="form-control form-control-lg manual-entry" data-identifier="@fieldValue.CalculationIdentifier" value="@fieldValue.Value" name="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[@j].Value" /></td>
+                            }
+
+
+                            if (fieldValue.FieldType == FieldType.Date)
+                            {
+                                <td><input type="text" tabindex="@(_tab++)" class="form-control form-control-lg has-datepicker" data-identifier="@fieldValue.CalculationIdentifier" value="@fieldValue.Value" name="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[@j].Value" /></td>
+                            }
+                        }
+
+                        @if (fieldValue.BaseType == BaseType.Calculated)
+                        {
+                            <td>
+                                <input type="number" class="form-control form-control-lg calculated @(fieldValue.IsEditable ? "manual-entry" : "")" value="@fieldValue.Value" name="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[@j].Value" data-identifier="@fieldValue.CalculationIdentifier" data-updateInputClass="@fieldValue.UpdateInputClass" data-evalMethod="@fieldValue.EvalMethod" @(fieldValue.IsEditable ? "" : "readonly") />
+                            </td>
+                        }
+
+                        j += 1;
+                    }
+
+                    <td>
+                        <a class="btn-link" asp-action="RemovePayAdjustment" asp-route-payAdjustmentId="@(item.Id)" data-ajax-method="POST" data-ajax="true" data-ajax-failure="alert('unable to delete, possibly there are childrens')" data-ajax-success="sendNotification('success', '@item.EmployeeName field values was just removed');$('#item-pa-@item.Id').fadeOut()" data-ajax-confirm="Are you sure you want to remove @item.EmployeeName" role="tooltip" data-microtip-position="top" aria-label="Remove this employee field values"><i class="fad fa-trash"></i></a>
+                    </td>
+                </tr>
+
+                i++;
+                j = 0;
+            }
+        </tbody>
+    </table>
+
+
+    <div class="text-center">
+        <button type="button" class="btn btn-outline-info btn-load-more btn-load-more-pa" data-page="1" style="display:none" onclick="$(this).data('page', (parseInt($(this).data('page') || 1) + 1)); makeAjaxRequest_UpdateAdjustmentFieldValues();">Load More</button>
+    </div>
+    @*<div class="text-center">
+            <div class="loader btn btn-primary btn-loading" data-page="2" style="line-height: 1px;display:none">
+                <div class="ball-beat"><div></div><div></div><div></div></div>
+            </div>
+        </div>*@
+
+    <div class="modal micromodal-slide" id="modal-recreate-table" aria-hidden="true">
+        <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+            <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-recreate-table-title" style="width: 100%;">
+                <header class="modal__header">
+                    <h2 class="modal__title text-center" id="modal-1-title">
+                        Recreating Table
+                    </h2>
+                    <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+                </header>
+                <main class="modal__content" id="modal-1-content">
+                    @*<p class="text-center">
+                            Are you sure? Recreating will create new field values using latest configuration and will also create missing employees. Any values having same key will be copied to new table
+                            <div class="loader loader-blue btn-loading" data-page="2" style="line-height: 1px;display:block">
+                                <div class="ball-beat"><div></div><div></div><div></div></div>
+                            </div>
+                            <a class="btn-recreate-table btn btn-danger mt-2 text-white" asp-action="UpdatePayAdjustmentFields" asp-route-addId="@(item.Id)" asp-route-payrolId="@(Model.PayrolPeriodId)" data-ajax-begin="showModal('modal-recreate-table')" data-ajax-method="POST" data-ajax-success="sendNotification('success', 'Table to calculate pay adjustment @ViewBag.ItemName was just re-created');location.reload()" role="tooltip" data-microtip-position="top" aria-label="Create table to calculate @item.Name" data-ajax="true">
+                                <span><i class="fa fa-exclamation-circle "></i> <b> Yes, I'm sure</b></span>
+                            </a>
+                        </p>*@
+
+
+                    <div class="text-center d1">
+                        <div class="loader loader-blue btn-loading mb-4" data-page="2" style="line-height: 1px;display:block">
+                            <div class="ball-beat"><div></div><div></div><div></div></div>
+                        </div>
+
+                        <span class="d1-span">Please wait while we re-create table for all employees</span>
+                    </div>
+                    <div class="text-center d2" style="display:none">
+                        <span class="btn btn-success btn-lg mb-3"><b><i class="fa fa-check-circle"></i> Ready!</b></span>
+                        <br />
+                        <span class="d2-span"></span>
+                    </div>
+                </main>
+                <footer class="modal__footer text-center">
+                    <small>This window will close automatically</small>
+                </footer>
+            </div>
+        </div>
+    </div>
+}
+

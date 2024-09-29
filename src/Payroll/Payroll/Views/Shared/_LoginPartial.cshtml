@@ -1,0 +1,125 @@
+﻿@using Payroll.Services
+@inject UserResolverService userResolverService
+
+<style>
+</style>
+
+
+
+
+<div class="dropdown" id="dropdownUser_a">
+    @*<div type="" class="ml-2 p-0 dropdown-toggle-split" id="dropdownUser" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">*@
+    <div class="layout-header-actions layout-header-group" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
+        <nav class="layout-header-dropdown position-relative layout-header-action layout-header-group" aria-label="Account menu">
+            <button type="button" class="header-profile-button" aria-haspopup="menu" aria-controls="account-content" aria-expanded="false">
+                <span class="preferred-first-name"><span>@User.Identity.Name</span></span>
+                <span class="user-role"><span class="fs-unmask">Admin</span>&nbsp;•&nbsp;<span class="layout-header-company-name">@userResolverService.Get(CustomClaimTypes.accessgrant_companyName)</span></span>
+            </button>
+        </nav>
+    </div>
+
+
+    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownUser">
+        <span class="dropdown-item" asp-action="Details" asp-route-id="@User.Identity.IsAuthenticated" data-id="3">@User.Identity.Name</span>
+        @if (@userResolverService.IsEmployee())
+        {
+            <a class="dropdown-item" asp-action="Detail" asp-controller="Employee" asp-route-id="@userResolverService.GetEmployeeId()"><i class="fal fa-user-tag"></i> My Profile</a>
+        }
+        @*@if (userResolverService.GetEmployeeId() > 0)
+            {
+                <a class="dropdown-item" asp-action="Employee" asp-controller="Home" data-id="3"><i class="fal fa-user-tag"></i> @userResolverService.Get(CustomClaimTypes.EmployeeName)</a>
+            }*@
+        <a class="dropdown-item" asp-action="Detail" asp-route-id="@userResolverService.GetUserId()" asp-controller="AppUser">
+            <i class="fal fa-user-circle"></i> View Account
+        </a>
+        <a class="dropdown-item" id="dropdownUser" data-ajax="true" data-ajax-update="#modal-1-container-layout" data-ajax-begin="showModal()" asp-action="ViewAccessGrant" asp-route-id="@userResolverService.GetUserId()" asp-route-layout="@true" asp-controller="AppUser" data-ajax-failure="handleModalPostFailure">
+            Change company
+        </a>
+
+        <a class="dropdown-item" data-ajax="false" asp-action="Index" asp-route-id="" asp-controller="Roster">
+            <i class="fal fa-calendar-exclamation"></i> Rostering
+        </a>
+        <a class="dropdown-item" data-ajax="false" asp-action="AllAnnouncements" asp-route-id="" asp-controller="NewsUpdate">
+            <i class="fal fa-bullhorn"></i> Announcements
+        </a>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" asp-action="Details" asp-route-id="@User.Identity.IsAuthenticated" data-id="3">
+            <i class="fal fa-key"></i> Change Password
+        </a>
+        <a class="dropdown-item" onclick="$('form#userLogOutFormX12').submit()" style="cursor:pointer"> <i class="fal fa-sign-out"></i> Log out</a>
+    </div>
+</div>
+
+
+
+    @*@if (@userResolverService.IsEmployee())
+    {
+        <a class="" asp-action="Detail" asp-controller="Employee" asp-route-id="@userResolverService.GetEmployeeId()">
+            <img src="@Url.Content(@userResolverService.Get(CustomClaimTypes.Profile))" height="25" class="rounded-circle" />
+        </a>
+
+        <div class="ml-3 mr-3">
+            <p class="mb-0 font-weight-bold">@userResolverService.Get(CustomClaimTypes.Nickname)</p>
+        </div>
+    }
+    else
+    {
+        <div class="ml-3 mr-3">
+            <p class="mb-0 font-weight-bold">@userResolverService.Get(CustomClaimTypes.Nickname)</p>
+            <small class="text-muted">@(User.IsInRole(Roles.PayAll.admin) ? "Administrator" : "Undisclosed")</small>
+        </div>
+    }
+
+    <div class="dropdown" id="dropdownUser_a">
+        <div type="" class="ml-2 p-0 dropdown-toggle-split" id="dropdownUser" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
+            <i class="far fa-chevron-down"></i>
+        </div>
+        <div class="dropdown-menu dropdown-menu-left" aria-labelledby="dropdownUser">
+            <span class="dropdown-item" asp-action="Details" asp-route-id="@User.Identity.IsAuthenticated" data-id="3">@User.Identity.Name</span>
+            @if (@userResolverService.IsEmployee())
+            {
+                <a class="dropdown-item" asp-action="Detail" asp-controller="Employee" asp-route-id="@userResolverService.GetEmployeeId()"><i class="fal fa-user-tag"></i> My Profile</a>
+            }
+            <a class="dropdown-item" asp-action="Detail" asp-route-id="@userResolverService.GetUserId()" asp-controller="AppUser">
+                <i class="fal fa-user-circle"></i> View Account
+            </a>
+
+            <a class="dropdown-item" data-ajax="false" asp-action="Index" asp-route-id="" asp-controller="Roster">
+                <i class="fal fa-calendar-exclamation"></i> Rostering
+            </a>
+            <a class="dropdown-item" data-ajax="false" asp-action="AllAnnouncements" asp-route-id="" asp-controller="NewsUpdate">
+                <i class="fal fa-bullhorn"></i> Announcements
+            </a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" asp-action="Details" asp-route-id="@User.Identity.IsAuthenticated" data-id="3">
+                <i class="fal fa-key"></i> Change Password
+            </a>
+            <a class="dropdown-item" onclick="$('form#userLogOutFormX12').submit()" style="cursor:pointer"> <i class="fal fa-sign-out"></i> Log out</a>
+        </div>
+    </div>*@
+
+
+    @*<div class="dropdown" id="dropdownUser_b">
+            <div type="" class="ml-2 p-0 dropdown-toggle-split" id="dropdownUser" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
+                <i class="fa fa-bars"></i>
+            </div>
+            <div class="dropdown-menu dropdown-menu-left" aria-labelledby="dropdownUser">
+                <span></span>
+                <a class="dropdown-item" asp-action="Index" asp-controller="AppUser">
+                    <i class="fa fa-users"></i> App Users
+                </a>
+                <a class="dropdown-item" asp-action="Index" asp-controller="Company">
+                    <i class="fa fa-building"></i> Company
+                </a>
+
+                <a class="dropdown-item" asp-action="Index" asp-controller="Contract">
+                    <i class="fa  fa-file-signature"></i> Contracts
+                </a>
+                <a class="dropdown-item" asp-action="Index" asp-controller="Roster">
+                    <i class="fa fa-route"></i> Roster
+                </a>
+            </div>
+        </div>*@
+
+
+    <form class="hide" asp-action="LogOut" asp-controller="Account" id="userLogOutFormX12" style="display:none"></form>

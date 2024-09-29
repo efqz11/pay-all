@@ -1,0 +1,292 @@
+﻿@model CompanyFile
+@{
+    ViewData["Title"] = "Home Page";
+    var empFields = (Dictionary<string, string>)ViewBag.EmployeeFields;
+    var stats = (Dictionary<string, int>)ViewBag.Stats;
+    var hasStats = stats.Sum(a => a.Value) > 0;
+    var signedWidth = (((double)stats.First().Value / stats.Sum(a => a.Value)) * 100).ToString("N2");
+    var notSignedWidth = (((double)stats.Last().Value / stats.Sum(a => a.Value)) * 100).ToString("N2");
+}
+
+
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Herr+Von+Muellerhoff&display=swap" rel="stylesheet">
+<link href="~/css/pdf-sign.css" rel="stylesheet" />
+
+
+<h2>File Setup</h2>
+<div class="row mt-8 mb-3">
+    <div class="col-md-8">
+        <span class="link-summary">
+            <i class="@(Model.IsSignatureSetupCompleted ? "fad fa-check-circle" : "")"></i> @Model.Name <a class="text-muted " data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-controller="Search" asp-action="SearchModal" asp-route-what="@EntityType.Company" style="">
+                <i class="fa fa-caret-down"></i>
+            </a>
+        </span>
+    </div>
+</div>
+<input type="hidden" value="@Model.FileUrl" id="url" />
+<input type="hidden" value="@Model.Id" id="fileId" />
+
+<div class="row" id="selectorContainer">
+    <div class="col-md-9" id="pdf-block">
+
+        @*<div class="resize-drag absolute left-0 top-0 select-none" style="transform: translate(51px, 71px);">
+            <div contenteditable="true" spellcheck="false" class="p-2 outline-none whitespace-no-wrap" style="font-size: 15px; font-family: Times-Roman, serif; line-height: 1; user-select: text;">Dmmy Text</div>
+            <div resize-edges="bottom right">🡮</div>
+        </div>
+
+
+        <div class="resize-drag signature-placeholder absolute left-0 top-0 select-none" style="transform: translate(51px, 71px);width: 192.8px; height: 88.4937px">
+            <button class="btn btn-primary">Sign</button>
+            <div resize-edges="bottom right">🡮</div>
+        </div>
+
+        <div class="resize-drag signature absolute left-0 top-0 select-none" style="transform: translate(128px, 104px);">
+            <svg width="100%" height="100%" viewBox="0 0 209 107"  xmlns="http://www.w3.org/2000/svg" version="1.1" ><path stroke-width="5" stroke-linejoin="round" stroke-linecap="round" stroke="black" fill="none" d="M186,88L183,86L183,86L181,84L175,80L167,74L159,68L149,62L139,55L130,50L123,45L118,42L115,41L114,40L112,40L108,40L104,40L102,40L97,41L89,44L79,48L68,54L55,60L46,66L36,73L27,79L20,86L14,92L10,96L10,97L10,96L10,96L10,92L10,88L10,86L10,82L10,78L10,74L10,70L10,66L10,64L10,62L10,62L11,63L14,66L19,72L24,75L31,80L38,82L48,85L58,86L70,85L81,82L92,76L102,68L111,61L119,52L124,45L128,38L131,32L134,26L135,24L135,24L137,28L137,28L139,31L140,34L142,36L144,38L147,40L150,40L151,40L153,40L154,40L158,38L161,35L166,30L170,26L174,22L177,17L181,13L182,12L184,11L185,10L186,10L186,10L188,12L190,14L193,17L196,18L196,18L197,18L198,19L199,19"></path></svg>
+            <div resize-edges="bottom right">🡮</div>
+        </div>*@
+
+
+        <div id="pageContainer" class="pdfViewer singlePageView dropzone nopadding shadow-lg shadow-outline" style="background-color:transparent; width:100%; height: 100%">
+            <canvas id="the-canvas" style=""></canvas>
+        </div>
+    </div>
+
+    <div class="col-md-3" id="parametriContainer">
+        <div class="list-group">
+            @if (hasStats)
+            {
+                <div class="list-group-item-action mb-1">
+                    <div class="d-flex">
+                        <div class="bg-primary" style="height:7px; width:@signedWidth%" title="@stats.First().Value employees signed"></div>
+                        <div class="bg-warning" style="height:7px; width:@notSignedWidth%" title="@stats.Last().Value employees not yet signed"></div>
+                    </div>
+                </div>
+            }
+            <button class="list-group-item btn btn-warning mb-1" onClick="savePdf()">Download Fillable PDF</button>
+            <a class="list-group-item btn btn-info bg-info mb-1 btn-request-signature" data-ajax="true" data-ajax-update="#modal-1 .modal__container" data-ajax-begin="showModal()" asp-action="SelectEmployees" asp-route-update="#modal-1 .modal__container" asp-controller="Base" asp-route-act="SendRequest" asp-route-cnt="Signature" asp-route-RouteDataId="@Model.Id">Request Signature</a>
+            <button class="list-group-item border-0 btn btn-primary btn-save-pdf" onClick="showCoordinates()">Save PDF Fields</button>
+            <button class="list-group-item list-group-item-action border-0" onclick="addFormElement('inputField')">
+                <i class="fad fa-font"></i> Add Form Field
+            </button>
+            <button class="list-group-item list-group-item-action border-0" onclick="addFormElement('signature-label')">
+                <i class="fad fa-signature"></i> Add Signature Label
+            </button>
+            <button class="list-group-item list-group-item-action border-0" onclick="addFormElement('signature')">
+                <i class="fad fa-file-signature"></i> Add Signature Field
+            </button>
+            <button class="list-group-item list-group-item-action border-0" onclick="addFormElement('placeholder')">
+                <i class="fad fa-user-friends"></i> Add Employee Placeholders
+            </button>
+        </div>
+        <hr />
+        <div class="list-group lgg" id="list-group-fields">
+            <button class="list-group-item list-group-item-action border-0">
+                Fields in the Form
+            </button>
+            @*<div class="list-group-item list-group-item-action" data-target="">
+                <span class="drag-handle"><i class="fad fa-font"></i> name</span>
+                <div class="float-right switch_box box_1">
+                    <input type="checkbox" class="switch_1 switch-schedule" value="False">
+                    <span id="remove"><i class="fad fa-trash"></i></span>
+                </div>
+            </div>
+            <div class="list-group-item list-group-item-action" data-target="">
+                <span class="drag-handle"><i class="fad fa-font"></i> DateOfBirth</span>
+                <div class="float-right switch_box box_1">
+                    <input type="checkbox" class="switch_1 switch-schedule" value="False" checked />
+                    <span id="remove"><i class="fad fa-trash"></i></span>
+                </div>
+            </div>*@
+        </div>
+        <div class="list-group lgg mt-2" id="list-group-placeholders">
+            <button class="list-group-item list-group-item-action border-0">
+                Placeholders in the Form
+            </button>
+            @*<div class="list-group-item list-group-item-action">
+                <span class="drag-handle"><i class="fad fa-user-friends"></i> {SystemName}</span>
+                <div class="float-right">
+                    <span id="remove"><i class="fad fa-trash"></i></span>
+                </div>
+            </div>*@
+        </div>
+        <div id="nimifa_div" class="p-2 text-center"></div>
+        <div id="thumb_pane">
+            <div id="thumb_1" class="thumb_element thumb_preview"></div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal micromodal-slide" id="modal-2" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1">
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-2-title" style="width: 100%;" id="modal-1-container-layout">
+            <header class="modal__header">
+                <h2 class="modal__title" id="modal-1-title">
+                    Add Form Element
+                </h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+            </header>
+            <main class="modal__content" id="modal-1-content">
+                <input type="hidden" name="ElementType" id="ElementType" />
+
+                <div class="form-group rats placeholder">
+                    <label for="Name" class="control-label">Placeholder</label>
+                    <select name="Placeholder" id="Placeholder" class="form-control" asp-items="@(new SelectList(ViewBag.EmployeeFields, "Value", "Key"))">
+                        <option value="0">Choose a field</option>
+                    </select>
+                </div>
+                <div class="form-group rats inputField signature placeholder">
+                    <label for="Name" class="control-label">Name</label>
+                    <input type="text" name="Name" id="Name" class="form-control" />
+                    <input type="hidden" name="FieldType" id="FieldType">
+                </div>
+                @*<div class="row rats inputField signature placeholder">
+                    <div class="form-group rats inputField signature placeholder">
+                        <label for="Name" class="control-label">Name</label>
+                        <input type="text" name="Name" id="Name" class="form-control" />
+                    </div>
+                    <div class="form-group col" style="visibility:hidden">
+                        <label for="FieldType" class="control-label">Type</label>
+                        <select name="FieldType" id="FieldType" class="form-control">
+                            <option value="0">None</option>
+                            <option value="TextField">Text Field</option>
+                            <option value="signature">Signature Field</option>
+                            <option value="placeholder">Placeholder</option>
+                        </select>
+                    </div>
+                </div>*@
+                <div class="form-group rats inputField">
+                    <label class="custom-control custom-checkbox">
+                        <input type="checkbox" name="IsMultiline" id="IsMultiline" class="custom-control-input" onchange="onCheckChange(this)" value="False">
+                        <span class="custom-control-label" for="chbxTerms">
+                            Multi-line field
+                        </span>
+                    </label>
+                </div>
+                <div class="form-group rats inputField">
+                    <label class="custom-control custom-checkbox">
+                        <input type="checkbox" name="IsRequired" id="IsRequired" class="custom-control-input" onchange="onCheckChange(this)" value="False">
+                        <span class="custom-control-label" for="chbxTerms">
+                            Mark field as Required
+                        </span>
+                    </label>
+                </div>
+            </main>
+            <footer class="modal__footer">
+                <button class="modal__btn modal__btn-primary" onclick="addFormElemeantConfirm()">Add</button>
+                <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+            </footer>
+        </div>
+    </div>
+</div>
+
+<div class="modal micromodal-slide" id="modal-3" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1">
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-3-title" style="width: 100%;" id="modal-3-container-layout">
+            <header class="modal__header">
+                <h2 class="modal__title" id="modal-1-title">
+                    Add Signature
+                </h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+            </header>
+            <main class="modal__content" id="modal-1-content">
+                <div class="tab-wrapper bnb">
+                    <ul class="tabs">
+                        <li class="tab-link active" data-tab="1">Draw</li>
+                        <li class="tab-link" data-tab="2">Type</li>
+                    </ul>
+                </div>
+
+                <div class="content-wrapper bnb p-0 pt-3">
+                    <div id="tab-1" class="tab-content active">
+                        <p class="mb-0 float-right cursor-pointer"><span onclick="resetSignature()">Reset</span></p>
+                        <iframe src="~/img/signature.svg" id="signature" style="width: 100%;height: 100%;"></iframe>
+                        <p class="text-muted text-center mt-1 mb-0">sign above</p>
+                    </div>
+                    <div id="tab-2" class="tab-content">
+                        <input type="text" class="form-control" style="font-family: 'Herr Von Muellerhoff', cursive;font-size: 30pt;
+height: 100px;" />
+                    </div>
+                </div>
+            </main>
+            <footer class="modal__footer">
+                <button class="modal__btn modal__btn-primary" onclick="addSignatureConfirm()">Add</button>
+                <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+            </footer>
+        </div>
+    </div>
+</div>
+
+<!-- parameters showed on the left sidebar -->
+<input id="parameters" type="hidden" value="[]" />
+@*<input id="filedFromDb" type="hidden" value='@Json.Serialize(Model.FillableConfiguration)' />*@
+<input id="filedFromDb" type="hidden" value='@Json.Serialize(Model.FillableConfiguration)' />
+
+
+
+@section scripts {
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.0.943/pdf.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib@1.11.0/dist/pdf-lib.min.js"></script>
+    <script src="https://unpkg.com/downloadjs@1.4.7"></script>
+
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/interact.js/1.2.9/interact.min.js"></script>*@
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.0.943/pdf.worker.min.js"></script>*@
+
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.0/dist/interact.min.js"></script>
+
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/jSignature/2.1.3/jSignature.min.js" integrity="sha512-lZ7GJNAmaXw7L4bCR5ZgLFu12zSkuxHZGPJdIoAqP6lG+4eoSvwbmKvkyfauz8QyyzHGUGVHyoq/W+3gFHCLjA==" crossorigin="anonymous"></script>*@
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/jSignature/2.1.3/flashcanvas.min.js" integrity="sha512-FHZAgss3MwQeG+5czQOajoTUD8T+TKausbF/Nflz6APNsefnY2IEB94/nFmvGbgtp91a2fjLtLTaLCI6nN1I+A==" crossorigin="anonymous"></script>*@
+
+    <script src="~/js/pdfEditor/configurePdf.js"></script>
+    <script src="~/js/pdfEditor/pdf-core.js"></script>
+
+
+    <script>
+        var svg = document.getElementsByTagName('iframe')[0].contentWindow;
+        var pathdata = document.getElementById('pathdata');
+
+        var $sigdiv = $("#signature");
+        $(function () {
+
+            InitializeSortable();
+            InitializeTabs();
+
+            $(document).on('mouseover', '.lgg .list-group-item', function (e) {
+                $('#pdf-block').find('div.resize-drag[data-name="' + $(this).data('target') + '"]').addClass('found');
+            });
+            $(document).on('mouseleave', '.lgg .list-group-item', function (e) {
+                $('#pdf-block').find('div.resize-drag[data-name="' + $(this).data('target') + '"]').removeClass('found');
+            });
+            
+            $(document).on('click', '.lgg #remove', function (e) {
+                var _this = $(this);
+                var t_name = $(this).parents('.list-group-item').data('target');
+                var target = $("#pdf-block").find('div.resize-drag[data-name="' + t_name + '"]');
+                if (target) {
+                    if (confirm("Are you sure you wish to remove field?")) {
+                        removeObject(t_name);
+                        $(_this).parents('.list-group-item').attr('data-deleted', true);
+                        _this.parents('.list-group-item').fadeOut();
+                        $(target).fadeOut();
+                    }
+                }
+                else {
+                    alert(t_name + " element was not found");
+                }
+            });
+
+            //pannable($('#signPlaceholder'));
+            //('#signPlaceholder').panstart(handlePanStart);
+            //('#signPlaceholder').panmove(handlePanMove);
+            //('#signPlaceholder').panend(handlePanEnd);
+        });
+
+        $('#btn-request-signature').click(function () {
+
+        })
+    </script>
+}
+

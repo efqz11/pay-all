@@ -1,0 +1,143 @@
+﻿@model PayrollVm
+
+<style>
+
+    div.paystats .wrapper i.ion,
+    div.paystats .wrapper i.fa,
+    div.paystats .wrapper-lg svg {
+        font-size: 5.3rem !important;
+    }
+    div.paystats .wrapper svg {
+        opacity: 0.3;
+        font-size: 3.3rem;
+        position: absolute;
+        top: -2px;
+        left: -3px;
+    }
+</style>
+
+<div class="row">
+
+    <div class="col-md-3">
+
+        <div class="row paystats mt-2">
+            <div class="col-md-12">
+                <div class="wrapper wrapper-lg">
+                    <div class="top text-center ">
+                        <div class="bg-danger border-0 pt-4 pb-4 text-center">
+                            <h2 class="font-weight-bold text-white">
+                                @ViewBag.TotalDays</h2>
+                                <span><i class="fad fa-calendar fa-sm text-light"></i> @Model.PayrollPeriod.StartDate.GetDuration(Model.PayrollPeriod.EndDate, User, false)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+
+        <div class="row paystats mt-2">
+            <div class="col">
+                <div class="wrapper">
+                    <div class="top text-center">
+                        <div class="bg-secondary border-0 pt-4 pb-4 text-center">
+                            <h2 class="font-weight-bold text-white">
+                                @Model.PublicHolidaysDuringPeriod.Count(t => t.Value != "Off Day")
+                            </h2>
+                            <span><i class="fal fa-calendar-star fa-sm"></i>Paid Holidays</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="wrapper">
+                    <div class="top text-center">
+                        <div class="bg-primary border-0 pt-4 pb-4 text-center">
+                            <h2 class="font-weight-bold text-white">
+                                @Model.PublicHolidaysDuringPeriod.Count(t=> t.Value == "Off Day")</h2>
+
+                                <span><i class="fad fa-calendar-check"></i>Off Days</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="row paystats mt-2">
+            <div class="col-md-12">
+                <div class="wrapper">
+                    <div class="top text-center">
+                        <div class="bg-danger border-0 pt-4 pb-4 text-center">
+                            <h1 class="font-weight-bold text-white">
+                                95</h1>
+                                <span><i class="fa fa-user-group fa-sm text-light"></i> Head Count</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+
+        <div class="row paystats mt-2">
+            <div class="col">
+                <div class="wrapper">
+                    <div class="top text-center text-white">
+                        <div class="bg-secondary border-0 pt-4 pb-4 text-center">
+                            <h2 class="pb">
+                                @(3 + "d")</h5>
+                                <span><i class="fal fa-users fa-sm"></i>Current</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="wrapper">
+                    <div class="top text-center text-white">
+                        <div class="bg-primary border-0 pt-4 pb-4 text-center">
+                            <h2 class="pb">
+                                3d</h5>
+                                <span><i class="fad fa-users-medical"></i>New Joinee</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+
+        <div class="row paystats mt-4">
+            <div class="col-md-4">
+                <div class="wrapper">
+                    <div class="top text-center text-white">
+                        <div class="bg-info border-0 pt-4 pb-4 text-center">
+                            <h5 class="pb">456</h5>
+                            <span><i class="fad fa-business-time fa-sm"></i> Regular</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="wrapper">
+                    <div class="top text-center text-white">
+                        <div class="bg-warning border-0 pt-4 pb-4 text-center">
+                            <h5 class="pb">234</h5>
+                            <span><i class="fa fa-hourglass-start"></i>Overtime</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="wrapper">
+                    <div class="top text-center text-dark">
+                        <div class="bg-light border-0 pt-4 pb-4 text-center">
+                            <h5 class="pb"><span class="pro _a" style="font-size: 20px;">A</span></h5>
+                            <span><i class="fad fa-graduation-cap"></i> Grade</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

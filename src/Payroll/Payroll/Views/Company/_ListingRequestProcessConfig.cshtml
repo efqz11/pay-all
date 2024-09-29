@@ -1,0 +1,143 @@
+﻿@model Company
+@{ 
+    var dayOffs = (List<DayOff>)ViewBag.dayOffs;
+    var vals = Html.GetEnumSelectList(typeof(RequestType)).Select(a => (RequestType)Enum.Parse(typeof(RequestType), a.Value)).ToArray();
+}
+
+
+<table class="table">
+
+    <tr>
+        <td>
+
+            <partial name="~/Views/Request/_DisplayRequestTypeOnly.cshtml" model="@RequestType.Leave" />
+        </td>
+
+        <td>
+            @if (dayOffs.Any())
+            {
+                <table class="table">
+                    <tbody>
+
+                        @foreach (var dayOff in dayOffs.OrderBy(a => a.Name))
+                        {
+
+
+                            <tr>
+                                <td>
+                                    <div class="d-flex">
+                                        <div class="square bg-@dayOff.Color mr-2 mb-2"></div> <b>@dayOff.Name</b>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    @foreach (var item in Model.RequestApprovalConfigs.Where(a => a.RequestType == RequestType.Leave && a.DayOffId == dayOff.Id))
+                                    {
+
+                                    <div>
+                                        <b>@item.Step &middot;  </b>
+                                        @item.RequestProceessConfigActionBy.GetDisplayName()
+
+                                        @if (item.RequestProceessConfigActionBy == RequestProceessConfigActionBy.AutoActionAfterHours)
+                                        {
+                                            <p><i class="fad fa-exclamation-triangle"></i> Auto @item.AutoAction.Value.ToString() after @item.AutoActionAfterHours hours </p>
+                                        }
+                                        else if (item.RequestProceessConfigActionBy == RequestProceessConfigActionBy.EmployeesWithRole)
+                                        {
+                                            <span class="badge-primary p-1 rounded">@item.EmployeeRole.Role</span>
+                                        }
+                                        else if (item.RequestProceessConfigActionBy == RequestProceessConfigActionBy.SpecificEmployee)
+                                        {
+                                            <span class="badge-secondary p-1 rounded">@item.Employee.GetSystemName(User)</span>
+                                        }
+                                        <a class="btn btn-default btn-sm" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateProcessConfig" asp-controller="Company" asp-route-cmpId="@Model.Id" asp-route-id="@item.Id">
+                                            <i class="fad fa-edit"></i> Edit
+                                        </a>
+                                    </div>
+                                        }
+                                </td>
+                            </tr>
+
+                            }
+
+                        @*@if (Model.RequestApprovalConfigs.First(o => o.RequestType == type).IsApprovalByDepartmentHead)
+        {
+            <p><i class="far fa-user-crown"></i> Approval by Department head</p>
+        }
+        @if (Model.RequestApprovalConfigs.First(o => o.RequestType == type).IsApprovalByDefinedEmployees)
+        {
+            <p><i class="fad fa-users"></i> Approval by Specific Employee(s)</p>
+        }*@
+
+
+
+                    </tbody>
+                </table>
+            }
+            <p>
+                <a class="btn btn-primary btn-sm" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateProcessConfig" asp-controller="Company" asp-route-cmpId="@Model.Id" asp-route-type="@RequestType.Leave">
+                    <i class="fad fa-plus-circle"></i> Add next level
+                </a>
+            </p>
+        </td>
+
+    </tr>
+
+
+    @foreach (var type in vals.Where(a => a != RequestType.Leave))
+    {
+        <tr>
+            <td>
+
+                <partial name="~/Views/Request/_DisplayRequestTypeOnly.cshtml" model="@type" />
+            </td>
+
+            <td>
+                @if (Model.RequestApprovalConfigs.Any(o => o.RequestType == type))
+                {
+                    foreach (var item in Model.RequestApprovalConfigs.Where(a => a.RequestType == type).OrderBy(a => a.Step))
+                    {
+                <div>
+                    <b>@item.Step &middot;  </b>
+                    @item.RequestProceessConfigActionBy.GetDisplayName()
+
+                    @if (item.RequestProceessConfigActionBy == RequestProceessConfigActionBy.AutoActionAfterHours)
+                    {
+                        <p><i class="fad fa-exclamation-triangle"></i> Auto @item.AutoAction.Value.ToString() after @item.AutoActionAfterHours hours </p>
+                    }
+                    else if (item.RequestProceessConfigActionBy == RequestProceessConfigActionBy.EmployeesWithRole)
+                    {
+                        <span class="badge-primary p-1 rounded">@item.EmployeeRole.Role</span>
+                    }
+                    else if (item.RequestProceessConfigActionBy == RequestProceessConfigActionBy.SpecificEmployee)
+                    {
+                        <span class="badge-secondary p-1 rounded">@item.Employee.GetSystemName(User)</span>
+                    }
+                    <a class="btn btn-default btn-sm" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateProcessConfig" asp-controller="Company" asp-route-cmpId="@Model.Id" asp-route-id="@item.Id">
+                        <i class="fad fa-edit"></i> Edit
+                    </a>
+                </div>
+                        }
+
+                        @*@if (Model.RequestApprovalConfigs.First(o => o.RequestType == type).IsApprovalByDepartmentHead)
+                {
+                    <p><i class="far fa-user-crown"></i> Approval by Department head</p>
+                }
+                @if (Model.RequestApprovalConfigs.First(o => o.RequestType == type).IsApprovalByDefinedEmployees)
+                {
+                    <p><i class="fad fa-users"></i> Approval by Specific Employee(s)</p>
+                }*@
+
+
+                    }
+                <div>
+                    <a class="btn btn-primary btn-sm" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateProcessConfig" asp-controller="Company" asp-route-cmpId="@Model.Id" asp-route-type="@type">
+                        <i class="fad fa-plus-circle"></i> Add next level
+                    </a>
+                </div>
+            </td>
+
+        </tr>
+    }
+</table>
+

@@ -1,0 +1,195 @@
+﻿@model Payroll.Models.PayrollPeriod
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+
+<link href="~/css/tabs.css" rel="stylesheet" />
+
+
+<div>
+    <div class="layout-main-landing">
+        <div class="row">
+            <div class="layout-main-landing-header col-sm-12">
+                <div class="relative">
+                    <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                        @*<img class="zp-icon-image large content-block-with-icon__icon hidden-xs flex-self-start" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-map-288f54db.svg" alt="">*@
+                        <div class="content-block-with-icon__content">
+                            <h1 class="page-title margin-top-none margin-bottom-none">
+                                @(Model.Id == 0 ? "New Payroll" : "Change Payroll")
+                            </h1>
+                        </div>
+                    </div>
+                    @*<div class="layout-landing-header-details"><p class="layout-landing-header-pricing margin-bottom-none"></p></div>*@
+                </div>
+            </div>
+        </div>
+        <ol class="progress-bar-tabs progress-bar-style-default">
+            <li data-step="1" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Basics</div></li>
+            <li data-step="2" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Pay components</div></li>
+        </ol>
+        <div class="layout-main-landing-row row margin-bottom-20px">
+            <div class="col-sm-12 col-md-8 content">
+
+                <form asp-action="AddOrUpdate" id="form">
+
+                    <input type="hidden" asp-for="NetSalary" />
+                    <input type="hidden" asp-for="GrossPayLastPeriod" />
+                    <input type="hidden" asp-for="NetSalaryLastPeriod" />
+                    <input type="hidden" asp-for="CompanyId" />
+                    <input type="hidden" asp-for="Id" />
+
+                    @Html.AntiForgeryToken()
+                    <input asp-for="CompanyId" type="hidden" />
+
+                    <div class="step" data-step="1">
+
+                        <div asp-validation-summary="All" class="text-danger"></div>
+
+
+                        <h4 class="pb-4 fs-unmask">Payroll basics</h4>
+
+                        <div class="form-group">
+                            <label asp-for="Name" class="control-label"></label>
+                            <input asp-for="Name" class="form-control form-control-lg" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="form-group col">
+                                <label class="control-label" for="StartDate">Start Date</label>
+                                <input type="text" class="form-control form-control-lg has-datepicker" id="StartDate" name="StartDate" value="@Model.StartDate.ToString("dd-MMM-yyy")">
+                                <span class="text-danger field-validation-valid" data-valmsg-for="StartDate" data-valmsg-replace="true"></span>
+                            </div>
+
+                            <div class="form-group col">
+                                <label class="control-label" for="EndDate">End Date</label>
+                                <input type="text" class="form-control form-control-lg has-datepicker" id="EndDate" name="EndDate" value="@Model.EndDate.ToString("dd-MMM-yyy")">
+                                <span class="text-danger field-validation-valid" data-valmsg-for="EndDate" data-valmsg-replace="true"></span>
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-group mb-4">
+                            <label asp-for="Summary" class="control-label"></label>
+                            <textarea asp-for="Summary" class="form-control form-control-lg"></textarea>
+                            <span asp-validation-for="Summary" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                        <div class="step" data-step="2">
+                            <h4 class="pb-4 fs-unmask">Payment and components</h4>
+                            <div class="form-group mb-4">
+                                <label class="control-label" for="StartDate">Pay Date</label>
+
+                                <p class="small">
+                                    The date on which your employees will be paid.
+                                </p>
+
+                                <input type="text" class="form-control form-control-lg has-datepicker" id="PayDate" name="PayDate" value="@Model.PayDate?.ToString("dd-MMM-yyy")">
+                                <span class="text-danger field-validation-valid" data-valmsg-for="PayDate" data-valmsg-replace="true"></span>
+                            </div>
+
+                            @if (Model.Id <= 0)
+                            {
+
+                                <div class="form-group form-check">
+                                    <label class="custom-control custom-checkbox custom-checkbox-large">
+                                        <input type="checkbox" asp-for="GenerateFieldsForConstantPayAdjustments" value="false" class="date-chooser custom-control-input">
+                                        <span class="custom-control-label" asp-for="GenerateFieldsForConstantPayAdjustments">
+                                            @Html.DisplayNameFor(a => Model.GenerateFieldsForConstantPayAdjustments)
+                                        </span>
+                                    </label>
+                                </div>
+
+                            }
+                            @if (ViewBag.PayAdjustmentCreating != null)
+                            {
+                                foreach (var item in (List<PayAdjustment>)ViewBag.PayAdjustmentCreating)
+                                {
+
+                                    <div class="form-check">
+                                        <label class="custom-control custom-checkbox custom-checkbox-large">
+                                            <input type="checkbox" id="item_@item.Id" value="false" class="date-chooser custom-control-input const-adjustment" disabled>
+                                            <span class="custom-control-label" for="item_@item.Id">
+                                                @item.Name
+                                            </span>
+                                        </label>
+                                    </div>
+
+                                }
+                            }
+
+                        </div>
+
+
+                        <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+                            <button class="btn btn-lg btn-outline-primary btn-back mr-2" type="button">Back</button>
+                            <button class="btn btn-lg btn-primary btn-next" type="button" data-loadfunc="createPayrol()">Submit</button>
+
+                        </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div class="modal micromodal-slide" id="modal-create-payrol" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-recreate-table-title" style="width: 100%;">
+            <header class="modal__header">
+                <h2 class="modal__title text-center" id="modal-1-title">
+                    Creating Payrol
+                </h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+            </header>
+            <main class="modal__content" id="modal-1-content">
+                <div class="text-center d1">
+                    <div class="loader loader-blue btn-loading mb-4" data-page="2" style="line-height: 1px;display:block">
+                        <div class="ball-beat"><div></div><div></div><div></div></div>
+                    </div>
+
+                    <span class="d1-span">Please wait while payrol is being created</span>
+                </div>
+            </main>
+            <footer class="modal__footer text-center">
+                <small>This window will close automatically</small>
+            </footer>
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+    <script type="text/javascript" src="~/js/step-validator.js"></script>
+
+    <script>
+        $(function () {
+
+            startStep();
+        })
+        $(".has-datepicker").flatpickr({
+            dateFormat: "j-M-Y"
+        });
+
+        $('#GenerateFieldsForConstantPayAdjustments').change(function (e) {
+            if ($(this).is(':checked') === true) {
+                $('.const-adjustment').attr('checked', 'checked');
+            }
+            else
+                $('.const-adjustment').attr('checked', false);
+        });
+
+        function createPayrol() {
+            //if (!$('#payrolForm').valid()) return;
+
+            MicroModal.show('modal-create-payrol');
+        }
+
+    </script>
+}

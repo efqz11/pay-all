@@ -1,0 +1,183 @@
+﻿@model HomeEmployeeVm
+@{
+
+    var time = new decimal[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    //var attmSchedule = Model.AttedanceSchedule.FirstOrDefault()?.Attendances;
+    //var shifts = attmSchedule?.Select(a => a.CompanyWorkTimeId)?.ToArray()?.Distinct() ?? default(int[]);
+
+    var _date = (DateTime)ViewBag.Date;
+    var _start = (DateTime)ViewBag.Start;
+    var _end = (DateTime)ViewBag.End;
+    var calendars = (List<Tuple<string, string, string>>)ViewBag.calendars;
+    var total = DateTime.DaysInMonth(_date.Year, _date.Month);
+    var rows = total / 7;
+    var cols = 5;
+    var moveDate = _start;
+
+}
+<style>
+    .cell-attndance .item {
+        max-width: 115px !important;
+    }
+    .table-calendar tbody td {
+        padding: 10px 5px;
+    }
+        .table-calendar tbody td .cell-div {
+            min-height: 70px;
+        }
+</style>
+
+<div class="card" style="">
+
+    <!--Card Header-->
+    <div class="card-header">
+        <span class="title ">Calendar</span>
+        <div class="p-actions mb-0 float-left">
+                <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+                    <div class="btn-group mr-2" role="group" aria-label="0th group">
+                        <button type="button" onclick="$(this).toggleClass('active');$('.item.completed').toggleClass('show')" class="btn-sm btn btn-outline-secondary "><i class="fa fa-clipboard-check"></i></button>
+                    </div>
+
+                    <div class="btn-group mr-2" role="group" aria-label="First group">
+                        <a asp-action="Calendar" asp-controller="Employee" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-onDate="@((_start).AddDays(-1))" data-ajax="true" data-ajax-update="#employee-content" class="btn-sm btn btn-outline-secondary border-right-0"><i class="ion ion-arrow-left-c"></i></a>
+                        <button type="button" id="datefilterSchedule" class="btn-sm btn btn-outline-secondary border-left-0 border-right-0">@ViewBag.DurationText</button>
+                        <a asp-action="Calendar" asp-controller="Employee" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-onDate="@(_end.AddDays(1))" data-ajax="true" data-ajax-update="#employee-content" class="btn-sm btn btn-outline-secondary border-left-0"><i class="ion ion-arrow-right-c"></i></a>
+                    </div>
+
+                    <div class="btn-group" role="group" aria-label="Third group">
+                        <a class="btn btn-sm btn-primary" asp-action="AddOrUpdateUserTask" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="fad fa-plus-circle"></i> Add Task</a>
+                        @*<a class="btn btn-sm btn-outline-primary" asp-action="AddOrUpdateWork" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="ion ion-plus"></i> Add Work</a>*@
+                        @*<button type="button" class="btn btn-sm btn-primary"></button>*@
+                    </div>
+                </div>
+            </div>
+    </div>
+
+    <!--Card Body-->
+    <div class="card-body">
+        <div id="main-area">
+            <div class="row" id="weekly-schedule-table-container">
+
+                <div class="mb-2 ml-1">
+                    <span class="link-summary d-flex">
+                        @foreach (var item in calendars)
+                        {
+                            <span class="src btn-sm btn btn-outline-@item.Item2 mr-2 active" data-target="@item.Item1">
+                                <span class="d-flex ">
+                                    <span class="mr-2"><i class=" @item.Item3"></i></span>   @item.Item1
+                                </span>
+                            </span>
+                        }
+                        @*<span class="src btn btn-light mr-2 pending" data-target="pending">
+                            <span class="d-flex text-muted">
+                                <span class="square  mr-2"></span> Drafts
+                            </span>
+                        </span>*@
+                    </span>
+                </div>
+
+                <table class="table table-bordered table-calendar" style="table-layout: fixed">
+                    <thead>
+
+                        <tr>
+
+                            @for (var start = moveDate; start < moveDate.AddDays(7).Date; start = start.AddDays(1))
+                            {
+                                <td>
+                                    <h5 class="text-center mb-0">@start.Date.ToString("ddd").ToUpper()</h5>
+                                </td>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+
+
+                        @for (int i = 0; i < rows; i++)
+                        {
+                            @*@if (i == 0)
+                    {
+                        <tr>
+                            <td colspan="7">
+                                <div class="p-1">
+                                    <h5>@moveDate.ToString("MMMM")</h5>
+                                </div>
+                            </td>
+                        </tr>
+                    }*@
+
+
+
+                            <tr>
+                                @for (var start = moveDate; start < moveDate.AddDays(7).Date; start = start.AddDays(1))
+                                {
+                                    <td class="@(start.Date == DateTime.Now.Date ? "active" : "")">
+                                        <div class="cell-div">
+                                            @if (start.Month == moveDate.AddDays(7).Month)
+                                            {
+                                                <h5 class="w-100 text-right pr-2">
+                                                    <span class=" ">@start.Day</span>
+                                                </h5>
+
+                                                <div class="list-group">
+                                                    @if (Model.BirthDaysInMonth.Any(a => a.Key.Date == start.Date))
+                                                    {
+                                                        foreach (var item in Model.BirthDaysInMonth.First(a => a.Key == start.Date).Value)
+                                                        {
+                                                            <div class="list-group-item m-0 item p-1 small list-group-item-@calendars[1].Item2"><i class="@calendars[1].Item3"></i> @item.FullName</div>
+                                                        }
+                                                    }
+
+
+                                                    @if (Model.WorkAnniversaries.Any(a => a.Key.Date == start.Date))
+                                                    {
+                                                        foreach (var item in Model.WorkAnniversaries.First(a => a.Key.Date == start.Date).Value)
+                                                        {
+                                                            <span class="list-group-item m-0 p-1 small list-group-item-@calendars[3].Item2"><i class="@calendars[3].Item3"></i> @item.FullName @item.WorkAnniversaryYear year(s)</span>
+                                                        }
+                                                    }
+
+                                                    @if (Model.PublicHolidaysUpcoming.Any(a => a.Date.Date == start.Date))
+                                                    {
+                                                        foreach (var item in Model.PublicHolidaysUpcoming.Where(a => a.Date.Date == start.Date))
+                                                        {
+                                                            <div class="list-group-item m-0 item p-1 small list-group-item-@calendars[2].Item2"><i class="@calendars[2].Item3"></i> @item.Name</div>
+                                                        }
+                                                    }
+
+                                                    @if (Model.MyRequests.Any(a => a.Start > start.Date && a.End > start.Date.AddDays(7)))
+                                                    {
+                                                        foreach (var item in Model.MyRequests.Where(a => a.Start > start.Date && a.End > start.Date.AddDays(7)))
+                                                        {
+                                                            <div class="list-group-item m-0 item p-1 small list-group-item-@calendars[0].Item2"><i class="@calendars[0].Item3"></i> @((item.End - item.Start).TotalDays) </div>
+                                                        }
+                                                    }
+                                                </div>
+
+                                            }
+                                        </div>
+                                    </td>
+                                }
+                            </tr>
+
+                            moveDate = moveDate.AddDays(7);
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+
+@*Loader*@
+<div class="text-center">
+
+    <div class="loader btn btn-primary btn-loading" data-page="2" style="line-height: 1px;display:none">
+        <div class="ball-beat"><div></div><div></div><div></div></div>
+    </div>
+</div>
+

@@ -1,0 +1,31 @@
+﻿@model SearchResultVm
+
+@{
+    ViewData["Title"] = "Diagnostics";
+}
+
+<p class="mt-2">Search results for <b>@Model.SearchTerm</b></p>
+
+@if (Model.Result == null)
+{
+    <span>Oops! we didnt find that one, try searching for employees or payroll</span>
+}
+else
+{
+<ul class="list-group list-group-flush">
+
+    @foreach (var item in Model.Result)
+    {
+        <li class="list-group-item list-group-item-action">
+            <a href="@item.Link"><i class="@item.Icon"></i> @item.Item1</a>
+            <br />
+            <small class="pl-0">@item.Item2 · @item.Item3</small>
+        </li>
+        @*<div class="search-res-item">
+                <h5><a href="@item.Link"><i class="@item.Icon"></i> @item.Item1</a></h5>
+                <small class="pl-0">@item.Item2 @item.Item3</small>
+            </div>
+            <hr />*@
+    }
+</ul>
+}

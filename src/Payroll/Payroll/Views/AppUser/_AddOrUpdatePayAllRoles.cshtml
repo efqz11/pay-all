@@ -1,0 +1,54 @@
+﻿@model AppUser
+
+@{ 
+    var roles = (List<AppRole>)ViewBag.Roles;
+}
+
+<form asp-action="AddOrUpdatePayAllRoles" asp-controller="AppUser" data-ajax="true" data-ajax-method="POST" data-ajax-update="#detailView"  data-ajax-success="sendNotification('success', 'Roles have been updated');hideModal();" id="userForm" data-ajax-failure="handleModalPostFailure" >
+    @Html.AntiForgeryToken()
+    <input asp-for="Roles" type="hidden" />
+    <input asp-for="Id" type="hidden" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            Update PayAll User Roles
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+        <div class="form-group">
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                Below roles are System defined and is allowed to <b>manage system level actions</b>. Company level actions are <b>not</b> allowed by these rolws.
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </div>
+        @foreach (var role in roles)
+        {
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" name="@role.Id" data-id="@role.Name" value="@(Model.AppUserRoles.Any(a=> a.RoleId == role.Id) ? "True" : "False")" class="custom-control-input single-role" onchange="onCheckChange(this)" @(Model.AppUserRoles.Any(a=> a.RoleId == role.Id) ? "checked" : "")>
+                    <span class="custom-control-label" for="@role.Id">
+                        @role.Name
+                    </span>
+                </label>
+            </div>
+        }
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary" onclick="setRoles()">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>
+
+
+<script>
+    function setRoles() {
+    
+        var ad = $('.single-role:visible:checked').map(function() {
+            return $(this).data('id');
+        }).get().join(',');
+        $('#Roles').val(ad);
+    }
+</script>

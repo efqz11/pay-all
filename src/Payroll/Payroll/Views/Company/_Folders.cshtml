@@ -1,0 +1,69 @@
+﻿@model Company
+
+
+<h6>
+    Folders
+    <a asp-controller="Company" asp-action="AddOrUpdateFolder" asp-route-id="@Model.Id" data-ajax="true" data-ajax-update=".modal__container" class="btn btn-sm btn-primary pull-right" data-ajax-begin="showModal()">
+        <i class="fal fa-folder-plus"></i> New
+    </a>
+</h6>
+
+<div class="list-group list-group-folders" id="empl-sidebar">
+    @*<h5>
+                Folders
+                <a class="general_table" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-action="General" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)"><i class="fa fa-plus-circle"></i></a>
+            </h5>
+        </div>
+        <div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="general_table" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-action="General" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)">All</a></div>
+        <div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="performance_table" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" data-ajax-success="setActiveTab(this);" asp-action="Performance" asp-route-id="@Model.Id">Performance</a></div>
+
+        <div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="general_table" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-action="Contracts" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)">Agreements</a></div>
+        <div class="list-group-item border-right-0 border-left-0 border-bottom-0"><a class="" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-action="CompensationBenefits" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)">Compensation & Benefits</a></div>
+
+        <div class="list-group-item border-right-0 border-left-0 border-bottom-0"><a class="" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-action="TimeOffAndSickLeave" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)">Time Off & leaves</a></div>
+
+        <div class="list-group-item border-right-0 border-left-0 border-bottom-0"><a class="" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-action="Resources" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)">Resources</a></div>*@
+
+
+    @foreach (var item in Model.CompanyFolders)
+    {
+        <a href="#" class="list-group-item list-group-item-action filter @(ViewBag.EmpIdFilter == item.Id ? "active" : "")" onclick="getFolderFiles(this)" data-id="@item.Id">
+            <i class="fad fa-folder"></i> @item.Name
+
+            <br />
+            <small class="text-muted"><i class="fad fa-copy"></i> @item.CompanyFiles.Count() </small>
+            <span class="float-right">
+                <span class="text-muted list-group-toggler" onclick="editFolder(@item.Id);" style="display:none">
+                    <i class="fal fa-edit" aria-hidden="true"></i>
+                </span>
+            </span>
+        </a>
+    }
+</div>
+
+<a asp-controller="Company" asp-action="GetFiles" asp-route-dept="0" data-ajax="true" data-ajax-update="#cmpFiles-content" id="getFolderFilesBtn" class="hide"></a>
+<a asp-controller="Department" asp-action="AddOrUpdate" asp-route-dept="0" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" id="editFolderBtn" class="hide"></a>
+
+<script>
+
+    function getFolderFiles(e) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        var url = GetAppRootPath() + '/Company/GetFiles/' + $(e).data('id');
+        changeActiveTab(e);
+        $('#getFolderFilesBtn').attr('href', url).click();
+    }
+
+    function editFolder(id) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        var url = GetAppRootPath() + '/Company/AddOrUpdateFolder/@Model.Id?fid=' + id;
+        $('#editFolderBtn').attr('href', url).click();
+    }
+
+    function changeActiveTab(item) {
+        $('.list-group-folders').find('.list-group-item').removeClass("active");
+        $(item).addClass("active");
+        canFetch = true;
+    }
+</script>

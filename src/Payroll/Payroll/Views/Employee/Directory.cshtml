@@ -1,0 +1,156 @@
+﻿@model List<IGrouping<string,Employee>>
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<style>
+    .tb-padd td {
+        padding: 10px 0px;
+        font-weight: 100 !important;
+    }
+
+</style>
+<partial name="_Header" model="2" />
+
+<div class="clearfix"></div>
+
+<form asp-action="Directory">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="search-wrapper mb-4">
+                <div class="form-group has-search mb-1">
+                    <span class="form-control-feedback"><i class="fad fa-search"></i></span>
+                    <input type="text" class="txt-search form-control" name="query" value="@ViewBag.Query" placeholder="Type name to search">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-inline">
+                <label class="control-label">Group by: &nbsp;</label>
+                <select class="form-control" name="groupBy" id="groupBy" asp-items="@ViewBag.GroupBy" onchange="$(this).parents('form').submit()"></select>
+                <select class="form-control ml-2" name="groupBy" id="groupBy" onchange="$(this).parents('form').submit()">
+                    <option value="0">All Employees</option>
+                    <option value="0">My Circle</option>
+                    <option value="0">Choose</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</form>
+
+<table class="table data-container-table tb-padd" id="masterEmployeeAreaTable">
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td class="td-key" colspan="5" style="background-color:#dee2e6;padding:10px">
+                    <b>@item.Key</b>
+                    <small class="text-muted float-right">@item.Count() Employee(s)</small>
+                </td>
+            </tr>
+
+            @foreach (var rec in item)
+            {
+                <tr>
+                    <td>
+                        <div class="image-container" style="width: 80px;height: 80px;text-align: center;margin: 0 auto;">
+                            <a asp-action="detail" asp-route-id="@rec.Id">
+                                <img src="@Url.Content(rec.Avatar ?? DefaultPictures.default_user)" class="image" height="70" style="margin-top: 5px;" />
+                            </a>
+                        </div>
+                        
+                        <p class="mb-0 text-center">
+                            @if (!string.IsNullOrWhiteSpace(rec.InstagramId))
+                            {
+                                <a href="@rec.InstagramId" class="text-muted" target="_blank"><i class="fa fa-instagram"></i></a>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(rec.FacebookId))
+                            {
+                                <a href="@rec.FacebookId"  class="text-muted" target="_blank"><i class="fa fa-facebook-square"></i></a>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(rec.TwitterId))
+                            {
+                                <a href="@rec.TwitterId" class="text-muted" target="_blank"><i class="fa fa-twitter"></i></a>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(rec.LinkedInId))
+                            {
+                                <a href="@rec.LinkedInId"  class="text-muted" target="_blank"><i class="fa fa-linkedin"></i></a>
+                            }
+                        </p>
+                        @*@if (rec.HasUserAccount)
+                        {
+                            <i class="ion ion-at" title="@rec.UserName"></i>
+                        }*@
+                        
+                    </td>
+                    <td>
+                        <h5>
+                            <a asp-action="detail" asp-route-id="@rec.Id">
+                                <b>@rec.GetSystemName(User)</b>
+                            </a>
+                        </h5>
+
+                        <div class="text-muted" style="line-height:1.8888">
+
+                            <p class="mb-0"><i class="fad fa-user-tag"></i> @rec.JobTitle</p>
+                            <p class="mb-0"><i class="fad fa-dot-circle"></i> @Html.DisplayFor(x => rec.JobType)</p>
+                            <p class="mb-0"><i class="fad fa-user-friends"></i> @(rec.Department?.Name ?? "No Department")</p>
+
+                            <p class="mb-0"><i class="fad fa-map-marker-alt"></i> @(rec.Location?.Name ?? "No Location")</p>
+                            @*<partial name="_DisplayRequestStatus.cshtml" model="@Model.Status" />*@
+                        </div>
+                    </td>
+                    <td>
+                        <div class="text-muted" style="line-height:1.8888">
+
+                            <p class="mb-0"><i class="fal fa-envelope"></i> @rec.EmailWork</p>
+                            <p class="mb-0"><i class="fad fa-phone-office"></i> @rec.PhoneWork</p>
+                            <p class="mb-0"><i class="fad fa-phone"></i> @rec.PhoneWorkExt</p>
+                        </div>
+                    </td>
+                    <td>
+                        <p class="mb-0"><i class="fad fa-id-badge"></i> @rec.EmpID</p>
+
+                        <i class="fad fa-user-tie"></i>
+                        @*@if (rec.Employments.Any(x => x.RecordStatus == RecordStatus.Active && x.ReportingEmployee != null))
+                        {
+                            <span>
+                                <a asp-controller="Employee" asp-action="Detail" asp-route-id="@rec.Employments.First(x => x.RecordStatus == RecordStatus.Active).ReportingEmployeeId">
+                                    <span class="">@rec.Employments.First(x => x.RecordStatus == RecordStatus.Active).ReportingEmployee.Name</span>
+                                </a>
+                            </span>
+                        }*@
+                        @if (rec.ReportingEmployee != null)
+                        {
+                            <span>
+                                <a asp-controller="Employee" asp-action="Detail" asp-route-id="@rec.ReportingEmployeeId">
+                                    <span class="">@rec.ReportingEmployee.GetSystemName(User)</span>
+                                </a>
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No Manager!</span>
+                        }
+                        <br>
+                        <span class="text-muted" title="@(rec.EmployeeDirectReports.Any() ? string.Join("<br>", rec.EmployeeDirectReports.Select(x=> x.GetSystemName(User))) : "")"><i class="fad fa-users-class"></i> @rec.EmployeeDirectReports.Count() Direct Report(s)</span>
+                    </td>
+                    <td>
+
+                    </td>
+                </tr>
+
+            }
+        }
+    </tbody>
+</table>
+
+@section scripts {
+    <script>
+        $('.txt-search').keyup(debounce(function () {
+            console.log('starting... ');
+            table_search($('.txt-search').val(), $('.data-container-table tbody tr'), '1');
+        }, 500));
+    </script>
+}

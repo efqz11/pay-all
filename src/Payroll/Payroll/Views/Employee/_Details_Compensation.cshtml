@@ -1,0 +1,93 @@
+﻿@model Employee
+
+@{
+    Layout = "_LayoutCard";
+    ViewBag.CardHeader = "Compensations and Benefits";
+}
+
+
+
+<div class="tab-wrapper bnb">
+    <ul class="tabs scroll">
+        @*<li class="tab-link active" data-tab="1">Employment and Job</li>*@
+        <li class="tab-link active" data-tab="1">Additions (@Model.EmployeePayComponents.Count(a => a.PayAdjustment.VariationType.ToString().Contains("Addition")))</li>
+        <li class="tab-link" data-tab="2">Deductions (@Model.EmployeePayComponents.Count(a=> a.PayAdjustment.VariationType.ToString().Contains("Deduction")))</li>
+    </ul>
+</div>
+<div class="content-wrapper bnb p-0" id="">
+    <div id="tab-1" class="tab-content active">
+
+        <a class="btn btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateCompensation" asp-route-eid="@Model.Id" asp-route-type="addition">
+            <i class="fad fa-plus-circle"></i> Update Compensation
+        </a>
+
+        <table class="table">
+            <thead>
+                <tr colspan="">
+                    <th width="10px"></th>
+                    <th>Effective Date</th>
+                    <th>Adjustment</th>
+                    @*<th>Frequency</th>*@
+                    <th>Total</th>
+                    <th>Change Reason</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.EmployeePayComponents.Where(a => a.PayAdjustment.VariationType.ToString().Contains("Addition")))
+                {
+                    <tr>
+                        <td><i class="@(item.RecordStatus == RecordStatus.Active ? "fad fa-dot-circle text-primary" : "")"></i></td>
+                        <td>@item.EffectiveDate.ToSystemFormat(User)</td>
+                        <td>@item.PayAdjustment.Name</td>
+                        <td>@item.Total.ToSystemFormat(User)</td>
+                        <td>@item.PayComponentChangeReason</td>
+                        <td>
+                            <a class="btn-link" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateCompensation" asp-route-id="@item.Id" asp-route-eid="@Model.Id">
+                                <i class="fad fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div id="tab-2" class="tab-content">
+
+        <a class="btn btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddDeductions" asp-route-id="@Model.Id" asp-route-type="ded">
+            <i class="fad fa-plus-circle"></i> Update Deductions
+        </a>
+
+        <table class="table">
+            <thead>
+                <tr colspan="">
+                    <th width="10px"></th>
+                    <th>Effective Date</th>
+                    <th>Adjustment</th>
+                    @*<th>Frequency</th>*@
+                    @*<th>Total</th>
+                    <th>Change Reason</th>*@
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.EmployeePayComponents.Where(a => a.PayAdjustment.VariationType.ToString().Contains("Deduction")))
+                {
+                    <tr>
+                        <td><i class="@(item.RecordStatus == RecordStatus.Active ? "fad fa-dot-circle text-primary" : "")"></i></td>
+                        <td>@item.EffectiveDate.ToSystemFormat(User)</td>
+                        <td>@item.PayAdjustment.Name</td>
+                        @*<td>@item.Total.ToString("N2")</td>
+                        <td>@item.PayComponentChangeReason</td>*@
+                        <td>
+                            <a class="btn-link" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateCompensation" asp-route-id="@item.Id" asp-route-eid="@Model.Id">
+                                <i class="fad fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

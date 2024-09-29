@@ -1,0 +1,102 @@
+﻿@model List<Employee>
+
+
+@foreach (var item in Model)
+{
+    <tr>
+        <td>
+            <div class="btn-group">
+                <button type="button" class="btn btn-sm  dropdown-toggle dropdown-toggle-split" id="dropdownMenuReference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
+                    <i class="ion-ios-more"></i>
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
+                    <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdate" asp-route-id="@item.Id">
+                        <i class="ion-ios-compose-outline"></i> Edit Master Data
+                    </a>
+
+                    <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateOtherDetails" asp-route-id="@item.Id">
+                        <i class="ion-ios-compose-outline"></i> Edit Other Details
+                    </a>
+
+                    <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateAddressContact" asp-route-id="@item.Id">
+                        <i class="ion-ios-compose-outline"></i> Edit Address & Contact
+                    </a>
+                    
+                    <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateSocial" asp-route-id="@item.Id">
+                        <i class="ion-ios-compose-outline"></i> Edit Social
+                    </a>
+                    @*<a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdatePayAdjustment" asp-route-id="@item.Id">
+                            <i class="ion-ios-compose-outline"></i> Edit Pay Adjustments
+                        </a>*@
+
+                    <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewEmployee" asp-route-id="@item.Id">
+                        <i class="fa  fa-file-signature"></i> View Contracts
+                    </a>
+                    <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="MapUser" asp-route-id="@item.Id">
+                        <i class="ion-ios-compose-outline"></i> Map User
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" asp-action="Details" asp-route-id="@item.Id" data-id="3">View Profile</a>
+
+                    <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="UploadImage" asp-route-id="@item.Id">
+                        Change photo
+                    </a>
+
+                    <a class="dropdown-item text-warning" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="TerminateEmployee" asp-route-id="@item.Id">
+                        <i class="ion-ios-close"></i> Terminate
+                    </a>
+                    <a class="dropdown-item text-danger" asp-action="Remove" asp-route-id="@item.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@item.Name was just removed');$(this).parents('td').parent().fadeOut();" data-ajax-confirm="Are you sure you want to remove @item.Name">Remove</a>
+
+                </div>
+            </div>
+
+
+            @*@if (item.BackgroundJob != null)
+            {
+                <i class="ion-ios-close"></i>
+            }*@
+        </td>
+        <td>
+            @if (item.HasUserAccount)
+            {
+                <i class="ion ion-at" title="@item.UserName"></i>
+            }
+            @item.EmpID
+        </td>
+        <td>
+
+            <div class="text-left" style=" margin-left: 0px;padding-left: 0px;display:flex">
+
+                <div class="image-container" style="">
+                    <a asp-action="detail" asp-route-id="@item.Id">
+                        <img src="@Url.Content(item.Avatar ?? DefaultPictures.default_user)" class="image " height="30" style="margin-top: 5px;" />
+                    </a>
+                </div>
+                <div>
+                    <a asp-action="detail" asp-route-id="@item.Id">
+                        @item.NameDisplay
+                    </a>
+                    <br />
+                    <span class="text-muted">@item.JobTitle @*<i class="fa @(item.IsContractActive ? "fa-signature" : "") text-info"></i>*@</span>
+                </div>
+            </div>
+        </td>
+        <td>@item.Department?.Name <br /><small class="text-muted">@item.JobType</small></td>
+        <td>@item.IdentityNumber <br /><small class="text-muted">@item.IdentityType </small></td>
+        <td>
+            <small class="tag  @item.StatusCss">@item.HrStatus</small><br />
+            @*@if (item.IsContractActive)
+            {
+                <a asp-action="Detail" asp-controller="Contract" asp-route-id="@item.ActiveContractId">
+                    <small>@item.ActiveContractName</small>
+                </a>
+            }
+            else
+            {
+                <a class="btn-link" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateContractTerms" asp-controller="Contract" asp-route-id="@item.Id">
+                    <small><i class="ion-ios-compose-outline"></i> New Agreement</small>
+                </a>
+            }*@
+        </td>
+    </tr>
+}

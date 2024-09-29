@@ -1,0 +1,67 @@
+﻿@model Employee
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+@*<link href="~/css/step-progress.css" rel="stylesheet" />*@
+<link href="~/css/webSetup.css" rel="stylesheet" />
+<link href="~/css/tabs.css" rel="stylesheet" />
+
+<div id="change-form-wrapper">
+    @if (ViewBag.NewEmployee != null)
+    {
+        @*<partial name="_AddOrUpdate" model="Model" />*@
+    }
+    else
+    {
+        <partial name="_ChangeOverview" model="Model" />
+        @*<div class="row">
+                <div class="col-md-8">
+                    <div id="change-form-wrapper">
+                        <partial name="_ChangeOverview" model="Model" />
+                    </div>
+                </div>
+                <div class="col-md-4"></div>
+            </div>*@
+    }
+</div>
+
+<a class="btn btn-primary" id="loadEmpButton" data-ajax="true" data-ajax-update="#change-form-wrapper" asp-controller="Company" asp-action="NewEmployeeProfile" asp-route-id="@Model.Id" data-ajax-success="" style="display:none">+++</a>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.css" />
+
+
+@section scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+
+    <script>
+
+            $(".has-datepicker").flatpickr({
+                dateFormat: "j-M-Y"
+            });
+
+            function setReloadFunctionOnModal() {
+                var form = $('#change-form-wrapper').find('form');
+                var suc = $(form).attr('data-ajax-success');
+                $(form).attr('data-ajax-success', suc + 'location.reload();');
+            }
+
+            function clearHome() { $('#change-form-wrapper').empty().append(getLoaderHtmlWithLineHeight(10)).fadeIn(); }
+
+            @if(ViewBag.IsCreatingNewEmployee != null)
+            {
+                <text>
+        $('#loadEmpButton').click();
+                </text>
+            }
+
+        @if(ViewBag.IsEditingEmployee != null)
+            {
+                <text>
+                    var str = '@Url.Action((string)ViewBag.Href, "Employee", new { id = Model.Id })';
+                    $('#loadEmpButton').attr('href', str);
+                    $('#loadEmpButton').click();
+                </text>
+            }
+    </script>
+}

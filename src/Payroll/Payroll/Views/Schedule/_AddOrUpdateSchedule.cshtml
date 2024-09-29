@@ -1,0 +1,224 @@
+﻿@model ScheduleCreateVm
+
+<style>
+    .disabled {
+        opacity: 0.3;
+        text-decoration: line-through;
+    }
+</style>
+<form asp-action="AddOrUpdateSchedule" asp-controller="Schedule" data-ajax="true" data-ajax-method="POST" data-ajax-update="#weekly-schedule" data-ajax-success="shideModal('Schedule was created successfully');" id="addOrUpdatScheduleForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="SaveAndRun" />
+    @*<input type="hidden" asp-for="Id" />*@
+    <input type="hidden" asp-for="ShiftDurationStart" />
+    <input type="hidden" asp-for="ShiftDurationEnd" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @(Model == null || Model.Id <= 0 ? "Create new Schedule" : "Update Schedule")
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        @*<div class="form-group">
+            <partial name="_AvatarUpload" />
+        </div>*@
+        <div class="form-group">
+            <label for="EmployeeIds" class="control-label">Choose Employees</label>
+            <select asp-for="EmployeeIds" class="form-control" multiple data-width="100%"></select>
+        </div>
+
+        @*<div class="form-group">
+            <div class="btn-group" role="group" aria-label="First group">
+                <a asp-action="Index" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-date="@(((DateTime)ViewBag.WeekStart).AddDays(-1))" data-ajax="true" data-ajax-update="#weekly-schedule" class="btn-sm btn btn-outline-secondary border-right-0"><i class="ion ion-arrow-left-c"></i></a>
+                <button type="button" class="btn-sm btn btn-outline-secondary border-left-0 border-right-0">@ViewBag.CurrentRangeDisplay</button>
+                <a asp-action="Index" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-date="@(((DateTime)ViewBag.WeekEnd).AddDays(1))" data-ajax="true" data-ajax-update="#weekly-schedule" class="btn-sm btn btn-outline-secondary border-left-0"><i class="ion ion-arrow-right-c"></i></a>
+            </div>
+        </div>*@
+        
+        <div class="form-group">
+            <p class="mb-2">Work Schedule for dates between @Model.ShiftDurationStart.GetDuration(Model.ShiftDurationEnd.Value, User)</p>
+
+            <a class="btn-link" asp-action="SelectDates" asp-route-start="@Model.ShiftDurationStart" asp-route-end="@Model.ShiftDurationEnd" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure">Change dates</a>
+        </div>
+
+
+        <div id="notRecurring">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th><span>Day</span></th>
+                        <th><span>@(Model.ScheduleFor == ScheduleFor.Attendance ? "Shift" : "Work")</span></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    @for (int i = 0; i < Model.Days.Count; i++)
+                    {
+                        <input type="hidden" asp-for="@Model.Days[i].Date" />
+                        <tr>
+                            <td><small>@Model.ShiftDurationStart.AddDays(i).ToString("dd MMM, ddd")</small> <input type="hidden" asp-for="@Model.Days[i].DayOfWeek" class="is-off" /></td>
+                            <td><select asp-for="@Model.Days[i].ShiftId" asp-items="@(new SelectList(Model.Shifts, "Key", "Value", Model.Days[i].ShiftId))" class="form-control form-control-sm"></select></td>
+                            <td><a class="btn btn-sm btn-info btn-make-off text-white"><i class="fa fa-close"></i> Off day</a> <input type="hidden" asp-for="@Model.Days[i].IsOff" class="is-off" /> </td>
+                            @*<td><input asp-for="@Model.Days[i].MinHours" class="form-control" /></td>*@
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @*<div class="form-group">
+            <label asp-for="ShiftId" class="control-label">
+                Choose Shift
+                <small class="">
+                    <a data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" aria-label="Click to view all users have access" role="tooltip" data-microtip-position="top" href="/Company/ChangeWorkType/1">
+                        <i class="ion ion-edit"></i> Change
+                    </a>
+                </small>
+            </label>
+            <select asp-for="ShiftId" asp-items="@ViewBag.ShiftId" class="form-control"></select>
+        </div>*@
+
+        @*<div class="form-group">
+            <label for="IgnoreDays" class="control-label">Exclude some days</label>
+            <select name="IgnoreDays" id="IgnoreDays" asp-items="@ViewBag.IgnoreDays" class="form-control" multiple></select>
+        </div>*@
+
+
+
+        <div class="row">
+            @*<div class="form-group col">
+                <label asp-for="MinHours" class="control-label">Minimum Hours</label>
+                <input asp-for="MinHours" class="form-control" />
+            </div>*@
+
+            @*<div class="form-group col">
+                <label asp-for="RecurringFrequency" class="control-label">Recurring</label>
+                <select id="EmployeeId" asp-items="@Html.GetEnumSelectList<RecurringFrequency>()" class="form-control"></select>
+            </div>*@
+        </div>
+
+        @*<div class="form-group">
+            <label asp-for="UserName" class="control-label">User Name</label>
+            <input asp-for="UserName" as class="form-control" />
+            <span class="text-danger" asp-validation-for="UserName"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Email" class="control-label"></label>
+            <input asp-for="Email" as class="form-control" /> @(Model?.EmailConfirmed ?? false ? "<i class='fa fa-check-circle'></i>" : "")
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="PhoneNumber" class="control-label">Phone Number</label>
+            <input asp-for="PhoneNumber" as class="form-control" /> @(Model?.PhoneNumberConfirmed ?? false ? "<i class='fa fa-check-circle'></i>" : "")
+            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="PasswordHash" class="control-label">Password</label>
+            <input asp-for="PasswordHash" class="form-control" type="password" />
+            <span asp-validation-for="PasswordHash" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" asp-for="LockoutEnabled" value="false" class="custom-control-input" tabindex="5">
+                <span class="custom-control-label" for="chbxTerms">
+                    LockoutEnabled: @Model.LockoutEnd
+                </span>
+            </label>
+        </div>
+
+
+        <div class="form-group">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" asp-for="TwoFactorEnabled" value="false" class="custom-control-input" tabindex="5">
+                <span class="custom-control-label" for="chbxTerms">
+                    TwoFactorEnabled
+                </span>
+            </label>
+        </div>*@
+    </main>
+    <footer class="modal__footer">
+        @*<button type="button" class="modal__btn modal__btn-primary btn-save-and-run">Create Attendance Records</button>*@
+        <button type="submit" class="modal__btn modal__btn-primary btn-save-master">Create Attendance Records</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>
+
+
+<script>
+    
+    $('.btn-make-off').click(function (e) {
+        var makeOff = $(this).parent().prev().find('.form-control').hasClass('disabled');
+        if (makeOff) {
+            $(this).next().val(false);
+            $(this).text('Off Day')
+        }
+        else {
+            $(this).next().val(true);
+            $(this).text('Cancel Off')
+        }
+
+        $(this).parent().prev().find('.form-control').toggleClass('disabled');
+        $(this).toggleClass('btn-info btn-danger');
+    })
+
+    $('.btn-save-and-run').click(function () {
+        $('#SaveAndRun').val(true);
+
+        $('#addOrUpdatScheduleForm').attr("data-ajax-update", ".modal__container");
+        $('#addOrUpdatScheduleForm').attr("data-ajax-success", "sendNotification('success', 'Schedule was saved, choose otions to run')");
+        $('.btn-save-master').trigger('click');
+    });
+
+  //  function format (option) {
+		//	console.log(option);
+		//	if (!option.id) { return option.text; }
+		//	var ob = option.text + '<img height="30px" src="https://lh4.ggpht.com/wKrDLLmmxjfRG2-E-k5L5BUuHWpCOe4lWRF7oVs1Gzdn5e5yvr8fj-ORTlBF43U47yI=w64" />';	// replace image source with option.img (available in JSON)
+		//	return ob;
+		//};
+
+  //  $.fn.select2.amd.require(['select2/selection/search'], function (Search) {
+  //      var oldRemoveChoice = Search.prototype.searchRemoveChoice;
+
+  //      Search.prototype.searchRemoveChoice = function () {
+  //          oldRemoveChoice.apply(this, arguments);
+  //          this.$search.val('');
+  //      };
+
+  //      $('#EmployeeIds').select2({
+  //          //width:'300px'
+  //		    placeholder: "Select employees",
+  //          escapeMarkup: function (m) {
+		//	    return m;
+		//    }
+  //      });
+
+  //      $('#IgnoreDays').select2({
+  //          //width:'300px'
+  //          placeholder: "Choose days to exclude",
+  //      });
+        
+  //      $('#EmployeeIds').on('select2:select', function (e) {
+  //          var data = e.params.data;
+  //          console.log(data);
+  //      });
+  //  });
+
+     // $("#EmployeeIds").select2({
+  		 //   placeholder: "Select employees",
+	    //    // width: "50%",
+     //       // allowClear: true,
+	    //    //templateResult: format,
+	    //    //templateSelection: function (option) {
+	    //    //    if (option.id.length > 0 ) {
+	    //    //        return option.text + "<i class='fa fa-dot-circle-o'></i>";
+	    //    //    } else {
+	    //    //        return option.text;
+	    //    //    }
+	    //    //},
+     //     escapeMarkup: function (m) {
+				 //   return m;
+			  //  }
+	    //});
+</script>

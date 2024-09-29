@@ -1,0 +1,345 @@
+﻿@model Attendance
+@inject Payroll.Database.PayrollDbContext dbContext
+@{ 
+    var date = (DateTime)ViewBag.StartDateTime;
+    var startTimeSpan = date; // date.Add(TimeSpan.FromHours(date.Hour));
+    var endTimeSpan = date.Add(TimeSpan.FromHours(23));
+
+    var mappedTimes = Model.BiometricRecords
+        .Where(a => a.BiometricRecordState == BiometricRecordState.CheckIn || a.BiometricRecordState == BiometricRecordState.CheckOut)
+        .OrderBy(a => a.DateTime)
+        .Select(a => a.DateTime)
+        .ToList();
+
+
+    var _bioRecrds = Model.BiometricRecords.Select(x => new BiometricRecord
+    {
+        Id = x.Id,
+        DateTime = x.Minute == 0 ? x.DateTime.AddMinutes(x.Minute - 1) : x.DateTime,
+        BiometricRecordState = x.BiometricRecordState,
+        BiometricRecordType = x.BiometricRecordType
+    }).ToList();
+}
+
+<style>
+    .sch-checkInOut.active {
+        box-shadow: 2px 2px 2px 0px rgba(0,0,0,0.75);
+    }
+    .sch-checkInOut {
+        background-color: #29d9ef !important;
+        box-shadow: 2px 2px 2px 0px rgba(34, 121, 127, 0.75);
+        position: relative;
+        top: -11px;
+    }
+
+    #bioMetricData {
+    }
+    table#bioMetricData th, table#bioMetricData td {
+        margin: 0.75rem;
+        padding: 0 !important;
+        width: 20px !important;
+    }
+
+        table#bioMetricData td.tdCell {
+            border-radius: 0px !important;
+        }
+            table#bioMetricData td.tdCell .item.st,
+            table#bioMetricData td.tdCell .item.st {
+                border-top-left-radius: 5px;
+                border-bottom-left-radius: 5px;
+                float: right;
+            }
+            table#bioMetricData td.tdCell .item.en {
+                border-top-right-radius: 5px;
+                border-bottom-right-radius: 5px;
+            }
+            table#bioMetricData td.tdCell .item {
+                height: 20px;
+            }
+
+    table#bioMetricData tr.row-bio td {
+        border-top: none !important;
+        padding: 5px 0px !important;
+        padding-top: 0px !important;
+    }
+
+    table#bioMetricData tr.row-bio td.clk-rcd span {
+        position: relative;
+        top: -1px;
+    }
+    table#bioMetricData tr.row-wt td {
+        padding: 15px 0px !important;
+        padding-bottom: 1px !important;
+    }
+
+    table#bioMetricData tr.row-hrs td {
+        padding: 15px 0px !important;
+        position: relative;
+        left: -2px;
+        top: -12px;
+    }
+
+</style>
+
+<form asp-action="AddOrUpdateAttendance" asp-controller="Schedule" data-ajax="true" data-ajax-method="POST" data-ajax-update="#weekly-schedule" data-ajax-begin="showModal()" data-ajax-success="sendNotification('success', 'Attendance record was just saved');hideModal()" id="addUpdateConnectionForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @if (Model != null || Model.Id > 0)
+            {
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewAttendance" asp-controller="Schedule" asp-route-id="@Model.Id">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+            }
+            View Clock Records
+            <br />
+            <small>
+                @Model.Date.ToLongDateString()
+            @if (Model.IsOvertime)
+            {
+                <i class="fad fa-hourglass-start" title="Overtme request"></i>
+            }
+        </small>
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <partial name="_EmployeeSummary" model="@Model.Employee" />
+        </div>
+        <div>
+            <table class="table" id="bioMetricData">
+                <thead>
+                    <tr>
+                        <td colspan="@((23-startTimeSpan.Hour + 1))">
+                            <div class="@(Model.Date.Date >= DateTime.Now.Date ? "active" : "") text-center">
+                                <div class="text-left font-weight-bold" style=" vertical-align: middle;display:inline-flex">
+                                    <h3 class="mt-1 pr-1">@Model.Date.Day</h3>
+                                    <div class="name-display pl-1" style="font-size: 11px;padding-top: 4px;">
+                                        <span class="">@Model.Date.ToString("ddd").ToUpper()</span>
+                                        <br>
+                                        <small style="position: relative;top: -4px;">@Model.Date.ToString("MMM").ToString()</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        @if (startTimeSpan.Date != endTimeSpan.Date)
+                        {
+                        <td colspan="@(24 - 1 - (23 - startTimeSpan.Hour))" style="border-left: 1px solid #dee2e6;">
+                            <div class="@(Model.Date.Date >= DateTime.Now.Date ? "active" : "") text-center">
+                                <div class="text-left font-weight-bold" style=" vertical-align: middle;display:inline-flex">
+                                    <h3 class="mt-1 pr-1">@endTimeSpan.Date.Day</h3>
+                                    <div class="name-display pl-1" style="font-size: 11px;padding-top: 4px;">
+                                        <span class="">@endTimeSpan.Date.ToString("ddd").ToUpper()</span>
+                                        <br>
+                                        <small style="position: relative;top: -4px;">@endTimeSpan.Date.ToString("MMM").ToString()</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="row-wt">
+                        @for (DateTime start = startTimeSpan; start <= endTimeSpan; start = start.Add(TimeSpan.FromHours(1)))
+                        {
+                            if (start.Hour % 2 == 1)
+                            {
+                                if ((start >= Model.WorkStartTime &&
+                              start.Add(TimeSpan.FromHours(2)) <= Model.WorkEndTime))
+                                {
+                                    <td colspan="2" class="tdCell">
+                                        <div class="item sch item-@Model.Id sch-@Model.ShiftColor" style="">
+                                            <small>
+                                                <span>
+
+                                                </span>
+                                                <br>
+                                            </small>
+                                        </div>
+                                    </td>
+                                }
+                                else if ((start < Model.WorkStartTime &&
+                                  start.Add(TimeSpan.FromHours(2)) > Model.WorkStartTime)
+
+                                  || (start < Model.WorkEndTime &&
+                                  start.Add(TimeSpan.FromHours(2)) > Model.WorkEndTime))
+                                {
+                                    var width = (start < Model.WorkStartTime || start < Model.WorkEndTime) ? 50 : 100;
+                                    var css = (start < Model.WorkStartTime) ? "st" : "en";
+                                    <td colspan="2" class="tdCell ">
+                                        <div class="item @css sch item-@Model.Id sch-@Model.ShiftColor" style="width:@width%" title="@(css == "st" ? (Model.WorkStartTime.ToLocalFormat(true) + " - Work Start") : css == "en" ? (Model.WorkEndTime.ToLocalFormat(true) + " - Work End") : "")">
+                                            <small>
+                                                <span>
+
+                                                </span>
+                                                <br>
+                                            </small>
+                                        </div>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td colspan="2" class="tdCell">
+                                        <div class="" style="">
+                                            <small>
+                                                <span>
+                                                    
+                                                </span>
+                                                <br>
+                                            </small>
+                                        </div>
+                                    </td>
+                                }
+                            }
+                        }
+                    </tr>
+
+
+                    <tr class="row-bio">
+                        @for (DateTime start = startTimeSpan; start <= endTimeSpan; start = start.Add(TimeSpan.FromHours(1)))
+                        {
+                            if (start.Hour % 2 == 1)
+                            {
+                                <td colspan="2" class="clk-rcd tdCell">
+                                    @* Two Ends () *@
+                                    @if (_bioRecrds.Any(r => start < r.DateTime &&
+                                       start.Add(TimeSpan.FromHours(2)) >= r.DateTime))
+                                        {
+                                            foreach (var item in _bioRecrds.Where(r => start < r.DateTime &&
+                                            start.Add(TimeSpan.FromHours(2)) >= r.DateTime))
+                                            {
+                                                var left = item.BiometricRecordState == BiometricRecordState.CheckIn || item.BiometricRecordState == BiometricRecordState.BreakIn ? 
+                                                ((start.Add(TimeSpan.FromHours(2)) - item.DateTime).TotalHours / 2) * 100 : ((item.DateTime - start).TotalHours / 2) * 100;
+
+                                            var css = (item.BiometricRecordState == BiometricRecordState.CheckIn || item.BiometricRecordState == BiometricRecordState.BreakIn) ? "st" : "en";
+                                             <div class="item item-checkInOut sch item- sch-checkInOut @css" style="width:@left%" onclick="$('p.recrd').removeClass('font-weight-bold');$('.recrd_@item.Id').toggleClass('font-weight-bold')" title="@item.DateTime.TimeOfDay - @item.BiometricRecordState">
+                                                 <span >
+                                                     &nbsp;
+                                                     @*<i class="fa fa-clock"></i>*@
+                                                 </span>
+                                            </div>
+                                        }
+                                    }
+                                    @* Middle spaces *@
+                                    else if ((start > _bioRecrds.FirstOrDefault(z=> z.BiometricRecordState == BiometricRecordState.CheckIn)?.DateTime &&
+                                      start.Add(TimeSpan.FromHours(2)) < _bioRecrds.FirstOrDefault(z => z.BiometricRecordState == BiometricRecordState.BreakOut)?.DateTime)
+
+                                  ||
+                                  (start > _bioRecrds?.FirstOrDefault(z => z.BiometricRecordState == BiometricRecordState.CheckIn)?.DateTime &&
+                                          start.Add(TimeSpan.FromHours(2)) < _bioRecrds?.FirstOrDefault(z => z.BiometricRecordState == BiometricRecordState.CheckOut)?.DateTime)
+
+                                      || (start < mappedTimes.FirstOrDefault() &&
+                                      start.Add(TimeSpan.FromHours(2)) > mappedTimes.LastOrDefault()))
+                                    {
+                                        <div class="item item-checkInOut sch item- sch-checkInOut" style="">
+                                                <span>
+                                                    &nbsp;
+                                                </span>
+                                        </div>
+                                    }
+                                    @*<div class="item sch item-@Model.Id sch-@Model.ShiftColor" style="">
+                                        <small>
+                                            <span>
+                                                @@
+                                            </span>
+                                            <br>
+                                        </small>
+                                    </div>*@
+                                </td>
+                            }
+                        }
+                    </tr>
+                    <tr class="row-hrs">
+                        @for (DateTime start = startTimeSpan; start <= endTimeSpan; start = start.Add(TimeSpan.FromHours(1)))
+                        {
+                            if (start.Hour % 2 == 1)
+                            {
+                                <td colspan="2" class="@start">
+                                    @start.Hour
+                                </td>
+                            }
+                        }
+                    </tr>
+                </tbody>
+            </table>
+            @*<div class="text-left cell-attndance">
+                <div class="item-X">
+                    <div class="item item-@Model.Id @Model.ShiftColor  @(Model.IsOvertime ? "overtime" : "") @(Model.Date.Date >= DateTime.Now.Date ? "active" : "")" onclick="$(this).next().click()">
+                        <small>
+                            <span>
+                                @if (Model.IsOvertime)
+                                {
+                                    <i class="fa fa-hourglass-start"></i>
+                                }
+                                @(Model.IsOvertime ? "Overtime" : Model.ShiftName)
+                            </span>
+                            <br />
+                        </small>
+                    </div>
+                </div>
+            </div>*@
+        </div>
+
+        <div class="form-group">
+            <span class="sch-@Model.ShiftColor text-white p-2 rounded">Work time: @Model.Duration</span>
+        </div>
+        <div class="form-group ">
+            @Html.Raw("Status: " + Model.StatusString)
+            @if (Model.CurrentStatus == AttendanceStatus.Early || Model.CurrentStatus == AttendanceStatus.Late)
+            {
+                <span class='text-muted'>(@(Model.CurrentStatus == AttendanceStatus.Early ? ((int)Model.TotalEarlyMins + " mins early") : ((int)Model.TotalLateMins + " mins late")))</span>
+            }
+        </div>
+        @foreach (var item in Model.BiometricRecords.OrderBy(a=> a.DateTime).ToList())
+        {
+            <p class="recrd recrd_@item.Id">@item.DateTime.ToLocalFormat(true) | @item.Location | @item.BiometricRecordState</p>
+        }
+        <div class="form-group">
+            <span>Total Worked Hours: @Model.TotalWorkedHours.ToString("N2") - Per schedule @Model.TotalHoursWorkedPerSchedule.ToString("N2")</span>
+        </div>
+
+        <div class="form-group">
+            Check-in / out: @Model.DurationCheckin
+        </div>
+        
+    </main>
+    <footer class="modal__footer">
+
+        <a class="modal__btn modal__btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateAttendance" asp-route-id="@Model.Id">
+            <i class="fa fa-user-shield"></i> Edit
+        </a>
+        &nbsp;
+        <a class="modal__btn modal__btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AttendanceChangeRequest" asp-controller="Request" asp-route-id="@Model.Id" disabled="@(Model.Requests.Any(x => x.Status == WorkItemStatus.Submitted) ? "disabled" : "")">
+            <i class="fa fa-user-shield"></i> Make Request
+        </a>
+    </footer>
+</form>
+
+
+<script>
+    
+    $('.src').click(function (e) {
+        var match = $('.table-submissions')
+            .find('tr.' + $(this).data('target'));
+
+        $('.table-submissions tbody tr').not(match).hide();
+        $(match).not('.fields-row').show();
+        $('.src').removeClass('active');
+        $(this).addClass('active');
+    });
+
+    $(".has-datepicker").flatpickr({
+        dateFormat: "j-M-Y"
+    });
+
+    $(".has-timepicker").flatpickr({
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+    });
+</script>

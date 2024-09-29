@@ -1,0 +1,108 @@
+﻿@model List<BulkJobUpdateVm>
+
+@{
+    ViewData["Title"] = "Bulk update jobs";
+    var i = 0;
+    var j = 0;
+}
+<link href="~/css/employee-grade.css" rel="stylesheet" />
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/card.css" rel="stylesheet" />
+<link href="~/css/timeline.css" rel="stylesheet" />
+<link href="~/css/jquery.orgchart-custom.css" rel="stylesheet" />
+
+<h2 class="mb-3"><small>  <a asp-action="Index" asp-route-dept="0" class="text-muted"><i class="fa fa-list"></i></a></small> Bulk Compensation update for jobs</h2>
+
+<div class="form-group has-search mb-1">
+    <span class="form-control-feedback">
+        <i class="fad fa-search"></i>
+    </span>
+    <input type="text" class="txt-search form-control" name="query" placeholder="Type name to search">
+</div>
+
+<form asp-action="UpdateBulk" asp-controller="Job" data-ajax="true" data-ajax-method="POST"  data-ajax-update="#bulkUpdateEmplForm3" data-ajax-success="" id="bulkUpdateEmplForm3" data-ajax-failure="handleModalPostFailure" class="js-allow-double-submission">
+<table class="table" id="tblJobsBulkUpdate">
+    <thead>
+        <tr>
+            <td>#</td>
+            <td>Job Title (unique)</td>
+            <td>Total Jobs</td>
+            @foreach (var item in Model.First().PayAdjustmentValues)
+            {
+                <td>@item.Name</td>
+            }
+            <td>Update?</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@(i+1)</td>
+                <td>
+                    @item.JobTitle
+                    <input type="hidden" name="[@i].JobTitle" value="@item.JobTitle" />
+                </td>
+                <td>@item.TotalJobs</td>
+                
+                @foreach (var p in item.PayAdjustmentValues)
+                {
+                    <td>
+                        <input type="hidden" name="[@i].PayAdjustmentValues[@j].Id" value="@p.Id" />
+                        <input type="hidden" name="[@i].PayAdjustmentValues[@j].Name" value="@p.Name" />
+                        <input type="hidden" name="[@i].PayAdjustmentValues[@j].VariationType" value="@p.VariationType" />
+
+                        @if(p.VariationType.ToString().ToLower().Contains("variable")){
+                            <label class="custom-control custom-checkbox text-center">
+                                <input type="checkbox" name="[@i].PayAdjustmentValues[@j].ValueBool" class="date-chooser custom-control-input" onchange="onCheckChange(this);">
+                                <span class="custom-control-label" for="MustUpdate__@i">
+                                </span>
+                            </label>
+                        }
+                        else{
+                            <div   class="d-flex">
+                                <input type="text" class="form-control" name="[@i].PayAdjustmentValues[@j].Value" value="@p.Value" />
+                            
+                                @if(p.Value > 0){
+                                    <div style="right: -5px;position: relative;top: 8px;">
+                                        <i class="fad fa-info-circle" title="@p.DifferentValues"></i>
+                                    </div>
+                                }
+                            </div>
+                        }
+                           
+                    </td>
+                    j++;
+                }
+                <td>
+                     <label class="custom-control custom-checkbox text-center">
+                            <input type="checkbox" name="[@i].MustUpdate" id="MustUpdate__@i" class="date-chooser custom-control-input" onchange="onCheckChange(this);$(this).parents('tr').toggleClass('active')">
+                            <span class="custom-control-label" for="MustUpdate__@i">
+                            </span>
+                        </label>
+                </td>
+            </tr>
+
+            i++;
+            j = 0;
+        }
+    </tbody>
+</table>
+
+
+<div class="form-group">
+    <button type="submit" class="btn btn-primary">
+        Update
+    </button>
+</div>
+</form>
+
+
+@section scripts {
+    <script>
+        $('.txt-search').keyup(debounce(function () {
+            console.log('starting... ');
+            table_search($('.txt-search').val(), $('#tblJobsBulkUpdate tbody tr'), '012');
+        }, 500));
+    </script>
+}

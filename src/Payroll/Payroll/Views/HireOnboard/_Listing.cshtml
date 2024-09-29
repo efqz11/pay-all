@@ -1,0 +1,116 @@
+﻿@model List<Employee>
+
+<div>
+    <div class="layout-main-landing">
+        <div class="row">
+            <div class="layout-main-landing-header col-sm-12">
+                <div class="border-bottom pb-3 relative mb-3">
+                    <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                        @*<img class="zp-icon-image large content-block-with-icon__icon hidden-xs flex-self-start" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-map-288f54db.svg" alt="">*@
+                        <div class="content-block-with-icon__content">
+                            <h1 class="page-title margin-top-none margin-bottom-none">
+                                @FeatureMenus.GetFeatureMenuItem(FeatureMenus.MenuItem.Schedule)  Hiring employees
+                            </h1>
+                        </div>
+                    </div><div class="layout-landing-header-details"><p class="layout-landing-header-pricing margin-bottom-none"></p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@* <p class="mb-2">@ViewBag.Count Employee(s) from @(ViewBag.DeptRouteId == 0 ? " all departments" : ViewBag.DeptName + " department")</p> *@
+
+<table class="table table-schedule" id="masterEmployeeAreaTable">
+    <thead>
+        <tr>
+            @* <th></th>
+                <th>ID</th> *@
+            <th colspan="2">Profile</th>
+            <th>Department</th>
+            @*<th>Identity</th>*@
+            <th>Status</th>
+            @*<th>Employment</th>*@
+            <th></th>
+            @*<th>DateOfJoined</th>*@
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td style="width: 7%;">
+                    <img src="@Url.Content(item.Avatar ?? DefaultPictures.default_user)" class="img-thumbnail " height="50" style="margin-top: 5px;" />
+                </td>
+                <td>
+                    <p class="mb-0">
+                        <a asp-action="detail" asp-route-id="@item.Id">
+                            @item.FirstName
+                            @item.GetSystemName(User)
+                        </a>
+                    </p>
+                    <span class="text-muted">@item.JobTitle</span>
+                    @*<span class="text-muted">@item.EmpID</span>*@
+                </td>
+                <td>@item.Department?.Name</td>
+                <td>
+                    <p class="mb-0">@Html.DisplayFor(a => item.EmployeeStatus)</p>
+                    <small>@item.EmployeeSecondaryStatus.GetDisplayName()</small>
+                </td>
+
+                @*<td>@item.IdentityNumber <br /><small class="text-muted">@item.IdentityType </small></td>*@
+                @*<td>
+                    <small class="tag  @item.StatusCss">@item.HrStatus</small><br />
+                    @if (item.IsContractActive)
+                        {
+                            <a asp-action="Detail" asp-controller="Contract" asp-route-id="@item.ActiveContractId">
+                                <small>@item.ActiveContractName</small>
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="btn-link" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateContractTerms" asp-controller="Contract" asp-route-id="@item.Id">
+                                <small><i class="ion-ios-compose-outline"></i> New Agreement</small>
+                            </a>
+                        }
+                </td>*@
+
+                <td>
+                    <div class="">
+                        <button type="button" class="btn border-0  mb-1 " id="dropdownMenuReference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
+                            <i class="fad fa-ellipsis-v fa-2x"></i>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
+
+                            <a class="dropdown-item" asp-action="Detail" asp-route-id="@item.Id" data-id="3"><i class="fal fa-user-tag"></i> View Profile</a>
+
+
+                            @if (item.EmployeeSecondaryStatus == EmployeeSecondaryStatus.PersonalInfoMissing)
+                            {
+                                <a class="dropdown-item text-danger" asp-action="EditEmployeeProfile" asp-controller="Employee" asp-route-id="@item.Id"><i class="fal fa-edit"></i> Continue creating</a>
+                            }
+
+                            <a class="dropdown-item text-danger" asp-action="Remove" asp-route-id="@item.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@item.Name was just removed');$(this).parents('td').parent().fadeOut();" data-ajax-confirm="Are you sure you want to remove @item.Name"><i class="fal fa-trash-alt"></i> Remove</a>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="layout-main-flow-content content-full">
+    <div class="form-actions ajax-spinner formActions-module__spinner___12v5R">
+        <a class="btn btn-primary" data-ajax="true" data-ajax-update="#main-content" asp-controller="Company" asp-action="NewEmployeeProfile" asp-route-id="@ViewBag.Id" data-ajax-success="startStep()">Add new employee</a>
+    </div>
+</div>
+
+<div class="text-center">
+    <div class="loader btn btn-primary btn-loading" data-page="2" style="line-height: 1px;display:none">
+        <div class="ball-beat"><div></div><div></div><div></div></div>
+    </div>
+</div>
+
+

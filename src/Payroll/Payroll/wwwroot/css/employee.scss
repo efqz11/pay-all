@@ -1,0 +1,103 @@
+﻿/*.table tbody tr:not(.separator) td {
+        border-top: 1px solid #f9fcff;
+    }*/
+
+table#weekly-table3123 th:not(:first-child), table#weekly-table3123 td:not(:first-child) {
+    min-width: 100px;
+}
+
+.first-col {
+    /*width: 100px;
+        min-width: 100px;
+        max-width: 100px;*/
+    left: 0px;
+}
+
+.sticky-col {
+    position: sticky;
+    position: -webkit-sticky;
+    background-color: white;
+}
+
+#weekly-schedule-table-container {
+    overflow-x: auto;
+}
+
+.wrapper.active .pb {
+    color: lightgrey;
+}
+
+.wrapper .pb {
+    font-weight: 400;
+}
+
+.wrapper {
+    width: auto !important;
+    height: auto !important;
+    /*height: 180px;*/
+    line-height: 20px;
+}
+
+div.item.completed,
+tr.item.completed {
+    display: none;
+}
+
+div.item.completed.show,
+tr.item.completed.show {
+    display: block;
+    text-decoration: line-through;
+}
+
+.today,
+.tomorrow {
+    color: #153063;
+    font-size: 25px;
+    font-weight: 600
+}
+
+
+.chartdiv {
+    width: 100px;
+    height: 20px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.chartdivSmall {
+    width: 40px;
+    height: 40px;
+    vertical-align: middle;
+    display: inline-block
+}
+
+
+
+
+.head1 {
+    font-weight: 500;
+}
+
+
+.empl-sidebar > .list-group-item {
+    border: none !important;
+}
+
+.empl-sidebar .list-group-item {
+    opacity: 0.5;
+}
+
+.empl-sidebar .list-group-item:hover {
+    opacity: 0.7;
+}
+
+.empl-sidebar .list-group-item a:hover {
+    text-decoration: none !important;
+}
+
+.empl-sidebar .list-group-item.active {
+    opacity: 1;
+    color: #007bff !important;
+    background-color: transparent !important;
+    font-weight: 400;
+}

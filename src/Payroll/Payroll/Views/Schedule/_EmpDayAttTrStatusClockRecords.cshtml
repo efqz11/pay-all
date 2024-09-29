@@ -1,0 +1,93 @@
+﻿@model HomeEmployeeVm
+@{
+    var start = (DateTime)ViewData["start"];
+    var attmSchedule = Model.AttedanceSchedule.FirstOrDefault()?.Attendances ?? new List<Attendance>();
+    var calendars = (List<Tuple<string, string, string>>)ViewData["calendars"];
+    var cmpWorkTimeId = ViewData["cmpWorkTimeId"] != null ? (int)ViewData["cmpWorkTimeId"] : 0;
+}
+
+
+
+<div class="cell-div attend-block-@(!attmSchedule.Any(x => x.Date.Date == start.Date &&(cmpWorkTimeId == 0 || cmpWorkTimeId == x.CompanyWorkTimeId)) ? 0 : attmSchedule.First(x => x.Date.Date == start.Date).Id)">
+    @if (attmSchedule.Any(x => x.Date.Date == start.Date && (cmpWorkTimeId == 0 || cmpWorkTimeId == x.CompanyWorkTimeId)))
+    {
+        <p class="w-100 text-primary @(start.Date == DateTime.Now.Date ? "text-primary" : "")">
+            <small class="">
+                @((attmSchedule.Where(x => x.Date.Date == start.Date).Sum(a => a.TotalHoursWorkedPerSchedule)).GetHourMinString()) + <span class="text-muted">@((attmSchedule.Where(x => x.Date.Date == start.Date).Sum(a => a.TotalBreakHours)).GetHourMinString())</span>
+
+
+                @if (attmSchedule.Where(x => x.Date.Date == start.Date).Sum(a => a.TotalHoursWorkedOutOfSchedule) > 0)
+                {
+                    <i class="text-purple fad fa-clock" title=" @attmSchedule.Where(x => x.Date.Date == start.Date).Sum(a => a.TotalHoursWorkedOutOfSchedule).GetHourMinString() Defecit Hours"></i>
+                }
+                @if (attmSchedule.First(x => x.Date.Date == start.Date).HasError)
+                {
+                    <i class="text-danger fad fa-exclamation-triangle" title=" @attmSchedule.First(x => x.Date.Date == start.Date).ErroMsg"></i>
+                }
+
+            </small>
+        </p>
+    }
+
+    <div class="list-group">
+        @if (attmSchedule.Any(x => x.Date.Date == start.Date && (cmpWorkTimeId == 0 || cmpWorkTimeId == x.CompanyWorkTimeId)))
+        {
+            foreach (var attn in attmSchedule.Where(x => x.Date.Date == start.Date))
+            {
+                <div class="item item-@attn.Id @attn.ShiftColor @(start <= DateTime.Now.Date ? "active" : "")" onclick="$(this).next().click()">
+                    <small>
+                        <span class="pb-1">
+                            @Html.Raw(attn.StatusString)
+                            &nbsp;
+                            @attn.CurrentStatus
+                        </span>
+
+                        @if (attn.IsOvertime)
+                        {
+                            <i class="fad fa-hourglass-start" title="Overtme request"></i>
+                        }
+                        @*@item.Attendances.First(x => x.Date == start.Date).CompanyWorkType*@
+                        @*<br />
+        @attn.Duration*@
+                        <br />
+                        <partial name="~/Views/Manage/_EmplpyeeDayBiometricInCalendar.cshtml" model="attn.BiometricRecords" />
+                    </small>
+                </div>
+                <a asp-action="ViewAttendance" asp-controller="Schedule" asp-route-id="@attn.Id" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" aria-label="Change attendance record" role="tooltip" data-microtip-position="top" class="hide" style="display:none">
+
+                    <a class="text-center text-primary" asp-action="AddBiometricRelate" asp-controller="Schedule" asp-route-id="@attn.Id" asp-route-onDate="@start" asp-route-domSelect="attend-block-@attn.Id" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="handleModalPostFailure">
+                        <div class="text-center cell-add" style=""><i class="fa fa-plus-circle"></i></div>
+                    </a>
+                </a>
+            }
+        }
+
+
+        @foreach (var item in Model.MyRequests.Where(a => start.Date >= a.Start.Date && start.Date <= a.End.Date))
+        {
+            <div class="lv_@item.RequestId list-group-item m-0 item p-1 leave small list-group-item-@calendars[0].Item2 @(item.Start == start.Date ? "z" : "")" data-cell="lv_@item.RequestId" onclick="$(this).next().click()">
+                @if (item.Start.Date == start.Date)
+                {
+                    <span>
+                        <i class="@calendars[0].Item3"></i> @Html.Raw(item.RequestedStatusIcon) @item.DayOffName @*&middot; @item.RequestedDuration*@
+                    </span>
+                }
+                else
+                {
+                    <span>&nbsp;</span>
+                }
+            </div>
+
+            <a class="" asp-action="ViewRequest" asp-controller="Request" asp-route-id="@item.RequestId" asp-route-type="@RequestType.Leave.ToString()" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="handleModalPostFailure" style="display:none">
+            </a>
+        }
+    </div>
+</div>
+
+
+@*<script>
+    var selector = '.attend-block-@attmSchedule.FirstOrDefault()?.Id';
+    if (selector) {
+        $(selector).parents('td').addClass('highlight');
+    }
+</script>*@

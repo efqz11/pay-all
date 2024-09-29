@@ -1,0 +1,213 @@
+﻿@model DayOff
+
+<style>
+</style>
+
+
+<div>
+    <div class="layout-main-landing">
+        <div class="row">
+            <div class="layout-main-landing-header col-sm-12">
+                <div class="border-bottom pb-3 relative mb-5">
+                    <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                        @*<img class="zp-icon-image large content-block-with-icon__icon hidden-xs flex-self-start" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-map-288f54db.svg" alt="">*@
+                        <div class="content-block-with-icon__content">
+                            <h1 class="page-title margin-top-none margin-bottom-none">
+                                @FeatureMenus.GetFeatureMenuItem(FeatureMenus.MenuItem.TimeOff) Time Off
+                            </h1>
+                        </div>
+
+                    </div>
+
+                    <nav aria-label="Breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class=""><a class="gusto-link" asp-action="Index">Time Off</a></li>
+                            <li class="active" aria-current="page">@Model.Name</li>
+                        </ol>
+                    </nav>
+                    <div class="layout-landing-header-details"><p class="layout-landing-header-pricing margin-bottom-none"></p></div>
+                </div>
+            </div>
+        </div>
+        <div class="layout-main-landing-row row margin-bottom-20px">
+
+            <div class="layout-main-landing-column mb-3 col-md-8">
+
+                <h4 class="pb-3 fs-unmask" style="display: flex">
+                    <div class="square bg-@Model.Color mr-2 mb-2"></div>
+                    @Model.Name
+                    @if (Model.IsActive)
+                    {
+                        <span>&middot; @(Model.AccrualMethod == AccrualMethod.Fixed ? $"{Model.TotalPerYear} hour(s)" : $"{Model.HoursEarned} hours per {Model.PerHoursWorked} hours worked")</span>
+                    }
+                </h4>
+                <p class="text-weight-normal">
+                    @Model.AccrualMethod.GetDisplayName()
+                </p>
+
+                @if (!Model.IsActive)
+                {
+                    <span class="Label--purple text-danger">Inactive</span>
+                }
+
+
+            <p class="text-weight-normal">
+                Enrolled employees
+
+                &nbsp;
+                <a data-ajax="true" data-ajax-update="#main-content" data-ajax-success="startStep()" asp-action="AddOrRemoveEmployees" asp-controller="DayOff" asp-route-id="@Model.Id" class="link-summary"><i class="fad fa-edit"></i> Edit</a>
+            </p>
+                <table class="table">
+                    <tbody>
+                        @foreach (var item in Model.DayOffEmployees)
+                        {
+                            <tr>
+                                <td><partial name="_EmployeeSummary" model="item.Employee" /></td>
+                                <td>
+                                    <a asp-action="Tracker" asp-route-id="@Model.Id" asp-route-dayOffEmpId="@item.Id">@item.TotalHours</a>
+                                </td>
+                                <td width="10%">
+                                    <a asp-action="RemoveEmployee" asp-route-id="@Model.Id" asp-route-dayOffEmpId="@item.Id" asp-route-rem="-1" data-ajax="true" data-ajax-method="POST" data-ajax-success="ssNoti('@item.Employee.GetSystemName(User) removed from @Model.Name policy')" data-ajax-confirm="Are you sure?" id="" data-ajax-failure="handleModalPostFailure">
+                                        <i class="fa fa-minus-circle text-danger"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+            </div>
+
+            <div class="layout-main-landing-column mb-3 col-md-4">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Conditions</th>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td style="width:300px">
+                            <div style="line-height: 1.8;">
+                                @*@if (Model.ResetEveryYear)
+                            {
+                                <i class="ion ion-refresh"></i> @("Reset on year end")
+                                <br />
+                            }*@
+                                @if (Model.ExcludeForPublicHoliday)
+                                {
+                                    <i class="fal fa-calendar-times"></i> @("Exclude public holiday & weekends")
+                                    <br />
+                                }
+                                @if (Model.MustRequestBefore)
+                                {
+                                    <i class="fad fa-clock"></i> @("Must Request " + Html.DisplayTextFor(x => Model.MustRequestBeforeAlert))
+                                    <br />
+                                }
+                                @if (Model.IsForSpecificGender)
+                                {
+                                    <i class="fad fa-venus-double"></i> @("Applicable for gender: " + Model.Gender)
+                                    <br />
+                                }
+                                @if (Model.RequiredDocumentForConseqetiveDays)
+                                {
+                                    <i class="fad fa-venus-double"></i> @("Require document after " + Model.ConsquetiveDaysRequire + " consecutive days")
+                                    <br />
+                                }
+                                @if (Model.RequiredDocuments)
+                                {
+                                    <i class="fad fa-file-alt"></i> @(Model.RequiredDocumentList)
+                                    <br />
+                                }
+                                @if (Model.IsEmergency)
+                                {
+                                    <i class="fad fa-exclamation-triangle"></i> @("Emergency Leave")
+                                    <br />
+                                }
+                                @if (Model.RequireSubstitiute)
+                                {
+                                    <i class="fad fa-user"></i> @("Require Substitute") @(Model.RequireSubstitiuteOptional ? " (optional)" : "")
+                                    <br />
+                                }
+                                @if (Model.CanRequestForBackDatedDays)
+                                {
+                                    <i class="fad fa-history"></i> @("Send back dated request")
+                                    <br />
+                                }
+                                @if (!Model.IsThereLimit)
+                                {
+                                    <i class="fad fa-restore"></i> @("Accrural Enabled")
+                                    <br />
+                                }
+                                @*@if (Model.IsApplicationAfterFirstYear)
+                            {
+                                <i class="fad fa-hourglass-half"></i> @("Applicable after 1st year")
+                                <br />
+                            }*@
+                                @if (Model.CanPlanAhead)
+                                {
+                                    <i class="fad fa-calendar-check"></i> @("Can plan ahead")
+                                    <br />
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+
+                            <div>
+                                <p class="mb-0">@Html.DisplayNameFor(m => Model.IsThereLimit)</p>
+                                <b>@Model.IsThereLimit</b>
+                            </div>
+
+                            @if (!Model.IsThereLimit)
+                            {
+
+                                <div>
+                                    <p class="">Unlimited</p>
+                                </div>
+                            }
+                            else
+                            {
+                                if (Model.IsThereWaitingPeriodForAccrue)
+                                {
+                                <div>
+                                    <p class="mb-0">@Html.DisplayNameFor(m => Model.LengthWaitingPeriodForAccrue)</p>
+                                    <b>@Model.LengthWaitingPeriodForAccrue days</b>
+                                </div>
+                                }
+
+                                if (Model.IsThereWaitingPeriodForRequest)
+                                {
+                                <div>
+                                    <p class="mb-0">@Html.DisplayNameFor(m => Model.LengthWaitingPeriodForRequest)</p>
+                                    <b>@Model.LengthWaitingPeriodForRequest days</b>
+                                </div>
+                                }
+
+                            <div>
+                                <p class="mb-0">@Html.DisplayNameFor(m => Model.MaxAccuredHoursPerYear)</p>
+                                <b>@Model.MaxAccuredHoursPerYear hours</b>
+                            </div>
+                            <div>
+                                <p class="mb-0">@Html.DisplayNameFor(m => Model.MaxBalance)</p>
+                                <b>@Model.MaxBalance hours</b>
+                            </div>
+
+                                if (Model.IsThereCarryOverLimit)
+                                {
+                                <div>
+                                    <p class="mb-0">@Html.DisplayNameFor(m => Model.CarryOverLimit)</p>
+                                    <b>@Model.CarryOverLimit hours</b>
+                                </div>
+                                }
+                            }
+                        </td>
+                    </tr>
+
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+

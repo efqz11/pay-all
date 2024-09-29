@@ -1,0 +1,212 @@
+﻿@model Request
+@{ 
+    bool isRelatedToAttendace = Model.Attendance != null && Model.AttendanceId.HasValue;
+
+    var backHref = isRelatedToAttendace ? Url.Action("ViewAttendance", "Schedule", new { id = Model.AttendanceId }) :
+        Url.Action("ViewRequest", "Request", new { id = Model.Id });
+}
+
+    <form asp-action="ProcessRequest" asp-controller="Request" data-ajax="true" data-ajax-method="POST" data-ajax-update="#employee-content" data-ajax-begin="SetAjaxUpdate()" data-ajax-success="" id="addOrUpdateOtRequest" data-ajax-failure="handleModalPostFailure">
+        @Html.AntiForgeryToken()
+        <input asp-for="Id" type="hidden" value="@Model.Id"/>
+        <input asp-for="AttendanceId" type="hidden" />
+        <input asp-for="EmployeeId" type="hidden" />
+        <input asp-for="RequestType" type="hidden" />
+        <input asp-for="Status" type="hidden" />
+        <header class="modal__header">
+            <h2 class="modal__title" id="modal-1-title">
+
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" href="@backHref">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+
+                @(Model == null || Model.Id <= 0 ? "New Overtime Request" : "Update Overtime Request")
+            </h2>
+            <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        </header>
+        <main class="modal__content" id="modal-1-content">
+
+            <partial name="_RequestStatusSummary" model="Model" />
+
+
+            @if (isRelatedToAttendace)
+            {
+                <div class="form-group mb-0">
+                    <label asp-for="Start" class="control-label">Related Attendance</label>
+                </div>
+                <div class="form-group">
+                    <span class="sch-@Model.Attendance.ShiftColor text-white p-2 rounded">Work time: @Model.Attendance.Duration</span>
+                </div>
+                <div class="form-group">
+                    <label class="control-label">Status</label>
+                    <partial name="_ViewAttendanceStatus" model="Model.Attendance" />
+                </div>
+
+                <div class="form-group mb-0">
+                    <label asp-for="Start" class="control-label">Requested OT Hours </label>
+                    <span class="text-primary"> @Model.Attendance.TotalHoursWorkedOutOfSchedule.GetHourMinString()</span>
+                </div>
+            }
+            else
+            {
+                <div class="form-group">
+                    <label asp-for="Start" class="control-label">Choose date</label>
+                    <input type="text" class="form-control has-datepickerX mb-2" asp-for="Start" value="@Model.Start?.ToString("dd-MMM-yyyy")" />
+
+                    <small class=""><span class="src btn-outline-dark btn-sm btn" data-target="today">Today</span> · <span class="src btn-outline-primary btn-sm btn" data-target="tomorrow">Tomorrow</span> · <span class="src btn-outline-danger btn-sm btn" data-target="rejected">Custom Date</span></small>
+                    <input type="hidden" asp-for="End" />
+                    <span asp-validation-for="Reason" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="form-group col">
+                        <label asp-for="_StartTime" class="control-label">Start Time</label>
+                        <input type="text" asp-for="_StartTime" class="form-control has-timepicker" />
+                        <span asp-validation-for="_StartTime" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group col">
+                        <label asp-for="_EndTime" class="control-label">End Time</label>
+                        <input type="text" asp-for="_EndTime" class="form-control has-timepicker" />
+                        <span asp-validation-for="_EndTime" class="text-danger"></span>
+                    </div>
+                </div>
+            }
+
+            <div class="form-group">
+                <label asp-for="Reason" class="control-label">Overtime work summary</label>
+                <textarea type="text" asp-for="Reason" class="form-control"></textarea>
+                <span asp-validation-for="Reason" class="text-danger"></span>
+            </div>
+        </main>
+        <footer class="modal__footer">
+            <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+            @if (Model.Status != WorkItemStatus.Submitted)
+            {
+                <button type="submit" class="modal__btn modal__btn-warning" onclick="$('#Status').val('Submitted')">Send for Approval</button>
+            }
+            <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+            @*@if (Model != null && Model.Id > 0 && Model.Status == WorkItemStatus.Draft)
+            {
+                <a class="modal__btn modal__btn-danger float-right" asp-action="Remove" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@Model.RequestType.ToString() request from was cancelled');hideModal();$('div.item-@Model.Id').hide()">Remove</a>
+            }
+
+
+            @if (Model.Status == WorkItemStatus.Submitted)
+            {
+                <div class="float-right">
+                    <a asp-action="ApproveWork" asp-controller="Schedule" asp-route-id="@Model.Id" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" data-ajax-begin="showModal()" title="Send for Approval" class="btn btn-sm btn-success" style="">
+                        <i class="fas fa-check-circle"></i> Approve
+                    </a>
+
+                    <text>&mdash;</text>
+
+                    <a class="btn btn-sm btn-danger" asp-action="Remove" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-begin="clearHome()" data-ajax-success="sendNotification('success', 'Submission was just rejected');hideModal();">
+                        <i class="fas fa-times-circle"></i> Reject
+                    </a>
+                </div>
+            }*@
+        </footer>
+    </form>
+
+
+<script>
+    
+    function SetAjaxUpdate() {
+        var msg = "Overtime request was created and saved";
+        if ($("#Status").val() == "Submitted")
+            msg = "Overtime request was sent for approval";
+
+        msg = "shideModal('" + msg + "')"
+        // data-ajax-success="shideModal('Document request was created and saved');"
+        if ($('#Status').val() == 'Submitted')
+            $('#addOrUpdateOtRequest').attr("data-ajax-update", ".modal__container");
+
+        $('#addOrUpdateOtRequest').attr("data-ajax-success", msg);
+    }
+
+
+    $(function () {
+
+        //$('input[name="datefilter"]').daterangepicker({
+        //    autoUpdateInput: false,
+        //    locale: {
+        //        cancelLabel: 'Clear'
+        //    }
+        //});
+
+        //$('input[name="datefilter"]').on('apply.daterangepicker', function (ev, picker) {
+        //    console.log(picker);
+        //    var days = picker.endDate.diff(picker.startDate, 'days');
+        //    if (days <= 0)
+        //        $(this).val(picker.startDate.format('DD-MMM-YYYY'));
+        //    else
+        //        $(this).val(picker.startDate.format('MMM DD') + ' - ' + picker.endDate.format('DD, YYYY') + " (" + days + " days)");
+
+        //    // 1/10/2020 12:34:32 PM
+        //    $('#Start').val(picker.startDate.format('MM/DD/YYYY HH:mm:ss'));
+        //    $('#End').val(picker.endDate.format('MM/DD/YYYY HH:mm:ss'));
+        //});
+
+        //$('input[name="datefilter"]').on('cancel.daterangepicker', function (ev, picker) {
+        //    $(this).val('');
+        //});
+
+
+        $('#Start').change(function (e) {
+            $('#End').val($(this).val());
+        });
+
+        $('.src').click(function (e) {
+            var target = $(this).data('target');
+            var today = moment();
+            var tmrw = moment().add(1, 'days');
+            console.log(today, tmrw);
+            if (target == "today") {
+                setDate(today, today);
+            }
+            else if (target == "tomorrow") {
+                setDate(tmrw, tmrw);
+            }
+            else {
+                $('#datedX').focus();
+            }
+
+
+            $('.src').removeClass('active');
+            $(this).addClass('active');
+        });
+
+    });
+
+    function setDate(start, end) {
+        var days = end.diff(start, 'days');
+        if (days <= 0)
+            $('#datedX').val(start.format('ddd, MMM DD, YYYY'));
+        else
+            $('#datedX').val(start.format('MMM DD') + ' - ' + end.format('DD, YYYY') + " (" + days + " days)");
+
+        // 1/10/2020 12:34:32 PM
+        $('#Start').val(start.format('DD-MMM-YYYY'));
+        $('#End').val(end.format('DD-MMM-YYYY')); 
+        // MM/DD/YYYY HH:mm:ss'));
+    }
+
+
+
+    var today = moment().format('MM-DD-YYYY"');
+    console.log('today: ' + today);
+
+    $(".has-datepickerX").flatpickr({
+        dateFormat: "j-M-Y",
+        // minDate: "today",
+    });
+    
+    $(".has-timepicker").flatpickr({
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+    });
+
+</script>

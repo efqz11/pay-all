@@ -1,0 +1,250 @@
+﻿@model Employee
+<style>
+    .bg-deduction {
+            background-color: #00a69980 !important;
+    }
+    
+    div.paystats .wrapper i.ion,
+    div.paystats .wrapper i.fa,
+    div.paystats .wrapper svg {
+        opacity: 0.3;
+        font-size: 3.3rem;
+        position: absolute;
+        top: -2px;
+        left: -3px;
+    }
+
+    div.paystats .wrapper h5.pb {color: white}
+</style>
+@{
+    Layout = "_LayoutCard";
+    ViewBag.CardHeader = "Payment Information";
+    var lastSalary = (PayrollPeriodEmployee)ViewBag.LastSalary;
+    var lastSalaryStats = (Dictionary<string, decimal>)ViewBag.lastSalaryStats;
+
+    var netPayWidth = "";
+    var deductionWidth = "";
+    if(lastSalary != null)
+    {
+        netPayWidth = ((lastSalary.NetSalary / lastSalary.GrossPay) * 100).ToString("N2");
+        deductionWidth = (((lastSalary.GrossPay - lastSalary.NetSalary) / lastSalary.GrossPay) * 100).ToString("N2");
+    }
+}
+
+
+
+<div class="tab-wrapper bnb">
+    <ul class="tabs scroll">
+        <li class="tab-link active" data-tab="1">Summary</li>
+        <li class="tab-link" data-tab="2">Paystubs</li>
+    </ul>
+</div>
+<div class="content-wrapper bnb p-0" id="">
+    <div id="tab-1" class="tab-content active">
+        @if(lastSalary == null)
+        {
+            <span>Oh Snap! There aren't any salary processed just yet</span>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col">
+                    <h5>
+                        @lastSalary.PayrollPeriod.Name
+                        <a data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewPaySlip" asp-controller="Payroll" asp-route-id="@lastSalary.Id" asp-route-ppId="@lastSalary.Id">
+                            <i class="fad fa-file-invoice"></i>
+                        </a>
+                    </h5>
+                    <span>@lastSalary.PayrollPeriod.StartDate.GetDuration(lastSalary.PayrollPeriod.EndDate, User, true)</span>
+
+                    <p class="mt-3 mb-1">Paycheck Amount</p>
+                    <span class="f5 font-weight-bold badge-outline-primary badge">MVR @lastSalary.NetSalary.ToSystemFormat(User)</span>
+
+                    <table class="table table-sm table-borderless">
+                        <tbody>
+                            <tr>
+                                <td colspan="4">
+                                    <div class="d-flex">
+                                        <div class="bg-primary" style="height:15px; width:@netPayWidth%"></div>
+                                        <div class="bg-deduction" style="height:15px; width:@deductionWidth%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            @foreach (var item in lastSalaryStats)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="badge bg-@(item.Key == "Deductions" ? "deduction" : "primary")">&nbsp;</div>
+                                    </td>
+                                    <td>@item.Key</td>
+                                    <td>MVR @item.Value.ToSystemFormat(User)</td>
+                                    <td>@(((item.Value / lastSalary.GrossPay) * 100).ToString("N2"))%</td>
+                                </tr>
+                            }
+                            <tr class="font-weight-bold">
+                                <td></td>
+                                <td>Gross Pay</td>
+                                <td>MVR @lastSalaryStats.Sum(a => a.Value).ToSystemFormat(User)</td>
+                                <td>100%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col">
+                    <h6 class="mb-0">@lastSalary.Name <small>@lastSalary.Designation</small></h6>
+                    <div class="row paystats mt-2">
+                        <div class="col-md-4">
+                            <div class="wrapper">
+                                <div class="top text-center text-white">
+                                    <div class="bg-danger border-0 pt-4 pb-4 text-center">
+                                        <h5 class="pb">@(lastSalary.LateMins + "m")</h5>
+                                        <span><i class="fa fa-circle fa-sm text-light"></i> Late</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="wrapper">
+                                <div class="top text-center text-white">
+                                    <div class="bg-secondary border-0 pt-4 pb-4 text-center">
+                                        <h5 class="pb">@(lastSalary.AbsentDays + "d")</h5>
+                                        <span><i class="fa fa-times-octagon fa-sm"></i>Absent</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="wrapper">
+                                <div class="top text-center text-white">
+                                    <div class="bg-primary border-0 pt-4 pb-4 text-center">
+                                        <h5 class="pb">@(lastSalary.LeaveDays + "d")</h5>
+                                        <span><i class="fal fa-pennant"></i>Leave</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row paystats mt-4">
+                        <div class="col-md-4">
+                            <div class="wrapper">
+                                <div class="top text-center text-white">
+                                    <div class="bg-info border-0 pt-4 pb-4 text-center">
+                                        <h5 class="pb">@(lastSalary.WorkedHours.GetHourMinString())</h5>
+                                        <span><i class="fad fa-business-time fa-sm"></i> Regular</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="wrapper">
+                                <div class="top text-center text-white">
+                                    <div class="bg-warning border-0 pt-4 pb-4 text-center">
+                                        <h5 class="pb">@lastSalary.OvertimeHours.GetHourMinString()</h5>
+                                        <span><i class="fa fa-hourglass-start"></i>Overtime</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="wrapper">
+                                <div class="top text-center text-dark">
+                                    <div class="bg-light border-0 pt-4 pb-4 text-center">
+                                        <h5 class="pb"><span class="pro @(lastSalary.Grade?.ToLower() ?? "")" style="font-size: 20px;">@lastSalary.Grade</span></h5>
+                                        <span><i class="fad fa-graduation-cap"></i> Grade</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <div id="tab-2" class="tab-content">
+        <form data-ajax="true" data-ajax-update="#paystubsListing" asp-action="GetPayStubs" asp-route-id="@Model.Id" id="leaveRequestAndTimeOff">
+            <input type="hidden" id="start" name="start" value="@ViewBag.Start" />
+            <input type="hidden" id="end" name="end" value="@ViewBag.End" />
+            <div class="form-group" style="display:flex;float:left">
+                <label class="control-label pt-1">@ViewBag.DurationText</label>
+                <span id="datefilter"><i class="fa fa-angle-down mt-2 ml-2"></i></span>
+            </div>
+        </form>
+
+
+        <div id="paystubsListing">
+            <partial name="_Details_Payment_PayStubs" model="@ViewBag.SalaryHistory" />
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+
+    $('#datefilter').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear'
+        },
+        showDropdowns: true,
+        opens: 'right',
+
+        ranges: {
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+            'Last 3 Months': [moment().subtract(3, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+            'Last 6 Months': [moment().subtract(6, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+            'Last Year': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')],
+            'Last 2 Years': [moment().subtract(2, 'year').startOf('year'), moment().subtract(2, 'year').endOf('year')]
+        }
+    }, function (start, end, label) {
+        console.log($(this));
+        if (label == null || label == 'Custom Range') {
+            console.log("range selected in calendars");
+
+            var days = end.diff(start, 'days');
+            if (days <= 0)
+                $("#datefilter").prev().text(start.format('ddd, MMM DD, YYYY'));
+            else
+                $("#datefilter").prev().text('Paystubs between ' + start.format('MMM DD') + ' — ' + end.format('DD, YYYY'));
+
+        } else {
+            console.log("range selected from dropdown: " + label);
+            $("#datefilter").prev().text('Paystubs for ' + label);
+        }
+
+        // 1/10/2020 12:34:32 PM
+        $('#start').val(start.format('MM/DD/YYYY HH:mm:ss'));
+        $('#end').val(end.format('MM/DD/YYYY HH:mm:ss'));
+
+        loadLeaveRequestAndTimeOff();
+    });
+
+    //$('#datefilter').on('apply.daterangepicker', function (ev, picker) {
+    //    console.log($(this));
+    //    console.log(picker);
+    //    var days = picker.endDate.diff(picker.startDate, 'days');
+    //    if (days <= 0)
+    //        $(this).prev().text(picker.startDate.format('ddd, MMM DD, YYYY'));
+    //    else
+    //        $(this).prev().text('Paystubs between ' + picker.startDate.format('MMM DD') + ' — ' + picker.endDate.format('DD, YYYY'));
+
+    //    // 1/10/2020 12:34:32 PM
+    //    $('#start').val(picker.startDate.format('MM/DD/YYYY HH:mm:ss'));
+    //    $('#end').val(picker.endDate.format('MM/DD/YYYY HH:mm:ss'));
+
+    //    loadLeaveRequestAndTimeOff();
+    //});
+
+    function loadLeaveRequestAndTimeOff() {
+        $('#leaveRequestAndTimeOff').submit();
+    }
+
+    function loadDaysBalance() {
+        $('#dayOffBalanceList').submit();
+    }
+
+
+</script>

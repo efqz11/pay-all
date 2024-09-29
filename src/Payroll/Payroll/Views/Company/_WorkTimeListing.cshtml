@@ -1,0 +1,94 @@
+﻿@model Company
+
+
+@*<p class="text-left pb-1">
+    <a asp-action="ChangeWorkType" asp-route-id="@Model.Id" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" class="btn btn-primary" data-ajax-success="initTimePicker()">
+        <i class="ion @(Model.CompanyWorkType == CompanyWorkType.FixedTime ? "ion-ios-clock" :"ion-ios-stopwatch")"></i> Manage Work itme
+    </a>
+</p>*@
+
+<div class="row">
+    <div class="col">
+
+        <table class="table table-hover">
+            <tr>
+                <td colspan="2">Work Time(s)</td>
+            </tr>
+            @foreach (var item in Model.WorkTimes.Where(x => x.IsActive))
+            {
+                <tr>
+                    <td><span class="p-1 pr-2 pl-2 text-white rounded sch-@item.ColorCombination">@item.ShiftName</span></td>
+                    <td>
+                        @if (item.Duration != null)
+                        {
+                            @(item.Duration)
+                        }
+                        else
+                        {
+                            <span>No work time found</span>
+                            <br />
+                            <a href="#">Assign someone</a>
+                        }
+                    </td>
+                </tr>
+            }
+
+            <tr>
+                <td></td>
+                <td></td>
+            </tr>
+            @if (Model.BreakTimes != null)
+            {
+                <tr>
+                    <td colspan="2"><b>Break Times</b></td>
+                </tr>
+                @foreach (var item in Model.BreakTimes.Where(x => x.IsActive))
+                {
+                    <tr>
+                        <td>
+                            @if (item.StartTime != null)
+                            {
+                                @(item.Duration)
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+
+            <tr></tr>
+        </table>
+    </div>
+    <div class="col">
+        <div class="card">
+            <div class="card-body">
+
+                <table class="table table-sm table-borderless table-responsive table-details">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted">Work type / mode</td>
+                            <td>@Model.WorkType</td>
+                        </tr>
+                        <tr>
+                            <td>Break Hours</td>
+                            <td>
+                                @if (Model.IsBreakHourStrict)
+                                {
+                                    <span><i class="fa fa-exclamation-triangle"></i> </span>
+                                }
+                                <span>Flexible @Model.FlexibleBreakHourCount hour break</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span class="text-success">&bull;  On Time</span></td>
+                            <td>
+                                <span>@Model.EarlyOntimeMinutes minutes</span>
+                                <br />
+                                <small>How many minutes before due time of clock records should be marked as On Time</small>
+                            </td>
+                        </tr>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>

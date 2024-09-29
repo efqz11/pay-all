@@ -1,0 +1,57 @@
+﻿@model RosterVm
+@inject Payroll.Database.PayrollDbContext dbContext
+@{
+    ViewBag.SourceId = Model.ScheduleId;
+    var data = (Dictionary<string, int>)ViewBag.Data;
+}
+
+<form asp-action="AddOrUpdateAttendanceX" asp-controller="Schedule" data-ajax="true" data-ajax-method="POST" data-ajax-update="#weekly-schedule" data-ajax-begin="showModal()" data-ajax-success="sendNotification('success', 'Attendance record was just saved');hideModal()" id="addUpdateConnectionForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    @*<input asp-for="Id" type="hidden" value="@Model.Id" />*@
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            Roster Notifictions Status
+            <br />
+            <small>@Model.Notifications.Count() Interactions</small>
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+        <partial name="_ShowAlertMessage" />
+
+        <div id="chartdiv_announcementInteraction" style="height:180px"></div>
+
+        <partial name="~/Views/Notification/_NotificationActionsListView.cshtml" model="Model.Notifications" />
+    </main>
+    <footer class="modal__footer"></footer>
+</form>
+
+<script>
+
+    // search for employees
+    var _custom = $('intrrAction-custom');
+
+    $('.intrrAction-search').keyup(debounce(function () {
+        console.log('starting... ');
+        listgroup_search($('.intrrAction-search').val(), $('.list-group.intrrAction'));
+    }, 500));
+
+</script>
+
+<script>
+    var data = [];
+    @if (Model != null) {
+        foreach (var item in data)
+        {
+            <text>
+        data.push({key: '@item.Key', value: '@item.Value'});
+            </text>
+        }
+    }
+
+    console.log('data', data);
+
+    drawActionPie(data, "chartdiv_announcementInteraction");
+
+</script>

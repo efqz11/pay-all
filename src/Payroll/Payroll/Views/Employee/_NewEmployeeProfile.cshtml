@@ -1,0 +1,114 @@
+﻿@model EmploymentProfileVm
+@{
+
+    var i = 0;
+    ViewData["Title"] = "Create employee profile";
+    Layout = "_LayoutEditor";
+    ViewBag.ProgressStep = 1;
+    ViewBag.Header = "Create employee profile";
+    ViewBag.BackAction = Url.Action("Change", new { id = ViewBag.PrevEmpId });
+}
+
+
+
+<form asp-action="NewEmployeeProfile" asp-controller="Employee" data-ajax="true" data-ajax-method="POST" data-ajax-update="#change-form-wrapper" data-ajax-success="sendNotification('success', 'New employee was just created');" id="form" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="CompanyId" type="hidden" />
+
+        <h4 class="pb-4 fs-unmask">Profile basics</h4>
+
+        <div class="row mb-4">
+            <div class="form-group col-md-2">
+                <label asp-for="Initial" class="control-label">Initials</label>
+                <select asp-for="Initial" asp-items="@(Html.GetEnumSelectList<Initial>())" class="form-control form-control-lg"></select>
+            </div>
+
+            <div class="form-group col-md-10">
+                <label asp-for="FirstName" class="control-label">Their official, legal first name</label>
+                <input asp-for="FirstName" as class="form-control form-control-lg" />
+            </div>
+        </div>
+
+        <div class="form-group mb-4">
+            <label asp-for="LastName" class="control-label">
+                Their official, legal last name
+            </label>
+            <input asp-for="LastName" as class="form-control form-control-lg" />
+        </div>
+
+        <div class="form-group mb-4">
+            <label asp-for="StartDate" class="control-label">Start date</label>
+            <p class="small">
+                Your employee’s first day of work at your company.
+            </p>
+            <input asp-for="StartDate" class="form-control form-control-lg has-datepicker" />
+        </div>
+
+        <div class="form-group mb-4">
+            <label asp-for="LocationId" class="control-label">Location</label>
+            <select asp-items="ViewBag.LocationId" asp-for="LocationId" class="form-control form-control-lg">
+                <option value="0">Choose</option>
+            </select>
+            <span asp-validation-for="LocationId" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mb-4">
+            <label asp-for="DepartmentId" class="control-label">Department</label>
+            <select asp-items="ViewBag.DepartmentId" asp-for="DepartmentId" class="form-control form-control-lg">
+                <option value="0">Choose</option>
+                <option value="-1">Add new department</option>
+            </select>
+            <span asp-validation-for="DepartmentId" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-4" id="newDpt">
+            <label asp-for="NewDepartment" class="control-label">Enter name of new department</label>
+            <input asp-for="NewDepartment" as class="form-control form-control-lg" />
+        </div>
+
+        <div class="form-group mb-4">
+            <label asp-for="ReportingEmployeeId" class="control-label">Manager</label>
+            <p class="small">
+                Managers can approve hours and time off. Based on your settings, they may also be able to access or edit information about their reports. Learn more
+            </p>
+            <select asp-for="ReportingEmployeeId" class="form-control form-control-lg">
+                <partial name="_EmployeeDropdownOpt" model="(List<Employee>)ViewBag.ReportingEmployeeId" />
+            </select>
+            <span asp-validation-for="ReportingEmployeeId" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-4">
+            <label asp-for="PersonalEmail" class="control-label">Personal email</label>
+            <p class="small">
+                Please be extra careful typing the address. We use it to grant access to the employee’s sensitive information.
+            </p>
+            <input asp-for="PersonalEmail" class="form-control form-control-lg" />
+            <span asp-validation-for="PersonalEmail" class="text-danger"></span>
+        </div>
+
+        @*<div class="form-group mb-4">
+            <label class="custom-control custom-checkbox custom-checkbox-large">
+                <input type="checkbox" asp-for="InviteThemToFill" class="date-chooser custom-control-input" onchange="onCheckChange(this);">
+                <span class="custom-control-label" for="chbxTerms">
+                    Invite this employee to enter their own details online.
+                </span>
+            </label>
+        </div>*@
+
+
+    <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+        <button class="btn btn-lg btn-outline-primary btn-back mr-2" type="button">Back</button>
+        <button class="btn btn-lg btn-primary btn-next" type="Submit">Submit</button>
+
+    </div>
+
+</form>
+
+<script>
+    initDatePicker();
+    $("#DepartmentId").change(function () {
+        if ($(this).val() == "-1")
+            $('#newDpt').show();
+        else
+            $('#newDpt').hide();
+    }).change();
+</script>
+

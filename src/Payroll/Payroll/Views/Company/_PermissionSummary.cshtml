@@ -1,0 +1,41 @@
+﻿@model Dictionary<UserType, int>
+
+
+
+<div id="permissions_table">
+    <div class="card-column-group">
+        <a class="gusto-button-link card card-default card-button" data-ajax="true" data-ajax-update="#permissions_table" asp-action="GetPermissionDetails" asp-type="@UserType.Admin">
+            <div class="">
+                <div class="card-header-icon">
+                    <i class="fa fa-users-cog fa-2x mb-3"></i>
+                </div>
+                <h4 class="card-title">@Model.GetValueOrDefault(UserType.Admin) Admins</h4>
+            </div>
+            <div class="card-content-main">
+                <p></p>
+            </div>
+        </a>
+        <div class="gusto-button-link card card-default card-button" type="button">
+            <div class="">
+                <div class="card-header-icon">
+                    <i class="fa fa-user-shield fa-2x mb-3"></i>
+                </div>
+                <h4 class="card-title">@Model.GetValueOrDefault(UserType.Manager) Managers</h4>
+            </div>
+            <div class="card-content-main">
+                <p></p>
+            </div>
+        </div>
+        <div class="gusto-button-link card card-default card-button" type="button">
+            <div class="">
+                <div class="card-header-icon">
+                    <i class="fa-user-circle fa fa-2x mb-3"></i>
+                </div>
+                <h4 class="card-title">@Model.GetValueOrDefault(UserType.Employee) Employees</h4>
+            </div>
+            <div class="card-content-main">
+                <p></p>
+            </div>
+        </div>
+    </div>
+</div>

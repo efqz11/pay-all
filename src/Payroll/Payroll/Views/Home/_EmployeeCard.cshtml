@@ -1,0 +1,88 @@
+﻿@model KpiAnalysis
+@{
+    var width = 0;
+    string css = "";
+
+    var durationText = (string)ViewBag.DurationText;
+    var card =  Model;
+    var grade = Model.Grade;
+    var empl = (Employee)ViewBag.Employee;
+}
+<link href="~/css/employee-card.css" rel="stylesheet" />
+
+
+<div class="card-container mt-3 mb-2">
+    <span class="pro @Model.CssClass">@Model.Grade</span>
+    <img class="round" src="@Url.Content(empl.Avatar ?? DefaultPictures.default_user)" alt="user">
+    <h3>@empl.NameDisplay</h3>
+    <small>@empl.EmailWork</small>
+    <h6>@empl.JobTitle</h6>
+    @*@if (!string.IsNullOrWhiteSpace(empl.Bio_About))
+    {
+    <p>@empl.Bio_About</p>
+    }*@
+
+    @if(Model.IsGraded && Model.GradeGeneratedDateTime.HasValue)
+    {
+        <small class="text-muted"><i>Report was created on @Model.GradeGeneratedDateTime.ToLocalFormat().ToLower()</i></small>
+    }
+    @*<div class="buttons">
+            <button class="primary">
+                Message
+            </button>
+            <button class="primary ghost">
+                Following
+            </button>
+        </div>*@
+    <div class="skills">
+        <h6>Overall Performance &mdash; @grade</h6>
+        <a class="text-white btn-link pb-2" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+            View report details <i class="fa fa-angle-down"></i>
+        </a>
+        <a style="float:right;opacity:0.4" onclick="$('.weight').toggleClass('hide')"> <i class="fa fa-weight-hanging"></i></a>
+
+        @if (Model.KpiValues.Any())
+        {
+
+            <div class="collapse" id="collapseExample">
+
+                <ul>
+                    @foreach (var item in Model.KpiValues)
+                    {
+                        <li>
+                            
+                                <span class="float-left">
+                                    @item.Str (@item.Actual)
+
+                                    <br />
+                                    @(item.HasBestWork ? item.Best + "—" + item.Worst : "")
+                                    @if (item.HasBestWork == false)
+                                    {
+                                        @(item.Actual + "/" + item.Best + " approvals")
+                                    }
+                                </span>
+
+                                <span style="float:right; font-weight: 500;">@item.Percent.ToString("N0")% <span class="weight hide"> &middot; @item.Weight.ToString(".##")</span></span>
+                            
+                        </li>
+                    }
+                        <li>
+                            <span class="float-left" style="    font-size: 11pt;">
+                                Performance @*@item.Str*@
+                                <br />
+                                Grade @card.Grade
+                            </span>
+
+                            <span style="float:right; font-weight: 500; font-size: 14pt">@Model.PercentStr</span>
+                        </li>
+                    @*<li>Front End Development</li>
+                    <li>HTML</li>
+                    <li>CSS</li>
+                    <li>JavaScript</li>
+                    <li>React</li>
+                    <li>Node</li>*@
+                </ul>
+            </div>
+        }
+    </div>
+</div>

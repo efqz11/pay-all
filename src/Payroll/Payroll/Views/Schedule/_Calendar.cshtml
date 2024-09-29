@@ -1,0 +1,190 @@
+﻿@model List<DayVm>
+@{
+    var total = Model.Count();
+    var rows = total / 7;
+    var cols = total / rows;
+    var moveDate = Model.First().Date;
+}
+
+<div class="row">
+    <div class="col-md-4">
+        @*<div class="form-group" style="position:relative; top: -20px;">
+            <p for="EmployeeId" class="text-dark text-left m-0"><small>Employee</small></p>
+            <select asp-items="@ViewBag.MemberId" name="EmployeeId" id="MemberId" class="form-control-sm float-left"></select>
+        </div>*@
+    </div>
+    <div class="col-md-8">
+        <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+            <div class="btn-group mr-2" role="group" aria-label="First group">
+                <a asp-action="Calendar" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-date="@(((DateTime)ViewBag.WeekStart).AddMonths(-1))" data-ajax="true" data-ajax-update="#calendar" class="btn-sm btn btn-outline-secondary border-right-0"><i class="ion ion-arrow-left-c"></i></a>
+                <button type="button" class="btn-sm btn btn-outline-secondary border-left-0 border-right-0">@ViewBag.CurrentRangeDisplay</button>
+                <a asp-action="Calendar" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-date="@(((DateTime)ViewBag.WeekEnd).AddMonths(1))" data-ajax="true" data-ajax-update="#calendar" class="btn-sm btn btn-outline-secondary border-left-0"><i class="ion ion-arrow-right-c"></i></a>
+            </div>
+            @*<div class="btn-group mr-2" role="group" aria-label="Second group">
+                <button type="button" class="btn-sm btn btn-outline-warning"><i class="ion ion-levels"></i></button>
+            </div>*@
+            <div class="btn-group" role="group" aria-label="Third group">
+                @*<a class="btn btn-sm btn-outline-primary" asp-action="CreateWorkItem" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="ion ion-plus"></i> Add Schedule</a>
+                <a class="btn btn-sm btn-outline-primary" asp-action="AddOrUpdateWork" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="ion ion-plus"></i> Add Work</a>*@
+                @*<button type="button" class="btn btn-sm btn-primary"></button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+rows: @rows  | cols = @cols
+<div class="row" id="tasks-schedule">
+    @if (Model == null || Model.Any() == false)
+    {
+        <div class="p-5 text-center" style="width:100%">
+            <p class="text-lead mt-5">No schedules were found for the week @ViewBag.CurrentRangeDisplay</p>
+            <a class="btn btn-primary" asp-action="AddOrUpdateWork" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="ion ion-plus"></i> Add Schedule</a>
+        </div>
+    }
+    else
+    {
+        <table class="table table-calendar table-schedule">
+            <thead>
+
+                <tr>
+
+                    @for (var start = moveDate; start < moveDate.AddDays(7).Date; start = start.AddDays(1))
+                    {
+                        <td>
+                            <small>@start.Date.ToString("ddd").ToUpper()</small>
+                        </td>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+
+
+                @for (int i = 0; i < rows; i++)
+                {
+                    @if (i == 0)
+                    {
+                        <tr>
+                            <td colspan="7">
+                                <div class="p-1">
+                                    <h5>@moveDate.ToString("MMMM")</h5>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @if (moveDate.Month != moveDate.AddDays(7).Month)
+                    {
+                        <tr>
+                            @for (var start = moveDate; start < moveDate.AddDays(7).Date; start = start.AddDays(1))
+                            {
+                                <td class="@(start.Date == DateTime.Now.Date ? "active" : "")">
+                                    <div class="p-3 row">
+                                        @if (start.Month != moveDate.AddDays(7).Month)
+                                        {
+                                            <div class="col"><h3>@start.Day</h3></div>
+
+                                            <div class="col float-right">
+                                                @if (Model.FirstOrDefault(x => x.Date.Date == start.Date)?._TotalWorks > 0)
+                                                {
+                                                    @Model.FirstOrDefault(x => x.Date.Date == start.Date)._TotalWorks <i class="fad fa-tasks"></i>
+                                                }
+
+                                                @if (Model.FirstOrDefault(x => x.Date.Date == start.Date)?._TotalWorks > 0 && Model.FirstOrDefault(x => x.Date.Date == start.Date)?._TotalAttendance > 0)
+                                                {
+                                                    <br />
+                                                    @*<span>&mdash;</span>*@
+                                                }
+                                                @if (Model.FirstOrDefault(x => x.Date.Date == start.Date)?._TotalAttendance > 0)
+                                                {
+                                                     @Model.FirstOrDefault(x => x.Date.Date == start.Date)._TotalAttendance <i class="fa fa-calendar-alt"></i>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </td>
+                            }
+                        </tr>
+
+                        <tr>
+                            <td colspan="7">
+                                <div class="p-1">
+                                    <h5>@moveDate.AddDays(7).ToString("MMMM")</h5>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            @for (var start = moveDate; start < moveDate.AddDays(7).Date; start = start.AddDays(1))
+                            {
+                                <td class="@(start.Date == DateTime.Now.Date ? "active" : "")">
+                                    
+                                    <div class="p-3 row">
+                                        @if (start.Month == moveDate.AddDays(7).Month)
+                                        {
+                                            <div class="col"><h3>@start.Day</h3></div>
+
+                                            <div class="col float-right">
+                                                @if (Model.FirstOrDefault(x => x.Date.Date == start.Date)?._TotalWorks > 0)
+                                                {
+                                                    @Model.FirstOrDefault(x => x.Date.Date == start.Date)._TotalWorks <i class="fad fa-tasks"></i>
+                                                }
+
+                                                @if (Model.FirstOrDefault(x => x.Date.Date == start.Date)?._TotalWorks > 0 && Model.FirstOrDefault(x => x.Date.Date == start.Date)?._TotalAttendance > 0)
+                                                {
+                                                    <br />
+                                                    @*<span>&mdash;</span>*@
+                                                }
+                                                @if (Model.FirstOrDefault(x => x.Date.Date == start.Date)?._TotalAttendance > 0)
+                                                {
+                                                     @Model.FirstOrDefault(x => x.Date.Date == start.Date)._TotalAttendance <i class="fa fa-calendar-alt"></i>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </td>
+                            }
+                        </tr>
+
+                        moveDate = moveDate.AddDays(7);
+                    }
+
+                    <tr>
+                        @for (var start = moveDate; start < moveDate.AddDays(7).Date; start = start.AddDays(1))
+                        {
+                            <td class="@(start.Date == DateTime.Now.Date ? "active" : "")">
+                                
+                                <div class="p-3 row">
+                                    <div class="col"><h3>@start.Day</h3></div>
+
+                                    <div class="col float-right">
+                                        @if (Model.FirstOrDefault(x => x.Date.Date == start.Date)?._TotalWorks > 0)
+                                        {
+                                            @Model.FirstOrDefault(x => x.Date.Date == start.Date)._TotalWorks <i class="fad fa-tasks"></i>
+                                        }
+
+                                        @if (Model.FirstOrDefault(x => x.Date.Date == start.Date)?._TotalWorks > 0 && Model.FirstOrDefault(x => x.Date.Date == start.Date)?._TotalAttendance > 0)
+                                        {
+                                            <br />
+                                            @*<span>&mdash;</span>*@
+                                        }
+                                        @if (Model.FirstOrDefault(x => x.Date.Date == start.Date)?._TotalAttendance > 0)
+                                        {
+                                            @Model.FirstOrDefault(x => x.Date.Date == start.Date)._TotalAttendance <i class="fa fa-calendar-alt"></i>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                        }
+                        @{ moveDate = moveDate.AddDays(7); }
+                    </tr>
+                }
+            </tbody>
+            </table>
+    }
+</div>
+
+
+@*<script>
+        $('#MemberId').select2({
+            ////width:'300px'
+            //placeholder: "Choose days to exclude",
+        });
+    </script>*@

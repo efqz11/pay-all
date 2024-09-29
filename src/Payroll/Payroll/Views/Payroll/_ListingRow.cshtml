@@ -1,0 +1,88 @@
+﻿@model PayItemVm
+@{
+    int _tab = ViewBag.FollowUpTabIndex;
+    int followUpIndex = ViewBag.FollowUpIndex;
+    int i = 0;
+    int j = 0;
+    Layout = null;
+}
+
+
+@foreach (var item in Model.PayrolPayAdjustments.OrderBy(z => z.CalculationOrder))
+{
+<tr>
+    <input type="hidden" value="@item.Id" name="PayrolPayAdjustments[i].Id" />
+    <input type="hidden" value="@item.PayAdjustmentId" name="PayrolPayAdjustments[i].PayAdjustmentId" />
+    <input type="hidden" value="@item.PayrollPeriodId" name="PayrolPayAdjustments[i].PayrollPeriodId" />
+
+    <td class="text-left font-weight-bold" style=" vertical-align: middle;display:flex">
+        <div class="image-container">
+            <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.Employee.Id">
+                <img src="@Url.Content(item.Employee.Avatar ?? DefaultPictures.default_user)" height="35" class="mt-1 mr-2 rounded-circle" />
+            </a>
+        </div>
+        <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.Employee.Id">
+            <div class="name-display pt-1">
+                <span class="">@item.Employee.EmpID &sim; @item.Employee.GetSystemName(User)</span>
+                <br>
+                <small class="text-dark" style="position: relative;top: -4px;">@item.Employee.JobTitle &middot; @item.Employee.Department.Name</small>
+            </div>
+        </a>
+    </td>
+
+    @foreach (var fieldValue in item.PayrollPeriodPayAdjustmentFieldValues.OrderBy(z => z.CalculationOrder))
+    {
+        <input type="hidden" value="@fieldValue.Id" name="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[@j].Id" />
+        <input type="hidden" value="@fieldValue.PayrollPeriodPayAdjustmentId" name="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[@j].PayrollPeriodPayAdjustmentId" />
+
+        @if (fieldValue.BaseType == BaseType.ComputedList && fieldValue.Key != "Name")
+        {
+            <td>
+                @fieldValue.ListSelect
+                @*@Html.DisplayFor(m => Model.PayrolPayAdjustments[i].Id)
+                    @Html.DisplayFor(m => Model.PayrolPayAdjustments[i].PayAdjustmentId)
+                    | @i | @j| @_tab*@
+
+                <input type="hidden" class="hide" value="@fieldValue.ListSelect" name="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[@j].ListSelect" />
+            </td>
+        }
+
+
+        @if (fieldValue.BaseType == BaseType.ManualEntry)
+        {
+
+            if (fieldValue.FieldType == FieldType.Number || fieldValue.FieldType == FieldType.Decimal)
+            {
+                <td><input type="number" tabindex="@(_tab++)" class="form-control manual-entry" data-identifier="@fieldValue.CalculationIdentifier" value="@fieldValue.Value" name="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[@j].Value" data-updateInputClass="@fieldValue.UpdateInputClass" data-evalMethod="@fieldValue.EvalMethod" /></td>
+            }
+
+            if (fieldValue.FieldType == FieldType.Text)
+            {
+                <td><input type="text" tabindex="@(_tab++)" class="form-control manual-entry" data-identifier="@fieldValue.CalculationIdentifier" value="@fieldValue.Value" name="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[@j].Value" /></td>
+            }
+
+
+            if (fieldValue.FieldType == FieldType.Date)
+            {
+                <td><input type="text" tabindex="@(_tab++)" class="form-control has-datepicker" data-identifier="@fieldValue.CalculationIdentifier" value="@fieldValue.Value" name="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[@j].Value" /></td>
+            }
+        }
+
+        @if (fieldValue.BaseType == BaseType.Calculated)
+        {
+            <td>
+                <input type="number" class="form-control calculated  @(fieldValue.IsEditable ? "manual-entry" : "")" value="@fieldValue.Value" name="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[@j].Value" data-identifier="@fieldValue.CalculationIdentifier" data-updateInputClass="@fieldValue.UpdateInputClass" data-evalMethod="@fieldValue.EvalMethod" @(fieldValue.IsEditable ? "" : "readonly") />
+            </td>
+        }
+
+        @(j++)
+    }
+
+    <td>
+        <a class="btn-link" asp-action="RemovePayAdjustment" asp-route-payAdjustmentId="@(item.Id)" data-ajax-method="POST" data-ajax-update=".data-container" data-ajax="true" data-ajax-failure="alert('unable to delete, possibly there are childrens')" data-ajax-success="sendNotification('success', '@item.EmployeeName field values was just removed')" data-ajax-confirm="Are you sure you want to remove @item.EmployeeName" role="tooltip" data-microtip-position="top" aria-label="Remove this employee field values"><i class="fad fa-trash"></i></a>
+    </td>
+</tr>
+    @(i++)
+    @(j = 0)
+}
+

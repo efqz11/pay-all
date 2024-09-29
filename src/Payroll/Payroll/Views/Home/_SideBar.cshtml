@@ -1,0 +1,43 @@
+﻿@model HomeEmployeeVm
+
+
+
+<div class="list-group empl-sidebar border-right-0 border-left-0 border-top-0" id="empl-sidebar">
+    <div class="list-group-item" style="opacity:1 !important">
+
+        <div class="text-left font-weight-bold sticky-col first-col" style=" vertical-align: middle;display:flex">
+            <img src="@Url.Content(Model.Employee?.Avatar ?? DefaultPictures.default_user)" height="40" class="mt-1 mr-2 rounded-circle" />
+            <div class="name-display pt-1">
+                <span class="">
+                    @Model.Employee.NameDisplay
+                    &nbsp;<span class="pro @Model.Employee.CssClass">@Model.Employee.Grade</span>
+                </span>
+                <br />
+                <smalL> @Model.Employee.JobTitle </smalL>
+            </div>
+        </div>
+
+        @*<div class="row">
+                <div class="col-md-3 image-container">
+                    <img src="@Url.Content(Model.Employee?.PhotoLink ?? DefaultPictures.default_user)" height="50" class="rounded-circle" />
+                </div>
+                <div class="col-md-9 text-left pr-0" style="line-height: 0.5;">
+                    <h5 class="mb-0">
+                        @Model.Employee.NameDisplay
+
+                        <span class="pro @Model.Employee.CssClass">@Model.Employee.Grade</span>
+                    </h5>
+
+                    <br />
+                    <small class="text-muted">@Model.Employee.Department.Name</small>
+                </div>
+            </div>*@
+
+    </div>
+    @*<div class="list-group-item pt-1 pb-1"><i class="fad fa-user-tag"></i> @Model.Employee.JobTitle</div>*@
+    <div class="list-group-item pt-1 pb-1"><i class="fad fa-user-friends"></i> @(Model.Employee.Department?.Name ?? "No Department")</div>
+    <div class="list-group-item pt-1 pb-1"><i class="fad fa-map-marker-alt"></i> @(Model.Employee.Location?.Name ?? "No Location")</div>
+    <div class="list-group-item pt-1 pb-1"><i class="fad fa-dot-circle"></i> @Html.DisplayFor(x => Model.Employee.EmployeeStatus)</div>
+</div>
+
+<partial name="~/Views/Employee/_Sidebar.cshtml" model="@Model.Employee" />

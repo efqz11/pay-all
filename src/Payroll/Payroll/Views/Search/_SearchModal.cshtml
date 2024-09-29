@@ -1,0 +1,129 @@
+﻿
+@model EntityType
+@inject Payroll.Database.PayrollDbContext dbContext
+
+
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @ViewBag.Header
+            <br />
+            <small></small>
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <div class="form-group has-search mb-1">
+                <span class="form-control-feedback"><i class="fad fa-search"></i></span>
+                <input type="text" class="txt-search master form-control" autocomplete="off" name="query" placeholder="Search your keyword here">
+            </div>
+            <div class="form-group search-modal-results" id="">
+                @*<ul class="list-group table-hover">
+                    <li class="list-group-item group-item-action" data-id="12">
+                        <div class="image-container">
+                            <img src="@Url.Content(DefaultPictures.default_company)" class="image " height="25" />
+                        </div>
+                        Item Designation
+                    </li>
+                </ul>
+                <div class="list-group">
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <img src="@Url.Content(DefaultPictures.default_company)" class="image " height="25"
+                             style="border-radius: 18% !important;max-width: 100%;" />
+                        <span class="pl-2">Cras justo odio</span>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">Dapibus ac facilisis in</a>
+                    <a href="#" class="list-group-item list-group-item-action">Morbi leo risus</a>
+                    <a href="#" class="list-group-item list-group-item-action">Porta ac consectetur ac</a>
+                    <a href="#" class="list-group-item list-group-item-action disabled">Vestibulum at eros</a>
+                </div>*@
+            </div>
+            @*<select class='form-control itemSearch' type='text' name="cmpId" id="cmpId" placeholder='Choose user'></select>*@
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+
+    <script>
+
+    var url = '@Url.Action("SearchModal", "Search")';
+
+    $('.txt-search').keyup(debounce(function () {
+        console.log('starting... ');
+        $('.txt-search').prev().toggleClass('fa-search fa-snowflake');
+        var data = { 'what': "@Model", 'term': $('.txt-search.master').val() };
+        $.post(url, data).done(function (d) {
+            console.log(d, $(d).length);
+            if ($(d).length <= 0) {
+
+            } else {
+                $('.search-modal-results').empty();
+                $.each(d, function (i, e) {
+                    console.log('e::',e);
+                    $('.search-modal-results').append(
+                        getListGroupItem(e.id, e.name, e.relativeUrl, e.avatar, e.icon, e.summary));
+                })
+
+            }
+        });
+
+        //listgroup_search($('.txt-search').val(), $('.data-container-table tbody tr'), '0123');
+    }, 500));
+
+        function getListGroupItem(id, text, link, avatar, icon, summary) {
+        link = link || GetAppRootPath() + '/@Model/detail/' + id;
+            var before = avatar != "" && avatar != null ? '<div class="image-container"><img src="' + avatar + '" height="35" class="mt-1 mr-2 rounded-circle" /></div>' : '<div class="mr-2"><span style="position: relative;bottom: -2px;font-size: 25px;"> ' + icon + ' </span></div>';
+
+            var linkCln = link.replace('/', '').replace('~', ' ').replace('/', ' > ');
+            var last = '<div class="name-display pt-1"><span class="">' + text + '</span><br><small class="text-muted" style="position: relative;top: -4px;">' +
+                (summary !== null && summary !== undefined ? summary : linkCln) +'</small></div>';
+
+            return '<a href="' + link + '" class="list-group-item list-group-item-action text-left font-weight-bold d-flex">' +
+                before + last
+            '</a>';
+
+
+            //<td class="text-left font-weight-bold sticky-col first-col" style=" vertical-align: middle;display:flex">
+            //            <div class="image-container">
+            //                <a href="/Employee/Detail/2133">
+            //                    <img src="/img/default-image.png" height="35" class="mt-1 mr-2 rounded-circle">
+            //                </a>
+            //            </div>
+            //            <a href="/Employee/Detail/2133">
+            //                <div class="name-display pt-1"><span class="">137 ∼ Hussain Fazeen Mohamed</span><br><small class="text-dark" style="position: relative;top: -4px;">Videographer · Technical</small></div>
+            //            </a>
+            //        </td>
+    }
+
+    $('#cmpId').select2({
+        //width:'300px'
+        placeholder: "Search by company name",
+        minimumInputLength: 2,
+        ajax: {
+            url: url,
+            dataType: 'json',
+            type: "GET",
+            quietMillis: 50,
+
+            data: function (term) {
+                return {
+                    'term': term.term //search term
+                };
+            },
+            error: function(data){
+                alert("ERROR");
+            },
+            processResults: function (data) {
+                return {
+                    results : data
+                };
+            }
+        },
+
+        escapeMarkup: function (m) {
+			return m;
+		}
+    });
+    </script>

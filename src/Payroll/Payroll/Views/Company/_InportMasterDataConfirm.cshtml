@@ -1,0 +1,295 @@
+﻿@using System.ComponentModel.DataAnnotations
+@{ 
+    var error = (bool)ViewBag.IsError;
+    var recCount = (int)ViewBag.RecordCount;
+    var canContinue = (bool)ViewBag.CanContinueWithErrors;
+    int line = ViewBag.Line != null ? (int)ViewBag.Line : 0;
+    int col = ViewBag.Col != null ? (int)ViewBag.Col : 0;
+    @* var data = ViewBag.Data != null ? (List<BulkImportMasterVm>)ViewBag.Data : null; *@
+    var errorDict = ViewBag.ErroorDict != null ? (Dictionary<string, string>)ViewBag.ErroorDict : null;
+    var fieldMetaConfig= (List<BulkImportMasterPostDataVm>)ViewBag.fieldMetaConfig;
+    var ddMapFields = typeof(BulkImportMasterVm).GetProperties().ToDictionary(x=> x.Name, x=> ((DisplayAttribute)x.GetCustomAttributes(typeof(DisplayAttribute), false).FirstOrDefault())?.Name ?? x.Name);
+
+    errorDict.Clear();
+}
+
+<form asp-action="ImportMasterDataUpdate" asp-controller="Company" data-ajax="true" data-ajax-method="POST"  data-ajax-update=".modal__container" data-ajax-success="" id="bulkimportForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input name="Id" id="Id" type="hidden" value="@ViewBag.Id" />
+    @* <input name="Data" id="Data" type="hidden" value="@ViewBag.DataString" /> *@
+
+    <header class="">
+        <h2 class="mb-1 modal__title" id="modal-1-title">
+            <span class="text-info"><i class="fa fa-exclamation-triangle"></i> File Uploaded, Now lets try to Map Excel columns to PayAll fields</span>
+        </h2>
+        <span>@recCount records found! from @ViewBag.FileName</span>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+            @* <div class="form-group">
+                <p class="text-muted">@ViewBag.FileName</p>
+            </div> *@
+        @*@if (error && errorDict.Any())
+        {
+            <div class="form-group">
+                <p>An error occured in row @line and column @col</p>
+            </div>
+        }*@
+@* <h4>@ViewBag.FileName</h4> *@
+        
+        <table class="table table-responsive" id="tbImportMaster">
+            <thead>
+                <tr>
+                    <th>Index</th> 
+                    <th width="20%">Field (Excel file)</th>
+                    <th width="20%">Map Field</th>
+                    <th>Sample Data</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in fieldMetaConfig)
+                {
+                    <tr>
+                        <td>@item.sxColumnIndx</td>
+                        <td>
+                            @item.xColumnName
+                        </td>
+                        <td>
+                            <select class="form-control dd-map mappedFieldName" asp-items="@(new SelectList(ddMapFields, "Key", "Value", item.mappedFieldName))">
+                                <option value="None" >None</option>
+                                @* <option value="None" >None</option>
+                                @foreach (var o in ddMapFields)
+                                {
+                                    <option value="@o.Key">@o.Value</option>
+                                } *@
+                            </select>
+                            <div class="ignore" style="display: none;">     
+                                <small class="text-danger"><i class="fa fa-info-circle"></i> column will be ignored</small>
+                            </div>
+                        </td>
+                        <td>
+                            @if(@item.sampleData != null){
+                                <span class="text-weight-normal">@string.Join(", ", @item.sampleData)</span>
+                            }
+
+                            <input type="hidden" value="@item.sxColumnIndx" class="sxColumnIndx">
+                            <input type="hidden" value="@item.xColumnName" class="xColumnName">
+                            @* <input type="hidden" value="@Newtonsoft.Json.JsonConvert.SerializeObject(@item.sampleData)" class="sampleData"> *@
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+
+
+        @if (error && errorDict.Any())
+        {
+            <div class="form-group">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Row / Column (#)</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in errorDict)
+                        {
+                            <tr>
+                                <td>@item.Key</td>
+                                <td class="text-danger">@item.Value</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @*<span class="text-danger">@ViewBag.Error</span>*@
+            </div>
+
+            @*<div class="form-group">
+                <a class="btn btn-outline-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="InportEmployeeData" asp-controller="Company" asp-route-id="@ViewBag.Id">
+                    Import Data
+                </a>
+            </div>*@
+        }
+        @if (canContinue || !errorDict.Any())
+        {
+
+            @* <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" for="chbxTerms" class="custom-control-input" disabled checked>
+                    <span class="custom-control-label" for="chbxTerms">
+                        Employees and Agreements will be created
+                    </span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" for="chbxTerms" class="custom-control-input" disabled checked>
+                    <span class="custom-control-label" for="chbxTerms">
+                        User Account will be created if contract period is Active
+                    </span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" for="chbxTerms" class="custom-control-input" disabled checked>
+                    <span class="custom-control-label" for="chbxTerms">
+                        User access grant will be provided
+                    </span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" for="chbxTerms" class="custom-control-input" disabled checked>
+                    <span class="custom-control-label" for="chbxTerms">
+                        Synchronize Employee and user records
+                    </span>
+                </label>
+            </div> *@
+
+            <div class="form-group">
+                <button type="button" class="btn btn-primary btn-import" onclick="InportEmployeeDataUpdate()">
+                    Let's try to Import
+                </button>
+            </div>
+
+            <div class="form-group col-md-4 p-0 btn-import-progress" style="display:none">
+                <div class="steps">
+                    <h6 class="mb-0 ">
+                        Importing data...
+                        <span class="float-right step-text">10%</span>
+                    </h6>
+
+                    <ul class="steps-container"></ul>
+                    <div class="step-bar" style="width: 10%;"></div>
+                </div>
+                <span id="upload-status"></span>
+            </div>
+
+            <div class="form-group btn-import-complete" style="display:none">
+                <a type="button" class="btn btn-primary" asp-action="Index" asp-controller="Employee">View Employees</a>
+            </div>
+        }
+
+    </main>
+    @*<footer class="modal__footer">
+        <button type="button" class="modal__btn modal__btn-primary" onclick="UploadImage(this)">
+            Save
+        </button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>*@
+</form>
+
+<script>
+
+    $('.dd-map').change(function (e){
+        $(this).parent().find('.ignore').hide();
+        $(this).removeClass('border-danger');
+
+        if(this.value == "None"){
+            $(this).parent().find('.ignore').show();$(this).addClass('border-danger');
+        }
+    }).change();
+
+    function InportEmployeeDataUpdate () {
+
+        var formData = new FormData();
+        formData.append("Data", $('#bulkimportForm #Data').val());
+        formData.append("Id", $('#bulkimportForm #Id').val());
+
+        var mapData = [];
+        $('#tbImportMaster tbody tr').each(function (i, e){
+            mapData.push({
+                "mappedFieldName" : $(this).find('.mappedFieldName').val(),
+                "sxColumnIndx" : $(this).find('.sxColumnIndx').val(),
+                "xColumnName" : $(this).find('.xColumnName').val(),
+                // "sampleData" : $(this).find('.sampleData').val(),
+            });
+        });
+        formData.append("mapData", JSON.stringify(mapData));
+        formData.append("fileName", '@ViewBag.FileName');
+
+        var token = $('#bulkimportForm input[name="__RequestVerificationToken"]').val().trim()
+        formData.append("__RequestVerificationToken", token);
+
+        $('.btn-import-progress').show();
+
+        $.ajax(
+            {
+                url: $('#bulkimportForm').attr('action'),
+                data: formData,
+                processData: false,
+                contentType: false,
+                type: "POST",
+                xhr: function () {
+                    var xhr = new window.XMLHttpRequest();
+                    xhr.upload.addEventListener("progress", function (evt) {
+                        if (evt.lengthComputable) {
+                            var progress = Math.round((evt.loaded / evt.total) * 100);
+                            console.log('progress', progress);
+                            $(".step-bar").css("width", progress + "%"); //.attr("aria-valuenow", progress);
+                            $(".step-text").html(progress + "%");
+                        }
+                    }, false);
+                    return xhr;
+                },
+                beforeSend: function () {
+                    showModal();
+                    var header = '<h2 class="mt-3 text-center modal__title" id="modal-1-title">Hang on! We are uploading your data<br><small>This may take some time!</small></h2>';
+                    $('#modal-1 .modal__container .modal__content').append(header);
+                    $('.btn-import').hide();
+                },
+                success: function (data) {
+                    $("#upload-status").show();
+                    sendNotification('success', 'Data import was completed successfully');
+
+                    $('#importResults').html(data);
+                    $('.tab-link[data-tab=3]').click();
+                    shideModal('Data imported');
+
+                    $('.btn-import-complete').fadeIn();
+                    $('.btn-import').hide();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log('handleModalPostFailure() X', jqXHR);
+                    console.log('jqXHR.responseJSON() X', jqXHR.responseJSON);
+                    try {
+                        
+                    console.log(jqXHR.responseJSON, JSON.parse(jqXHR.responseJSON.message));
+                    var data = JSON.parse(jqXHR.responseJSON.message);
+
+                    $('#modal-1 .modal__container .modal__content').empty();
+                    $('#modal-1 .modal__container .modal__header').empty();
+                    $('.btn-import-progress').hide();
+                    
+                    var header = '<h2 class="modal__title" id="modal-1-title">Please fix these issues and continue<br><small>'+data.length+' issues found!</small></h2><button class="modal__close" aria-label="Close modal" data-micromodal-close></button>';
+                    $('#modal-1 .modal__container .modal__header').append(header);
+                    $(data).each(function (i,e){
+                        $('#modal-1 .modal__container .modal__content').append("<p class='mb-2'> - " + e +"</p>");
+                    })
+                    }catch (e) {
+                        hideModal();
+                        try {
+                            if (jqXHR.responseJSON) {
+                                sendNotification('error', jqXHR.responseJSON.message);
+                            } else {
+                                console.log(jqXHR);
+                                sendNotification('error', "There was an error while processing your request");
+                            }
+                        } catch (e) {
+                            sendNotification('error', jqXHR.responseText);
+                        } 
+                    }
+                    
+
+                    $('.btn-import').show();
+                    //$('#modal-1 .modal__container .modal__content').prepend("<div class='alert alert-danger'>Oh Snap! That was an error.</div>");
+                    //console.log(jqXHR);
+                    //console.log(errorThrown);
+                    //sendNotification('error', jqXHR.responseText);
+                }
+            }
+        );
+    }
+</script>

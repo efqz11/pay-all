@@ -1,0 +1,157 @@
+﻿@model RosterVm
+
+@{ 
+    Layout = "_LayoutCard";
+    ViewBag.CardHeader = Model.SelectedMenuString;
+    ViewBag.RosterVm = Model;
+    var workIndx = 0;
+}
+
+<form asp-action="Process" asp-controller="Roster" data-ajax="true" data-ajax-method="POST" data-ajax-update="#card-placeholder" data-ajax-failure="handleModalPostFailure" data-ajax-success="setActiveTabByIndex(5)">
+    <input type="hidden" asp-for="SelectedMenu" />
+    <input type="hidden" asp-for="ScheduleId" />
+
+    @foreach (var item in Model.WorkTimes)
+    {
+        <div class="row">
+            <div class="col">
+                <h6 class="head1 @item.Color font-weight-bold">
+                    @item.Name
+                </h6>
+
+                @if (item.WorkTimeWorkItems != null)
+                {
+                    <input type="hidden" asp-for="@Model.WorkTimes[workIndx].id" />
+                    <table class="table">
+                        <tbody>
+
+                            @foreach (var wi in item.WorkTimeWorkItems)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (@Model.Works.FirstOrDefault(a => a.Id == wi.WorkId).Type == WorkType.ExpectClockInRecordsBefore)
+                                        {
+                                            <i class="ion ion-ios-stopwatch"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="ion ion-alert"></i>
+                                        }
+
+                                        @Model.Works.FirstOrDefault(a => a.Id == wi.WorkId).Name
+                                        <br>
+                                        <small class="text-muted">
+                                            @(wi.IsForWholeWeek || wi.OnDays == null ? "Whole week" : "only on " + (string.Join(", ", wi.OnDays)))
+                                        </small>
+                                    </td>
+                                    <td>
+                                        @foreach (var emp in wi.WorkableEmployeeIds)
+                                        {
+                                            @(@Model.Employees.FirstOrDefault(a => a.id == emp).Name + " · ")
+                                        }
+                                        <br>
+                                        <small>@(@item.MinEmployees + " — " + @item.MaxEmployees)</small>
+                                    </td>
+                                    <td>
+                                        <a class="btn btn-sm btn-danger" asp-action="RemoveWorkToShift" asp-route-id="@Model.ScheduleId" asp-route-wtId="@item.id" asp-route-wid="@wi.WorkId" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@Model.Works.FirstOrDefault(a => a.Id == wi.WorkId).Name was just removed');$(this).parents('tr').fadeOut()" data-ajax-confirm="Are you sure you want to remove this Shift task?">&bull; Remove</a>
+                                    </td>
+                                </tr>
+
+                                @*@Model.Employees.FirstOrDefault(a => a.id == )
+                        <p></p>
+                        <p>@Model.Works.FirstOrDefault(a => a.Id == wi.WorkId).Name - @(string.Join(", ", wi.WorkableEmployeeIds))</p>*@
+                            }
+                        </tbody>
+
+                    </table>
+                }
+
+                <span class="">
+                    <a class="btn btn-primary " asp-action="AddWorkToShift" asp-route-id="@Model.ScheduleId" asp-route-wtId="@item.id" data-ajax-method="GET" data-ajax="true" data-ajax-begin="showModal()" data-ajax-update=".modal__container" data-ajax-failure="HandleModalPostFailure" style="display:"><i class="fad fa-plus-circle"></i> Add Work for @item.Name</a>
+                </span>
+            </div>
+        @*<div class="col">
+                <div class="row">
+                    <div class="col-md-2">
+                        <input type="text" class="form-control form-control-sm" asp-for="@Model.WorkTimes[workIndx].MinEmployees" />
+                    </div>
+                    <div class="col-md-8"><div id="double_number_range" style="margin-top:8px;"></div></div>
+                    <div class="col-md-2"><input type="text" class="form-control form-control-sm" asp-for="@Model.WorkTimes[workIndx].MaxEmployees" /></div>
+                </div>
+            </div>*@
+    </div>
+
+    <hr />
+
+    {
+        workIndx += 1;
+    }
+}
+
+    <div class="card-footer ">
+        <div class="btn-toolbar float-right">
+            <a class="btn btn-lg btn-light " asp-action="Process" asp-route-id="@Model.ScheduleId" asp-route-t="3" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-update="#card-placeholder" data-ajax-success="setActiveTabByIndex(3)"><i class="fa fa-arrow-left"></i> &nbsp; Back</a>
+
+            <button type="submit" class="btn btn-primary btn-lg">Next &nbsp; <i class="fa fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+</form>
+
+
+<script>
+    var max = '@Model.Employees.Count()';
+    $('div[id="double_number_range"]').each(function (i, e) {
+        $(this).rangepicker({
+            type: "double",
+            startValue: 0,
+            endValue: max,
+            translateSelectLabel: function (currentPosition, totalPosition) {
+                return parseInt(max * (currentPosition / totalPosition));
+                //return parseInt(100 * (currentPosition / totalPosition));
+            }
+        });
+    })
+
+
+    //function addSeparator(nStr) {
+    //    nStr += '';
+    //    var x = nStr.split('.');
+    //    var x1 = x[0];
+    //    var x2 = x.length > 1 ? '.' + x[1] : '';
+    //    var rgx = /(\d+)(\d{3})/;
+    //    while (rgx.test(x1)) {
+    //        x1 = x1.replace(rgx, '$1' + '.' + '$2');
+    //    }
+    //    return x1 + x2;
+    //}
+
+    //function rangeInputChangeEventHandler(e) {
+    //    console.log('$(this).context', $(this).context);
+    //    console.log('(this).attr(class', (this));
+    //    var rangeGroup = $(this).attr('name'),
+    //        minBtn = $(this).parent().children('.min'),
+    //        maxBtn = $(this).parent().children('.max'),
+    //        range_min = $(this).parent().children('.range_min'),
+    //        range_max = $(this).parent().children('.range_max'),
+    //        minVal = parseInt($(minBtn).val()),
+    //        maxVal = parseInt($(maxBtn).val()),
+    //        origin = $(this).attr('class');
+
+    //    if (origin === 'min' && minVal > maxVal - 5) {
+    //        $(minBtn).val(maxVal - 5);
+    //    }
+    //    var minVal = parseInt($(minBtn).val());
+    //    $(range_min).html(addSeparator(minVal * 1000) + ' €');
+
+
+    //    if (origin === 'max' && maxVal - 5 < minVal) {
+    //        $(maxBtn).val(5 + minVal);
+    //    }
+    //    var maxVal = parseInt($(maxBtn).val());
+    //    $(range_max).html(addSeparator(maxVal * 1000) + ' €');
+    //}
+
+
+    //$('input[type="range"]').on('input', rangeInputChangeEventHandler);
+</script>

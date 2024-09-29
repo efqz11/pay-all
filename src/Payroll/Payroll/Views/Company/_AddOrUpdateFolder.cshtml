@@ -1,0 +1,25 @@
+﻿@model CompanyFolder
+
+<form asp-action="AddOrUpdateFolder" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#folders" data-ajax-success="sendNotification('success', 'Company folder was just saved');hideModal();" id="userForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="CompanyId" type="hidden" />
+    <input asp-for="Id" type="hidden" value="@(Model != null || Model.Id > 0 ? Model.Id : 0)" />
+    <input asp-for="Color" type="hidden" value="#000" />
+
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @(Model == null || Model.Id <= 0 ? "New Folder" : "Update Folder")
+        </h2>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <label asp-for="Name" class="control-label"></label>
+            <input asp-for="Name" as class="form-control" />
+            <span class="text-danger" asp-validation-for="Name"></span>
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>

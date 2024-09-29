@@ -1,0 +1,38 @@
+﻿
+@model Payroll.Model.Logs.ApplicationLog
+@inject Payroll.Database.PayrollDbContext dbContext
+@{ 
+    var data = ViewBag.Props != null ? (Payroll.Controllers.Properties)ViewBag.Props  : null;
+}
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            View Application Log
+            <br />
+            <small>
+                @Model.TimeStamp.ToSystemFormat(User, true)
+        </small>
+    </h2>
+    <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+</header>
+
+<main class="modal__content" id="modal-1-content">
+    <div class="form-group">
+        <span>Time Stamp On @Model.TimeStamp.ToSystemFormat(User, true)</span>
+        <table class="table table-details table-sm border-0">
+            <tbody>
+                @foreach (var item in data.Property)
+                {
+                    <tr>
+                        <td>@item.Key</td>
+                        <td>@item.Text</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</main>
+<footer class="modal__footer">
+
+    <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+</footer>
+

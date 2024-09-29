@@ -1,0 +1,166 @@
+﻿@model List<Job>
+
+<p class="mb-2">@ViewBag.Count Jobs(s) from @(ViewBag.DeptRouteId == 0 ? " all departments" : ViewBag.DeptName + " department")</p>
+
+<table class="table table-sm table-hover data-container-table" id="masterEmployeeAreaTable">
+    <thead>
+        <tr>
+            <th></th>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Classification</th>
+            @*<th>Employment</th>*@
+            @*<th>Identity</th>*@
+            <th>Status</th>
+            @*<th>DateOfJoined</th>*@
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm  dropdown-toggle dropdown-toggle-split" id="dropdownMenuReference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
+                            <i class="ion-ios-more"></i>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
+
+                            <a class="dropdown-item" asp-action="Detail" asp-route-id="@item.Id" data-id="3"><i class="fal fa-user-tag"></i> View Profile</a>
+
+                            @if (item.JobStatus == JobStatus.Occupied)
+                            {
+                                <a class="dropdown-item" target="_blank" asp-action="Detail" asp-controller="AppUser" asp-route-id="2">
+                                    <i class="fal fa-user-circle"></i> View Employment
+                                </a>
+                            }
+                            <div class="dropdown-divider"></div>
+
+                            <a class="dropdown-item" target="_blank" asp-action="Change" asp-route-id="@item.Id">
+                                <i class="fal fa-edit"></i> Edit Employee
+                            </a>
+
+                            <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="MapUser" asp-route-id="@item.Id">
+                                <i class="fal fa-user-shield"></i> Map User
+                            </a>
+
+                            <div class="dropdown-divider"></div>
+
+                            <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-controller="AuditLog" asp-action="ViewSummary" asp-route-keyId="@item.Id" asp-route-modal="Employee">
+                                <i class="fal fa-history"></i> Audit Trail
+                            </a>
+
+                            <a class="dropdown-item text-warning" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="TerminateEmployee" asp-route-id="@item.Id">
+                                <i class="fal fa-user-times"></i> Terminate
+                            </a>
+
+                            <a class="dropdown-item text-danger" asp-action="Remove" asp-route-id="@item.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@item.JobTitle was just removed');$(this).parents('td').parent().fadeOut();" data-ajax-confirm="Are you sure you want to remove @item.JobTitle"><i class="fal fa-trash-alt"></i> Remove</a>
+
+                        </div>
+                    </div>
+
+
+                    @*@if (item.BackgroundJob != null)
+                    {
+                        <i class="ion-ios-close"></i>
+                    }*@
+                </td>
+                <td>
+                    @*@if (item.HasUserAccount)
+                    {
+                        <i class="ion ion-at" title="@item.UserName"></i>
+                    }*@
+                    @item.JobID
+                </td>
+                <td>
+                    @if (item.Employees.Any())
+                    {
+                        <div class="text-left" style=" margin-left: 0px;padding-left: 0px;display:flex">
+                            <div class="hovercard-next" rel="popover">
+                                <div class="image-container" style="">
+                                    <img src="@Url.Content(item.Employees.First().Avatar ?? DefaultPictures.default_user)" class="image " height="30" style="margin-top: 5px;" />
+                                </div>
+                            </div>
+                            <div>
+                                <a asp-action="detail" asp-route-id="@item.Id">
+                                    @item.Employees.First().GetSystemName(User)
+                                </a>
+
+                                <br />
+                                <span class="text-muted">@item.JobTitle</span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+
+                        <a asp-action="detail" asp-route-id="@item.Id">
+                            @item.JobTitle
+                        </a>
+                    }
+                </td>
+                <td>@item.Level?.Name</td>
+                <td><partial name="_DisplayRequestStatus" model="@item.JobStatus" /></td>
+
+                @*<td>@item.IdentityNumber <br /><small class="text-muted">@item.IdentityType </small></td>*@
+                <td>
+                    @*<small class="tag  @item.StatusCss">@item.Status</small><br />*@
+                    @*@if (item.IsContractActive)
+                        {
+                            <a asp-action="Detail" asp-controller="Contract" asp-route-id="@item.ActiveContractId">
+                                <small>@item.ActiveContractName</small>
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="btn-link" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateContractTerms" asp-controller="Contract" asp-route-id="@item.Id">
+                                <small><i class="ion-ios-compose-outline"></i> New Agreement</small>
+                            </a>
+                        }*@
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="text-center">
+    <div class="loader btn btn-primary btn-loading" data-page="2" style="line-height: 1px;display:none">
+        <div class="ball-beat"><div></div><div></div><div></div></div>
+    </div>
+</div>
+
+@*<script>
+
+    </script>
+    =======
+            $(function () {
+                var canFetch = true;
+                $(window).on("scroll", function () {
+                    var page = $('.btn-loading').data('page');
+                    var docHeight = $(document).height();
+                    var winScrolled = $(window).height() + $(window).scrollTop(); // Sum never quite reaches
+                    if ((docHeight - winScrolled) < 1) {
+                        console.log('scrolled to bottom of page');
+                        var url = $('.list-group-depts > .active').find('a').attr('href') + "&page=" + page;
+
+                        if (canFetch == false) return;
+                        $('.btn-loading').show();
+                        $.post(url, function (data) {
+                            $('#masterEmployeeAreaTable tbody').append(data);
+                            console.log('data updated');
+                        }).done(function (e) {
+                        }).always(function (data) {
+                            if ($.isEmptyObject(data.trim())) {
+                                canFetch = false;
+                                $('.btn-loading').hide();
+                            } else {
+                                var newPage = (parseInt(page) + 1);
+                                console.log('newpage: ' + newPage);
+                                $('.btn-loading').data('page', newPage);
+                            }
+                            $('.btn-loading').hide();
+                        });
+                    }
+                })
+            })
+    </script>*@

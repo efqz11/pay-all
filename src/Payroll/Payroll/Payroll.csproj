@@ -1,0 +1,85 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <UserSecretsId>cdf00bbd-c340-467c-9bfe-3f9f0ddfa0ee</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Views\Roster\**" />
+    <Content Remove="Views\Roster\**" />
+    <EmbeddedResource Remove="Views\Roster\**" />
+    <None Remove="Views\Roster\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Controllers\RosterController.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Filters\sampleResponseJson_Jobscicle_MorePage.json" />
+    <Content Remove="permissions.json" />
+    <Content Remove="Views\Comparison\Index.old-0.cshtml" />
+    <Content Remove="Views\Employee\_AddOrUpdateEmployeeType.cshtml" />
+    <Content Remove="Views\Fields\_AddOrUpdate - Copy.cshtml" />
+    <Content Remove="wwwroot\js\signalr-client-1.0.0-alpha2-final.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Controllers\DeductionController.xcs" />
+    <None Remove="Views\Company\PdfEditor.text" />
+    <None Remove="Views\Job\_ViewLeaves.xcshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Views\Company\PdfEditor.text" />
+    <Content Include="Views\Job\_ViewLeaves.xcshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Filters\sampleResponseJson_Jobscicle_MorePage.json" />
+    <!--<None Include="permissions.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="wwwroot\email-confirm-template.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>-->
+    <None Include="wwwroot\Rotativa\wkhtmltoimage.exe" />
+    <None Include="wwwroot\Rotativa\wkhtmltopdf.exe" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.3.101" />
+    <PackageReference Include="AWSSDK.S3" Version="3.3.106" />
+    <PackageReference Include="ChartJSCore" Version="1.5.5" />
+    <PackageReference Include="EPPlus.Core" Version="1.5.4" />
+    <PackageReference Include="ExcelDataReader" Version="3.6.0" />
+    <PackageReference Include="GAF" Version="2.3.1" />
+    <PackageReference Include="GeneticSharp" Version="2.6.0" />
+    <PackageReference Include="HangFire" Version="1.7.7" />
+    <PackageReference Include="Microsoft.AspNet.SignalR.JS" Version="2.4.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.AutoHistory" Version="5.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.6">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.3" />
+    <PackageReference Include="RadPdfCore" Version="3.17.0" />
+    <PackageReference Include="Rotativa.AspNetCore" Version="1.1.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
+    <PackageReference Include="Serilog.Sinks.MSSqlServer" Version="5.5.1" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\Payroll.Models\Payroll.Models.csproj" />
+    <ProjectReference Include="..\Payroll.Services\Payroll.Services.csproj" />
+  </ItemGroup>
+
+
+  <ProjectExtensions><VisualStudio><UserProperties appsettings_1Development_1json__JSONSchema="https://json.schemastore.org/BizTalkServerApplicationSchema" /></VisualStudio></ProjectExtensions>
+
+</Project>

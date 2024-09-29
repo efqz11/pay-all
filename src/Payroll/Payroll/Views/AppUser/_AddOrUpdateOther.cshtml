@@ -1,0 +1,54 @@
+﻿@model AppUser
+
+<form asp-action="AddOrUpdateOther" asp-controller="AppUser" data-ajax="true" data-ajax-method="POST" data-ajax-update="#masterEmployeeArea" data-ajax-success="hideModal();sendNotification('success','Roles were just updated')" id="userForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    <input asp-for="SecurityStamp" type="hidden" value="@Model.SecurityStamp" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @(Model == null || string.IsNullOrWhiteSpace(Model.Id) ? "New User" : "Manage User")
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        @*<div class="form-group">
+            <partial name="_AvatarUpload" />
+        </div>*@
+        <div class="form-group">
+            <label asp-for="NickName" class="control-label">Nick Name</label>
+            <input asp-for="NickName" as class="form-control" />
+            <span class="text-danger" asp-validation-for="NickName"></span>
+        </div>
+
+        <div class="form-group roles">
+            <label name="CompanyId" class="control-label">Roles</label>
+
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" name="Roles[0]" value="@Roles.PayAll.admin" class="custom-control-input">
+                <span class="custom-control-label" for="chbxTerms">
+                    administrator <small>&mdash;all Administrator access to whole of PayAll</small>
+                </span>
+            </label>
+        </div>
+
+
+        <small>@Model.Id</small>
+        <br />
+        <small>@Model.AppUserRoles.Count</small>
+        <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewAccessGrant" asp-route-id="@Model.Id">
+            <i class="fa fa-user-shield"></i> View Access Grants
+        </a>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>
+
+<script>
+    
+    $('.roles input[type="checkbox"]').click(function (e) {
+        var rolesStr = $('.roles').find('input[type="checkbox"]:checked').map(function (d) { console.log($(this).prop('value')); return $(this).prop('value'); }).get().join(',');
+        $("#Roles").val(rolesStr);
+    })
+</script>

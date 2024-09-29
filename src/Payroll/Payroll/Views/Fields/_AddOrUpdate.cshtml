@@ -1,0 +1,273 @@
+﻿@model PayAdjustmentFieldConfig
+
+    <form asp-action="AddOrUpdate" data-ajax="true" data-ajax-method="POST" data-ajax-update=".data-container" data-ajax-success="hideModal();showFields('@(Model.PayAdjustmentId)');" id="fieldsForm" data-ajax-failure="handleModalPostFailure" data-ajax-complete="">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="PayAdjustmentId" />
+        <input type="hidden" asp-for="CalculationIdentifier" />
+        <input type="hidden" asp-for="EvalMethod" />
+        <input type="hidden" asp-for="UpdateInputClass" />
+        @if (Model != null && Model.Id > 0)
+        {
+            <input type="hidden" asp-for="Id" />
+        }
+
+        <header class="modal__header">
+            <h2 class="modal__title" id="modal-1-title">
+                @(Model.Id > 0 ? "Manage" : "New") field to calculate @ViewData["ItemName"]
+            </h2>
+            <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        </header>
+
+        <main class="modal__content" id="modal-1-content">
+            <div class="form-group">
+                <label asp-for="BaseType" class="control-label">Base Type (Computed list, calculated or manual entry field)</label>
+                <select asp-for="BaseType" asp-items="@Html.GetEnumSelectList<BaseType>()" class="form-control"></select>
+            </div>
+
+            <div class="child base-type-0">
+                <div class="form-group">
+                    <label asp-for="ListType" class="control-label">List (Choose from a computed table and then field)</label>
+                    <select asp-for="ListType" asp-items="@Html.GetEnumSelectList<ListType>()" class="form-control"></select>
+                </div>
+                <div class="form-group child child2 0-employee">
+                    <label for="ListSelect_emp" class="control-label">Select employee field</label>
+                    <select for="ListSelect_emp" asp-items="@(ViewData["EmployeeFieldNames"] as SelectList)" class="form-control list-select"></select>
+                </div>
+                <div class="form-group child child2 0-department">
+                    <label for="ListSelect_dept" class="control-label">Select department field</label>
+                    <select for="ListSelect_dept" asp-items="@(ViewData["DepartmentFieldNames"] as SelectList)" class="form-control list-select"></select>
+                </div>
+                <div class="form-group child child2 0-aggregated">
+                    <label for="ListSelect_agg" class="control-label">Select Aggregated field</label>
+                    <select for="ListSelect_agg" asp-items="@(ViewData["AggregatedEmployeeInteractions"] as SelectList)" class="form-control list-select"></select>
+                </div>
+                <input asp-for="ListSelect" type="hidden" />
+            </div>
+
+            <div class="child base-type-1">
+                <div class="form-group">
+                    <input type="text" asp-for="Calculation" class="form-control" placeholder="Enter $ to see what fields is available and operation can perform" />
+                </div>
+
+                <div>
+                    <div class="form-group">
+                        <input type="checkbox" asp-for="IsEditable" placeholder="Return value" />
+                        <label asp-for="IsEditable" class="control-label">Make this field editable</label>
+                    </div>
+                </div>
+
+                <button type="button" data-toggle="collapse" href="#calc_fields" role="button" aria-expanded="false" aria-controls="calc_fields" class="btn btn-sm btn-outline-warning btn-block mb-2">Show Calculatable fields</button>
+                <ul id="calc_fields" class="list-group small collapse mb-2">
+                    @foreach (var item in (List<Payroll.ViewModels.FieldCalculationResultVm>)ViewData["CalculatableFields"])
+                    {
+                        <li class="list-group-item sm">@item.FieldName : @item.FieldType</li>
+                    }
+                </ul>
+
+                <div class="form-group taskFormla" style="@(Model.IsAggregated && Model.Calculation.StartsWith("{chart.Task") ? "" : "display:none")">
+                    <label asp-for="WorkId" class="control-label">Select work for mapping</label>
+                    <select asp-for="WorkId" asp-items="@(ViewData["WorkId"] as SelectList)" class="form-control">
+                        <option value="0">Choose Work</option>
+                    </select>
+                </div>
+            </div>
+
+
+            <dic class="child base-type-2">
+                <div class="form-group">
+                    <label asp-for="FieldType" class="control-label">Field Type (number, text, date)</label>
+                    <select asp-for="FieldType" asp-items="@Html.GetEnumSelectList<FieldType>()" class="form-control"></select>
+                </div>
+            </dic>
+
+
+            <div class="form-group">
+                <label asp-for="DisplayName" class="control-label">Field display Name</label>
+                <input type="text" asp-for="DisplayName" class="form-control" placeholder="Field display name">
+            </div>
+            <div class="form-group">
+                <input type="checkbox" asp-for="IsReturn" placeholder="Return value" />
+                <label asp-for="IsReturn" class="control-label">This is final column to calculate @ViewData["ItemName"]</label>
+            </div>
+            <div class="form-group">
+                <input type="text" asp-for="CalculationOrder" class="form-control" placeholder="Calcualtion order (we will automatically fill as you create)" />
+            </div>
+
+
+            <small>Calculation: @Model.Calculation;</small>
+            <small>Identifier: @Model.CalculationIdentifier;</small>
+            <small>Evaluation: @Model.EvalMethod;</small>
+            <small> @Model.UpdateInputClass</small>
+            <small>IsClienstCalculatable: @Model.IsClientCalculatable; IsServerCalculatable: @Model.IsServerCalculatable</small>
+        </main>
+        <footer class="modal__footer">
+            <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+            <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+
+            @if (Model.Id > 0)
+            {
+                <a class="modal__btn modal__btn-danger float-right" asp-action="Remove" asp-route-payAdjustmentId="@(Model.PayAdjustmentId)" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax-update=".data-container" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@Model.DisplayName was just removed');hideModal()" data-ajax-confirm="Are you sure you want to remove @Model.DisplayName" data-ajax-begin="convertToLoadingTable('#tblMasterPayAdjustments')" data-ajax-complete="showFields('@(Model.PayAdjustmentId)')">Remove</a>
+            }
+        </footer>
+    </form>
+
+
+
+<script>
+    function showFields(id) {
+        console.log(id);
+        var fieldRow = $('#tblMasterPayAdjustments').find('tr[data-parent="' + id + '"]');
+        console.log(fieldRow);
+        $(fieldRow).find('btn-view-fields').addClass('is-shown');
+        $(fieldRow).next().show();
+        //sendNotification('success', 'Field values was just removed');
+        //console.log(fieldRow);
+        //$(fieldRow).siblings().prev().find('btn-view-fields').addClass('is-shown');
+        //$(fieldRow).show();
+    }
+
+    var emojis = JSON.parse('@(Json.Serialize(ViewData["CalculatableFields"]))');
+    console.log(emojis)
+    //var emojisList = $.map(emojis, function (value, i) {
+    //    return { 'id': i, 'name': value };
+    //});
+
+    // var emojis = ["smile", "iphone", "girl", "smiley", "heart", "kiss", "copyright", "coffee"];
+    var emojisList = $.map(emojis, function (value, i) {
+        return { 'id': i, 'name': value.fieldName };
+    });
+    console.log(emojisList)
+    //http://a248.e.akamai.net/assets.github.com/images/icons/emoji/8.png
+    $("#Calculation").atwho({
+        at: '$',
+        displayTpl: "<li>${name}</li>",
+        // insertTpl: ":${name}:",
+        insertTpl:"${name}",
+        data: emojisList,
+        limit: 100
+    });
+
+    $('#Calculation').on("inserted.atwho", function (event, li, browserEvent) {
+        //console.log(event, "matched " + li + " and the result is " + browserEvent);
+        //console.log(li);
+        //console.log($(li).text());v
+        $('#Calculation').keyup();
+    });
+
+    $('#Calculation').keyup(function (e) {
+        var xx = $(this).val();
+        console.log(xx);
+        console.log(xx.indexOf('Task'));
+        if (xx.indexOf('Task') > 0)
+            $('.taskFormla').show();
+        else
+            $('.taskFormla').hide();
+    });
+
+    ////http://a248.e.akamai.net/assets.github.com/images/icons/emoji/8.png
+    //$("#Calculation").atwho({
+    //    at: ':',
+    //    displayTpl: "<li>${fieldName}</li>",
+    //    insertTpl: ":${fieldName}:",
+    //    data: emojis
+    //});
+
+
+
+    $('.child').hide();
+
+    $('#myModal').on('shown.bs.modal', function () {
+        $('#myInput').trigger('focus')
+    });
+
+    $("#BaseType").change(function (e) {
+        $('.child').hide();
+        var suffix = $("#BaseType :selected").val().toLowerCase();
+        $(".base-type-" + suffix).show();
+    }).change();
+
+    $("#ListType").change(function (e) {
+        $('.child2').hide();
+        var prefix = $("#BaseType :selected").val().toLowerCase();
+        var suffix = $("#ListType :selected").text().toLowerCase();
+        $("." + prefix + "-" + suffix).show();
+        $("." + prefix + "-" + suffix).find('.list-select').change();
+    }).change();
+
+    $(".list-select").change(function (e) {
+        var newDisplayName = $(this).val();
+
+        if ($("#DisplayName").val() === "")
+            $("#DisplayName").val(newDisplayName);
+        $("#ListSelect").val(newDisplayName);
+    }); //.change();
+
+    //$(".btn-submit").click(function (e) {
+    //    $('#fieldsForm').submit();
+    //    if ($(this).hasClass("create-new")) {
+
+    //    }
+    //}
+
+
+
+    $('.btn-add-field').click(function (e) {
+        $('.div-base-type').fadeIn();
+    });
+
+
+    $('.div-base-type > ').click(function (e) {
+        $('.div-base-type >').removeClass('active');
+        $(this).toggleClass('active');
+
+        var thisClassAttr = $(this).attr('class');
+
+        // hide all first
+        $('.div-base-type-child').hide();
+        console.log(thisClassAttr);
+        console.log("index:calculated- " + thisClassAttr.indexOf("calculated"));
+        console.log("index:computed- " + thisClassAttr.indexOf("computed"));
+        console.log("index:manual-entry- " + thisClassAttr.indexOf("manual-entry"));
+        if (thisClassAttr.indexOf("calculated") > 0) {
+            adjustPositionAndFadeIn('.div-calculated');
+        }
+        else if (thisClassAttr.indexOf("computed") > 0) {
+            adjustPositionAndFadeIn('.div-computed-lists');
+        }
+        else if (thisClassAttr.indexOf("manual-entry") > 0) {
+            adjustPositionAndFadeIn('.div-manual-entry');
+        }
+    });
+
+    function adjustPositionAndFadeIn(div) {
+        var width = 0;
+        $('.add-field-wrapper > div:visible').each(function (i, e) { width += $(e).width() });
+
+        console.log("new width: " + parseInt(width + 30));
+        $(div).css("left", parseInt(width + 30) + "px");
+        $(div).fadeIn();
+    }
+
+    $('.div-computed-lists > ').click(function (e) {
+        $('.div-computed-lists >').removeClass('active');
+        $(this).toggleClass('active');
+
+        var thisValue = $(this).val();
+
+
+        console.log(thisValue);
+        console.log("index:Employee- " + thisValue.indexOf("Employee"));
+        if (thisValue.indexOf("Employee") >= 0) {
+            $('.computed-list-employee').fadeIn();
+        }
+    });
+
+    $('.computed-list-employee > ').click(function (e) {
+        $('.computed-list-employee >').removeClass('active');
+        $(this).toggleClass('active');
+        adjustPositionAndFadeIn('.div-save');
+    });
+
+
+
+</script>

@@ -1,0 +1,181 @@
+﻿@model Announcement
+@inject Payroll.Database.PayrollDbContext dbContext
+@{
+    ViewData["Title"] = "Announcement - " + Model.Summary;
+
+    int width = Model.TotalInteractionsCount <= 0 ? 0 : (Model.ViewedCount / Model.TotalInteractionsCount);
+    string css = width.GetCssStyleFromPercent();
+    var i = 0;
+    ViewBag.SourceId = Model.Id;
+
+    var data = (Dictionary<string, int>)ViewBag.Data;
+}
+<link href="~/css/employee-grade.css" rel="stylesheet" />
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/timeline.css" rel="stylesheet" />
+
+<h2>Announcement</h2>
+<div class="row mt-8 mb-3">
+    <div class="col-md-8">
+        <span class="link-summary">
+            @Model.Title <a class="text-muted " data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="UploadImage" asp-route-id="@Model.Id" style="">
+                <i class="fa fa-angle-down"></i>
+            </a>
+        </span>
+
+    </div>
+    <div class="col-md-4 text-right">
+
+        <partial name="_DisplayRequestStatus" model="@Model.Status" />
+    </div>
+</div>
+
+
+<div class="row">
+
+    <div class="col-md-9">
+        <div class="tab-wrapper bnb">
+            <ul class="tabs">
+                <li class="tab-link active" data-tab="1">Summary</li>
+                <li class="tab-link" data-tab="2">Analytics</li>
+                <li class="tab-link" data-tab="3">Other details</li>
+                <li class="tab-link" data-tab="4">Background Jobs</li>
+            </ul>
+        </div>
+        <div class="content-wrapper bnb p-0 pt-3">
+
+            <div id="tab-4" class="tab-content">
+                <partial name="_BackgroundJobsListing" model="Model.backgroundJobs" />
+            </div>
+
+            <div id="tab-3" class="tab-content">
+                <table class="table table-sm table-borderless table-responsive table-details">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted">Status</td>
+                            <td><partial name="_DisplayRequestStatus" model="@Model.Status" /></td>
+                        </tr>
+                        <tr>
+                            <td>Audience</td>
+                            <td>
+                                @(Model.EmployeeSelectorVm?.Summary ?? "None") &middot; <i class="fad fa-users"></i>  @(Model.EmployeeSelectorVm?.TotalMatchedEmployees ?? 0)
+                                <a asp-controller="NewsUpdate" asp-action="ViewAudience" asp-route-id="@Model.Id" data-ajax="true" data-ajax-method="GET" data-ajax-update=".modal__container" data-ajax-begin="showModal()">View</a>
+                            </td>
+                        </tr>
+                        @if (Model.backgroundJobs.Count() > 0)
+                        {
+                            <tr>
+                                <td>Background Jobs</td>
+                                <td>@Model.backgroundJobs.Count()</td>
+                            </tr>
+                        }
+                        @if (Model.Start.HasValue && Model.End.HasValue)
+                        {
+                            <tr>
+                                <td>Start Date</td>
+                                <td>@Model.Start.ToSystemFormat(User)</td>
+                            </tr>
+                            <tr>
+                                <td>End Date</td>
+                                <td>@Model.End.ToSystemFormat(User)</td>
+                            </tr>
+                        }
+                        <tr>
+                            <td>Interactions</td>
+                            <td>@(data?.First().Value ?? 0) / @(data?.Sum(a => a.Value) ?? 0)</td>
+                        </tr>
+                        <tr>
+                            <td>Expired Date</td>
+                            <td>@Model.ExpiredDate.ToSystemFormat(User)</td>
+                        </tr>
+                        <tr>
+                            <td>Published Date</td>
+                            <td>@Model.PublishedDate.ToSystemFormat(User)</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                            @if ((data?.Sum(a => a.Value) ?? 0) < Model.EmployeeSelectorVm.TotalMatchedEmployees)
+                            {
+                                <span>Some employee may not have user account</span>
+                            }
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="tab-2" class="tab-content">
+                <div id="chartdiv_announcementInteraction" style="height:180px"></div>
+            </div>
+            <div id="tab-1" class="tab-content active">
+
+                <partial name="_Announcements" model="new List<Announcement>() { Model }" />
+
+                <p class="mt-2 mb-1">
+                    <a class="btn btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="NewAnnouncement" asp-route-id="@Model.Id">
+                        <i class="fad fa-edit"></i> Edit
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div id="employee-content">
+
+        </div>
+    </div>
+</div>
+
+<div class="text-center">
+</div>
+<div class="clearfix"></div>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+
+@section scripts {
+    <!-- Resources -->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script src="~/js/micro-charts.js"></script>
+    <script>
+
+        InitializeTabs();
+
+
+        // search for employees
+        var _custom = $('intrrAction-custom');
+
+        $('.intrrAction-search').keyup(debounce(function () {
+            console.log('starting... ');
+            listgroup_search($('.intrrAction-search').val(), $('.list-group.intrrAction'));
+        }, 500));
+
+        
+        $('.tab-link:not(.active)[data-tab="2"]').click(function () {
+
+        });
+
+        var data = [];
+        @if (Model != null) {
+            foreach (var item in data)
+            {
+                <text>
+            data.push({key: '@item.Key', value: '@item.Value'});
+                </text>
+            }
+        }
+
+        console.log('data', data);
+        drawActionPie(data, "chartdiv_announcementInteraction");
+
+    </script>
+
+}

@@ -1,0 +1,171 @@
+﻿@model List<AuditLog>
+@{
+    ViewData["Title"] = "Report - Data Review";
+}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="text-lg-left">
+            <h4 class="display">Audit Trail</h4>
+            <p>Total @ViewBag.Count Audit record(s)</p>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="filters float-right">
+            <form asp-action="DataReview" style="display: inline-flex;" id="rosterFilterForm" method="GET">
+                <input type="hidden" name="start" id="start" value="@ViewBag.Start" />
+                <input type="hidden" name="end" id="end" value="@ViewBag.End" />
+                <div class="form-group">
+                    <label class="control-label text-muted">During</label>
+                    <input id="datefilter" class="form-control form-control-sm" value="@ViewBag.CurrentRangeDisplay" />
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Entity Name</label>
+                    <select name="modal" id="modal" class="form-control form-control-sm" asp-items="ViewBag.Modals">
+                        <option value="0">None</option>
+                    </select>
+                </div>
+                <div class="form-group ml-2 "style="width:">
+                    <label class="control-label text-muted">Key ID</label>
+                    <input name="keyId" id="keyId" class="form-control form-control-sm" value="@ViewBag.KeyId"  />
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Limit</label>
+                    <select name="limit" id="limit" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">By User</label>
+                    <input name="user" id="user" class="form-control form-control-sm" />
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Search</label>
+                    <button type="submit" class="btn btn-sm btn-primary"><i class="fad fa-filter"></i> Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="clearfix"></div>
+
+<div class="data-container-table">
+    @if (Model != null)
+    {
+
+        <table class="table table-hover data-container-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>KeyId</th>
+                    <th>Entity Set Name</th>
+                    <th>Action</th>
+                    <th>Message</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="text-right" width="20px">
+                            <div class="btn-group">
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
+                                    <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewChangedColumns" asp-route-id="@item.Id">
+                                        <i class="fal fa-columns"></i> Changed Columns
+                                    </a>
+
+                                    <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewChangedData" asp-route-id="@item.Id">
+                                        <i class="fal fa-asterisk"></i> Changed Data
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                        <td>@item.KeyId</td>
+                        <td>
+                            @item.TableName
+                        </td>
+                        <td>
+                            @item.AuditAction
+                        </td>
+                        <td>
+                            @item.Message
+                        </td>
+                        <td>
+                            <a asp-action="Detail" asp-controller="AppUser" asp-route-id="@item.AuditUserId">
+                                @item.AuditUser
+                            </a>
+                            <br />
+                            <small>@item.AuditDateTimeUtc.ToSystemFormat(User, true)</small>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@section scripts{
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script>
+        var limit = '@ViewBag.limit';
+        if (limit)
+        $('#limit').val(limit);
+
+        var empId = '@ViewBag.empId';
+        if (empId)
+        $('#empId').val(empId);
+
+        var sort = '@ViewBag.sort';
+        if (sort)
+        $('#sort').val(sort);
+
+        var type = '@ViewBag.type';
+        if (type)
+        $('#type').val(type);
+
+        function submitFIlterForm() { $('#rosterFilterForm').submit() }
+
+        $('input[name="date"]').on('apply.daterangepicker', function (ev, picker) {
+            submitFIlterForm();
+        });
+
+        $('#datefilter').daterangepicker({
+            autoUpdateInput: false,
+            locale: {
+                cancelLabel: 'Clear'
+            },
+            opens: 'bottom',
+
+            ranges: {
+                'This Week': [moment().startOf('week'), moment().endOf('week')],
+                'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        });
+
+
+        $('#datefilter').on('apply.daterangepicker', function (ev, picker) {
+            console.log(picker);
+
+            var date = picker.startDate.format('MM/DD/YYYY HH:mm:ss');
+            var end = picker.endDate.format('MM/DD/YYYY HH:mm:ss');
+            var url = GetAppRootPath() + '/Schedule?date=' + date + '&end=' + end;
+            $('#start').val(date);
+            $('#end').val(end);
+
+            $(this).val(getDuration(picker.startDate, picker.endDate));
+
+        });
+    </script>
+}

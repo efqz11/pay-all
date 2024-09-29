@@ -1,0 +1,265 @@
+﻿@model List<Employee>
+@{
+    ViewData["Title"] = "Home Page";
+}
+<style>
+</style>
+<link href="~/css/tags.css" rel="stylesheet" />
+<link href="~/css/popover.css" rel="stylesheet" />
+
+<partial name="_Header" model="1" />
+@*<div class="text-center">
+        <h1 class="display-4">Employees</h1>
+        <p>Total @ViewBag.Count Employee(s)</p>
+
+        <div class="btn-group" role="group" aria-label="First group">
+            <a asp-action="Index" class="btn btn-outline-primary border-right-0"><i class="fad fa-list-alt"></i></a>
+            <a a asp-action="Directory" class=" btn btn-outline-primary border-left-0 border-right-0"><i class="fad fa-id-card-alt"></i></a>
+            <a asp-action="Structure" class=" btn btn-outline-primary border-left-0"><i class="fad fa-sitemap"></i></a>
+        </div>
+
+        <div class="float-right pb-1">
+            <a class="btn btn-sm btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-success="initModal()" asp-action="AddOrUpdate"><i class="ion-android-add-circle"></i> New Employee</a>
+        </div>
+    </div>*@
+<div class="clearfix"></div>
+<!--Sample popover html -->
+
+
+<div class="row">
+    <div class="col-md-3">
+        <h6>
+            <b>Filter by Department</b>
+            @*<a asp-controller="Department" asp-action="AddOrUpdate" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" class="btn btn-sm btn-primary pull-right" data-ajax-begin="showModal()" data-ajax-success="initModal()">
+                    <i class="ion-android-add-circle"></i> New
+                </a>*@
+        </h6>
+
+        <a asp-controller="Employee" asp-action="Index" asp-route-dept="0" data-ajax="true" data-ajax-update="#masterEmployeeArea" id="deptFilterBtn" class="hide"></a>
+        <a asp-controller="Department" asp-action="AddOrUpdate" asp-route-dept="0" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" id="deptEditBtn" class="hide"></a>
+
+        <div class="list-group list-group-depts">
+            <a asp-controller="Employee" asp-action="Index" asp-route-dept="0" class="list-group-item list-group-item-action @(ViewBag.EmpIdFilter == null || ViewBag.EmpIdFilter == 0 ? "active" : "") filter" data-ajax="true" data-ajax-method="POST" data-ajax-update="#masterEmployeeArea" data-ajax-success="changeActiveTab(this)">All Depts</a>
+
+            @foreach (var item in (List<Payroll.ViewModels.DepartmentReportVm>)ViewData["Departments"])
+            {
+                <a href="#" class="list-group-item list-group-item-action filter @(ViewBag.EmpIdFilter == item.Id ? "active" : "")" onclick="filterDept(this)" data-id="@item.Id">
+                    @item.Name
+
+                    <br />
+                    <small class="text-muted"><i class="fad fa-users"></i> @item.EmployeeCount &middot; <i class="fa fa-user-tie"></i> @item.ManagerEmployeesCount </small>
+                    <span class="float-right">
+                        <span class="text-muted list-group-toggler" onclick="editDept(@item.Id); event.stopPropagation();" style="display:none">
+                            <i class="fal fa-edit" aria-hidden="true"></i>
+                        </span>
+                    </span>
+                </a>
+            }
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="search-wrapper mb-4">
+            <form asp-controller="Employee" asp-action="Search" class="" data-ajax-begin="convertToLoadingTable('.data-container-table');canFetch=false;" data-ajax="true" data-ajax-method="POST" data-ajax-update="#masterEmployeeArea" data-ajax-success="changeActiveTab(this)">
+                <div class="form-group has-search mb-1">
+
+                    <span class="form-control-feedback"><i class="fad fa-search"></i></span>
+                    <input type="text" class="txt-search form-control" name="query" placeholder="Type name to search">
+                </div>
+            </form>
+            @*<h5 class="">@ViewBag.Count Employee(s) from @(ViewBag.DeptRouteId == 0 ? " all departments" : ViewBag.DeptName + " department")</h5>*@
+        </div>
+
+        <div id="masterEmployeeArea">
+            <partial name="_Listing" model="Model" />
+        </div>
+
+    </div>
+</div>
+
+
+
+@section scripts {
+    
+    <script>
+        $(document).ready(function () {
+            //$('body').popover({
+            //    selector: '.hovercard-next[rel=popover]',
+            //    trigger: 'click',
+            //    delay: 600,
+            //    placement: 'top',
+            //    html: true,
+            //    content: function () {
+            //        return $(this).next('.Popover').html();
+            //    }
+            //});
+
+            //$(document).on('mouseenter', '.hovercard-next', function (e) {
+            //    $('.popover.show').not(this).popover('hide');
+            //    $(this).click();
+            //});
+            //$(document).on('mouseleave', '.popover.show', function () {
+            //    console.log(this);
+            //    $('.popover.show').not(this).popover('hide');
+            //    $(this).popover('hide');
+            //});
+
+            //$(document).on('mouseleave', '.hovercard-next', function (e) {
+            //    var _this = this;
+            //    console.log(this);
+            //    setTimeout(function () {
+            //        if (!$(".popover:hover").length) {
+            //            $(_this).popover("hide")
+            //        }
+            //    }, 100);
+            //});
+
+
+            // Basic hovercard
+            //$('.hovercard-next').popover({
+            //    html: true,
+            //    trigger: 'manual',
+            //    placement: function (context, source) {
+            //        var get_position = $(source).position();
+            //        if (get_position.left > 515) {
+            //            return "left";
+            //        }
+            //        if (get_position.left < 515) {
+            //            return "right";
+            //        }
+            //        if (get_position.top < 110) {
+            //            return "bottom";
+            //        }
+            //        return "top";
+            //    },
+            //    content: function () {
+            //        return $(this).next('.Popover').html();
+            //    }
+            //}).on("click", function (e) {
+            //    e.preventDefault();
+            //})
+            //.on("mouseenter", function () {
+            //    var _this = this;
+            //    $(this).popover("show");
+            //    $(".popover").on("mouseleave", function () {
+            //        $(_this).popover('hide');
+            //    });
+            //}).on("mouseleave", function () {
+            //    var _this = this;
+            //    setTimeout(function () {
+            //        if (!$(".popover:hover").length) {
+            //            $(_this).popover("hide");
+            //        }
+            //    }, 300);
+            //});
+        });
+
+    </script>
+    <script>
+        var canFetch = true;
+        $(function () {
+            $(window).on("scroll", function () {
+                var page = $('.btn-loading').data('page');
+                var docHeight = $(document).height();
+                var winScrolled = $(window).height() + $(window).scrollTop(); // Sum never quite reaches
+                if ((docHeight - winScrolled) < 1) {
+                    // <a href="~/Views/Shared/_Layout.cshtml">~/Views/Shared/_Layout.cshtml</a>
+                    console.log('scrolled to bottom of page, canFetch = ' + canFetch);
+                    var url = $('#deptFilterBtn').attr('href') + "&page=" + page;
+
+                    if (canFetch == false) return;
+                    $('.btn-loading').show();
+                    $('.hidden-container').empty();
+                    $.post(url, function (data) {
+                    }).done(function (data) {
+                        $('.hidden-container').html(data);
+                        var rows = $('.hidden-container').find('#masterEmployeeAreaTable tbody tr');
+
+                        console.log('data (clean rows): ', rows);
+
+                        if ($.isEmptyObject(rows) || rows == undefined || rows == "" || $(rows).length <= 0) {
+                            canFetch = false;
+                            $('.btn-loading').hide();
+                            console.log('EMPTY DATA (fetch aborted)');
+                        }
+                        else {
+                            $('#masterEmployeeAreaTable tbody').append(rows);
+                            console.log('data updated');
+                        }
+                    }).always(function (data) {
+
+                        if ($.isEmptyObject(data) || data == undefined || data == "") {
+                            canFetch = false;
+                            $('.btn-loading').hide();
+                        } else {
+                            var newPage = (parseInt(page) + 1);
+                            console.log('newpage: ' + newPage);
+                            $('.btn-loading').data('page', newPage);
+                        }
+                        $('.btn-loading').hide();
+                        $('.hidden-container').empty();
+                    });
+                }
+            })
+        })
+
+        function filterDept(e) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            var url = GetAppRootPath() + '/Employee/index?dept=' + $(e).data('id');
+            changeActiveTab(e);
+            $('#deptFilterBtn').attr('href', url).click();
+        }
+
+        function editDept(id) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            var url = GetAppRootPath() + '/Department/AddOrUpdate/' + id;
+            $('#deptEditBtn').attr('href', url).click();
+        }
+
+        function changeActiveTab(item) {
+            $('.list-group-depts').find('.list-group-item').removeClass("active");
+            $(item).addClass("active");
+            canFetch = true;
+        }
+
+
+
+        // sort on click to list-box
+        $('.list-group-item').click(function () {
+            $(this).find('a.filter').click();
+        });
+
+
+        $('.txt-search').keyup(debounce(function () {
+            console.log('starting... ');
+            table_search($('.txt-search').val(), $('.data-container-table tbody tr'), '0123');
+        }, 500));
+
+
+        function table_search(search, tr, indexSearch = '0') {
+            //check if element don't exist in dom
+            var regEx = /^[0-9]*$/;
+            if (tr.length == 0 || !regEx.test(indexSearch)) {
+                return;
+            }
+            /*hide tr don't contain search in input*/
+            for (var i = 0; i < tr.length; i++) {
+                var resule = 'false';
+                for (var j = 0; j < indexSearch.length; j++) {
+                    if (tr.eq(i).children().length > indexSearch[j]) {
+                        if (tr.eq(i).children().eq(indexSearch[j]).text().toLowerCase().indexOf(search.toLowerCase()) != -1) {
+                            resule = 'success';
+                            break;
+                        }
+                    }
+                }
+                if (resule == 'success') {
+                    tr.eq(i).show();
+                } else {
+                    tr.eq(i).hide();
+                }
+            }
+        }
+    </script>
+}

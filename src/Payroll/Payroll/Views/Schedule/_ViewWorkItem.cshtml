@@ -1,0 +1,290 @@
+﻿@model WorkItem
+@{
+    var work = Model.Work;
+    int width = Model.PercentApproved;
+
+    int widthX = Model.PercentSubmitted;
+    string css = Model.GetCssStyleFromPercent(width);
+    string cssX = Model.GetCssStyleFromPercent(widthX);
+}
+@inject Payroll.Database.PayrollDbContext dbContext
+
+<form asp-action="AddOrUpdateAttendance" asp-controller="Schedule" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-success="sendNotification('success', 'Work item was ');" id="addUpdateConnectionForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    @*<input name="Id" type="hidden" value="@work.Id" />*@
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            View Work Item
+            <br />
+            <small>
+                @Model.Date.ToLongDateString()
+                @if (Model.ScheduleId.HasValue)
+                {
+                <a class="btn-link" asp-action="Detail" asp-controller="Schedule" asp-route-id="@Model.ScheduleId" target="_blank">
+                     &nbsp;<i class="fad fa-calendar-alt"></i>
+                </a>
+                }
+                @if ((Model.Schedule?.IsRepeating ?? false) && Model.Schedule.IsRepeatEndDateNever)
+                {
+                    <span>
+                        &nbsp;<i class="ion ion-android-sync" title="Schedule is repeating @Model.Schedule.Repeat.ToString().ToLower()"></i>
+                    </span>
+                }
+            </small>
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <partial name="_EmployeeSummary" model="@Model.Employee" />
+        </div>
+        <div class="row">
+            <div class=" col">
+                <i class="fas @(Model.IsEmployeeTask ? "fa-user-tag" : "fa-tasks")"></i> @(Model.WorkName)
+                @if (Model.IsCompleted)
+                {
+                    <i class="fas fa-check-circle @(Model.Status == WorkItemStatus.FailedWithDeduction ? "text-danger" : "text-success")" title=""></i>
+                }
+                <br />
+                @if (Model.IsEmployeeTask == false)
+                {
+                    <small>(@(Model.WorkDurationTime))</small>
+                }
+                else
+                {
+                    <small>@(Model.WorkStartTime.TimeOfDay.Equals(Model.WorkEndTime.TimeOfDay) ? "(All dat work)" : "(" + Model.WorkDurationTime + ")")</small>
+                    <br />
+                    <small>@Model.TaskDescription</small>
+                }
+                @*<span class="bg-dark sch-@work.ColorCombination text-white p-2 rounded">@work.Name @(work.StartTime == work.EndTime ? "" : "(" + @work.Duration + ")")</span>*@
+            </div>
+            @*@Model.Employee.NameDisplay*@
+            <div class="col">
+                @if (work != null)
+                {
+                    if (work.Type == WorkType.RequireSubmissions)
+                    {
+                        <div class="progress-display mt-1">
+                            <div class="progress-bar">
+                                <span class="bar">
+                                    <span class="progress @cssX p-0 pr-2 text-right" style="width:@widthX%;height:7px;"><b></b></span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="progress-display mt-2">
+                            <div class="progress-bar">
+                                <span class="bar">
+                                    <span class="progress @css p-0 pr-2 text-right" style="width:@width%;height:7px;"><b></b></span>
+                                </span>
+                            </div>
+                        </div>
+                        @*<small>@(Model.TotalApproved + " approved submissions")</small>*@
+                    }
+                    else
+                    {
+                        <span><i class="ion ion-ios-stopwatch"></i> Clock In before @work.MinsBeforeCheckIn.ToString("#") min(s)</span>
+                        <br />
+                        @if (Model.CheckInTime.HasValue)
+                        {
+                            <span class="@(Model.Status == WorkItemStatus.FailedWithDeduction ? "text-danger" : "text-success")">
+                                <i class="fas fa-check-circle"></i> Checkin @@ @Model.CheckInTime?.ToString("hh:mm:ss")
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-warning">
+                                <i class="fas fa-alert"></i> Waiting for Clock Record
+                            </span>
+                        }
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                @if (Model.Work?.MoreCredit > 0)
+                {
+                    <span class="text-success"><i class="ion ion-arrow-up-c"></i> @(Model.Work.MoreCredit.ToString("N0"))</span>
+                    <span class="text-danger"> &middot; <i class="ion ion-arrow-down-c"></i> @(Model.Work.LessDeduct.ToString("N0"))</span>
+                    <span class="text-dark"> &middot; <i class=""></i> (@(Model.Work.TotalRequiredCount.ToString("N0")))</span>
+                }
+            </div>
+            <div class="col">
+            </div>
+        </div>
+
+        @if (Model.RemainingSubmissions > 0 && Model.Status != WorkItemStatus.Completed)
+        {
+            <small class="text-danger">
+                <i class="fas fa-exclamation-circle"></i> <b>@Model.RemainingSubmissions more</b> @Model.WorkName submission(s) required!
+            </small>
+            <br />
+        }
+        else if (Model.RemainingSubmissions <= 0 && Model.IsEmployeeTask == false && Model.Work?.Type == WorkType.RequireSubmissions)
+        {
+            <small class="text-success">
+                <i class="fas fa-check-circle"></i> All works are submitted
+            </small>
+            <br />
+        }
+
+        @if (Model.WorkStartTime > DateTime.Now)
+        {
+            <small class="text-info"><i class="ion ion-android-stopwatch"></i> Starting in @Model.WorkStartTime.GetTimeDifference() &mdash; @Model.WorkStartTime.ToLocalFormat(includeTime: true)</small>
+        }
+        else if (Model.DueDate > DateTime.Now)
+        {
+            <small class="text-danger"><i class="ion ion-android-stopwatch"></i> Due in @Model.DueDate?.GetTimeDifference() &mdash; @Model.DueDate.ToLocalFormat(includeTime: true)</small>
+        }
+        else if (Model.Status == WorkItemStatus.Completed)
+        {
+            <span class="text-success mt-1"> <b>@Model.Status &middot; @Model.TotalAmountCredited.ToString("N0") credits</b></span>
+        }
+        else if (Model.Status == WorkItemStatus.FailedWithDeduction)
+        {
+            <span class="text-danger mt-1"><b>@Model.Status &middot; @Model.TotalAmountDeducted.ToString("N0")</b></span>
+        }
+        else
+        {
+            <small class="text-danger"><i class="fa fa-ban"></i> Task was <b>completed</b> on @Model.DueDate.ToLocalFormat(includeTime: true)</small>
+        }
+
+        @*@Model.Status
+        <span>@Model.TotalAmountCredited | @Model.TotalAmountDeducted</span>*@
+
+        @if (Model.Work?.IsAdvancedCreate ?? false)
+        {
+            <div class="form-group mt-1">
+                <a class="btn btn-warning btn-sm mt-1" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="SubmitWork" asp-route-wiId="@Model.Id">
+                    <i class="fa fa-paper-plane"></i> Create new <b>@Model.WorkName</b>
+                </a>
+            </div>
+        }
+
+        @if (Model.Requests.Count > 0)
+        {
+            <hr />
+            <p class="mt-2">
+                <i class="ion-ios-briefcase"></i> Work Change Requests (@Model.Requests.Count)
+            </p>
+
+            <partial name="_ViewRequestSummary" model="@Model.Requests" />
+        }
+
+        @if (Model.WorkItemSubmissions.Count > 0)
+        {
+            <hr />
+            <h6 class="mt-2">
+                Submissions
+                @if (Model.Status == WorkItemStatus.Completed)
+                {
+                    <small class="">(@Model.TotalApproved.ToString("N0") Approved)</small>
+                }
+            </h6>
+            @if (Model.WorkItemSubmissions.Count >= 5)
+            {
+                <p>
+                    <small><span class="src btn-outline-dark btn-sm btn" data-target="draft">@Model.WorkItemSubmissions.Count(x => x.Status == WorkItemStatus.Draft) Draft</span> · <span class="src btn-outline-primary btn-sm btn " data-target="submitted">@Model.WorkItemSubmissions.Count(x => x.Status == WorkItemStatus.Submitted) Submitted</span> · <span class="src btn-outline-success btn-sm btn" data-target="approved">@Model.WorkItemSubmissions.Count(x => x.Status == WorkItemStatus.Approved) Approved</span> · <span class="src btn-outline-danger btn-sm btn" data-target="rejected">@Model.WorkItemSubmissions.Count(x => x.Status == WorkItemStatus.Rejected) Rejected</span></small>
+                </p>
+            }
+            <table class="table table-sm table-submissions">
+                <tbody>
+                    @foreach (var sbmss in Model.WorkItemSubmissions)
+                    {
+                        <tr class="@sbmss.Status.ToString().ToLower()">
+                            <td>
+                                <a asp-action="SubmitWork" asp-controller="Schedule" asp-route-wiId="@Model.Id" asp-route-id="@sbmss.Id" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" title="Click to make changes" class="" style="">
+                                    @sbmss.Name
+                                </a>
+
+                            </td>
+                            <td>@sbmss.Status</td>
+                            <td class="text-right">
+                                @if (sbmss.Status == WorkItemStatus.Draft)
+                                {
+                                    <a asp-action="SubmitSingleWork" asp-controller="Schedule" asp-route-wiId="@Model.Id" asp-route-id="@sbmss.Id" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" data-ajax-begin="showModal()" title="Send for Approval" class="btn btn-sm btn-outline-primary" style="">
+                                        <i class="fas fa-share"></i>
+                                    </a>
+                                }
+                                @if (sbmss.Status == WorkItemStatus.Submitted)
+                                {
+                                    <small>updated abt @(((DateTime)dbContext.Entry(sbmss).Property("ModifiedDate").CurrentValue).GetTimeDifference(DateTime.UtcNow)) ago</small>
+                                }
+                                @*@if (sbmss.Status == WorkItemStatus.Approved || sbmss.Status == WorkItemStatus.Rejected)
+                                {
+                                    <a asp-action="ViewAttendance" asp-controller="Schedule" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" title="@(sbmss.Status == WorkItemStatus.Approved ? "Approved" : "Rejected")" class="btn btn-sm btn-outline-@(sbmss.Status == WorkItemStatus.Approved ? "success" : "danger")" style="">
+                                        <i class="fas @(sbmss.Status == WorkItemStatus.Approved ? "fa-check-circle" : "fa-times-circle")"></i>
+                                    </a>
+                                }*@
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+    </main>
+    <footer class="modal__footer">
+        @if (Model.IsEmployeeTask)
+        {
+            <a class="modal__btn modal__btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateUserTask" asp-controller="Home" asp-route-id="@Model.Id">
+                <i class="fa fa-user-shield"></i> Edit
+            </a>
+        }
+        else
+        {
+            <a class="modal__btn modal__btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateWorkItem" asp-route-id="@Model.Id">
+                <i class="fa fa-user-shield"></i> Edit
+            </a>
+        }
+
+        @if (Model.IsEmployeeTask == false)
+        {
+            <text>&nbsp;</text>
+            <a class="modal__btn modal__btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="WorkItemChangeRequest" asp-controller="Request" asp-route-id="@Model.Id" disabled="@(Model.Requests.Any(x => x.Status == WorkItemStatus.Submitted) ? "disabled" : "")">
+                <i class="fa fa-user-shield"></i> Make Request
+            </a>
+        }
+
+
+        @if (Model.IsEmployeeTask && Model.Status != WorkItemStatus.Completed)
+        {
+            <text>&nbsp;</text>
+            <a asp-action="TaskCompleted" asp-controller="Home" asp-route-id="@Model.Id" data-ajax="true" data-ajax-method="POST" data-ajax-update="#home-sidebar" data-ajax-begin="" data-ajax-success="$('.item-@Model.Id').hide();hideModal()" title="Set @Model.WorkName complete" class="btn btn-sm btn-outline-primary" style="">
+                <i class="fa fa-check-circle"></i> Mark as Completed
+            </a>
+        }
+
+        @if (Model != null && Model.Id > 0)
+        {
+            <a class="modal__btn modal__btn-danger float-right" asp-action="RemoveWorkItem" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', 'Work item was just removed');hideModal();$('.item-@Model.Id').hide()" data-ajax-confirm="Are you sure you want to remove this work item">Remove</a>
+        }
+    </footer>
+</form>
+
+
+<script>
+    
+    $('.src').click(function (e) {
+        var match = $('.table-submissions')
+            .find('tr.' + $(this).data('target'));
+
+        $('.table-submissions tbody tr').not(match).hide();
+        $(match).not('.fields-row').show();
+        $('.src').removeClass('active');
+        $(this).addClass('active');
+    });
+
+    $(".has-datepicker").flatpickr({
+        dateFormat: "j-M-Y"
+    });
+
+    $(".has-timepicker").flatpickr({
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+    });
+</script>

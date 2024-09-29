@@ -1,0 +1,193 @@
+﻿@model List<PayrollPeriodEmployee>
+@inject Payroll.Database.PayrollDbContext dbContext
+@{
+    ViewData["Title"] = "Perofmance";
+    var i = 15;
+    ViewBag.Small = true;
+}
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link href="~/lib/RangePickerSlider/range_picker.css" rel="stylesheet" />
+
+
+<div class="row mt-2">
+    <div class="col-md-4">
+        <div class="text-lg-left">
+            <h4 class="display">Performance</h4>
+            <p>Performances are calculated at the end of every payroll period</p>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="filters float-right">
+            <form asp-action="Index" style="display: inline-flex;" id="rosterFilterForm">
+                <div class="form-group">
+                    <label class="control-label text-muted">Contract Type</label>
+                    <select name="type" id="type" class="form-control form-control-sm" asp-items=@(Html.GetEnumSelectList<ContractType>()) onchange="submitFIlterForm()">
+                        <option value="0">All Types</option>
+                    </select>
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Designation</label>
+                    <select name="desgId" id="desgId" class="form-control form-control-sm" asp-items="@ViewBag.DesgnationIds" onchange="submitFIlterForm()">
+                        <option value="0">All Positions</option>
+                    </select>
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Employee</label>
+                    <select name="empId" id="empId" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                        <partial name="
+                                 _EmployeeDropdownOpt" model="(List<Employee>)ViewBag.EmployeeIds" />
+                    </select>
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Limit</label>
+                    <select name="limit" id="limit" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Sort</label>
+                    <select name="sort" id="sort" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                        <option value="None">None</option>
+                        <option value="Recent">Recent</option>
+                        <option value="Expiring">Expiring</option>
+                        <option value="Long">Long</option>
+                        <option value="Short">Short</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-12" id="performanceDetailsVIew">
+        @if (ViewBag.Count != null)
+        {
+            <p>About @ViewBag.Count records (@ViewBag.TimeSec seconds)</p>
+        }
+        <partial name="Index_Listing" model="Model" />
+
+        <div class="text-center">
+            <div class="loader btn btn-primary btn-loading" data-page="2" style="line-height: 1px;display:none">
+                <div class="ball-beat"><div></div><div></div><div></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+
+    <!-- Resources -->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+
+    <script>
+
+        $(".has-datepicker").flatpickr({
+            dateFormat: "j-M-Y",
+            clearBtn: true
+        });
+
+
+        var limit = '@ViewBag.limit';
+        if (limit)
+            $('#limit').val(limit);
+
+        var empId = '@ViewBag.empId';
+        if (empId)
+            $('#empId').val(empId);
+
+        var sort = '@ViewBag.sort';
+        if (sort)
+            $('#sort').val(sort);
+
+        @*var desgId = '@ViewBag.desgId';
+        if (desgId)
+            $('#desgId').val(desgId);*@
+
+        var type = '@ViewBag.type';
+        if (type)
+        $('#type').val(type);
+
+        function submitFIlterForm() { $('#rosterFilterForm').submit() }
+
+        $('input[name="date"]').on('apply.daterangepicker', function (ev, picker) {
+            submitFIlterForm();
+        });
+
+    </script>
+
+
+    <script>
+        // Pagination
+        $(function () {
+            var canFetch = true;
+            $(window).on("scroll", function () {
+
+                var page = $('.btn-loading').data('page');
+                var docHeight = $(document).height();
+                var winScrolled = $(window).height() + $(window).scrollTop(); // Sum never quite reaches
+                if ((docHeight - winScrolled) < 1) {
+                    // <a href="~/Views/Shared/_Layout.cshtml">~/Views/Shared/_Layout.cshtml</a>
+                    console.log('scrolled to bottom of page');
+                    console.log('canFetch: ' + canFetch);
+                    if (canFetch == false) return;
+
+                    var formData = $('#rosterFilterForm :input').serializeArray();
+                    formData.pop("__RequestVerificationToken");
+                    formData.push({ name: "page", value: page });
+                    var url = $('#rosterFilterForm').attr('href');
+                    console.log('sending - ', url, formData);
+
+
+                    $('.btn-loading').show();
+                    $('.hidden-container').empty();
+                    $.ajax({
+                        url: url,
+                        data: formData,
+                        error: function () {
+                            $('#info').html('<p>An error has occurred</p>');
+                        },
+                        type: 'POST',
+                        //dataType: 'jsonp',
+                        success: function (data) {
+                            //console.log('data (raw): ', data);
+
+                            $('.hidden-container').html(data);
+                            var rows = $('.hidden-container').find('#contractMainTable tbody tr');
+
+                            console.log('data (clean rows): ', rows);
+
+                            if ($.isEmptyObject(rows) || rows == undefined || rows == "" || $(rows).length <= 0) {
+                                canFetch = false;
+                                $('.btn-loading').hide();
+                                console.log('EMPTY DATA (fetch aborted)');
+                            }
+                            else {
+                                $('#contractMainTable tbody').append(rows);
+                                console.log('data updated');
+                            }
+                        },
+                        complete: function (data) {
+                            if ($.isEmptyObject(data) || data == undefined || data == "") {
+                                canFetch = false;
+                                $('.btn-loading').hide();
+                            } else {
+                                var newPage = (parseInt(page) + 1);
+                                console.log('newpage: ' + newPage);
+                                $('.btn-loading').data('page', newPage);
+                            }
+                            $('.btn-loading').hide();
+                            $('.hidden-container').empty();
+                        }
+                    });
+                }
+            })
+        })
+    </script>
+
+
+}

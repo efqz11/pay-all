@@ -1,0 +1,66 @@
+﻿@model List<EmployeePayComponent>
+
+@{
+    ViewData["Title"] = "Create Adjustments";
+}
+
+<form asp-action="AddDeductions" data-ajax="true" data-ajax-method="POST" data-ajax-update="#employee-content" data-ajax-success="sendNotification('success', 'Employee deductions were just updated');hideModal();" id="employeeDetailsCreateForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            Update Pay Deductions
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+        <div class="form-group">
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <b>Tick</b> those deductions you wish to enroll. This action will remove previously enrolled deduction components
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </div>
+        <table class="table table-hover">
+            <tbody>
+                @for (int i = 0; i < Model.Count; i++)
+                {
+                    <tr>
+                        <input type="hidden" name="[@i].PayAdjustmentId" value="@Model[i].PayAdjustmentId" />
+                        <input type="hidden" name="[@i].EmployeeId" value="@Model[i].EmployeeId" />
+                        <input type="hidden" name="[@i].Id" value="@Model[i].Id" />
+
+                        <td width="10px">
+                            <label class="custom-control custom-checkbox mb-0">
+                                <input type="checkbox" name="[@i].IsActive" value="@(Model[i].IsActive ? "True" :"False")" class="custom-control-input" tabindex="5" onchange="onCheckChange(this)" @(Model[i].IsActive ? "checked" : "")>
+                                <input type="hidden" name="[@i].IsActive" value="false" />
+                                <span class="custom-control-label" for="chbxTerms">
+                                </span>
+                            </label>
+                        </td>
+
+                        <td>@Model[i].PayAdjustment.Name</td>
+                        @*<td>
+                                <input type="number" name="[@i].Total" value="@Model[i].Total" class="form-control form-control-sm" />
+                            </td>*@
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="form-group">
+            <label for="date" class="control-label">Effective Date</label>
+            <input name="date" id="date" type="text" class="form-control has-datepicker" />
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>
+
+
+
+<script>
+    initDatePicker();
+</script>

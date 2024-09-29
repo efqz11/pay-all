@@ -1,0 +1,61 @@
+﻿@model List<CompanyFile>
+
+
+<table class="table data-container-table">
+    <tbody>
+        <tr>
+            <td colspan="2">
+                <a class="btn btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddFile" asp-route-id="@ViewBag.FolderId">
+                    <i class="fal fa-file-plus"></i> Add File
+                </a>
+            </td>
+        </tr>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td width="20" class="p-0">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" id="dropdownMenuReference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
+                            <i class="ion-ios-more"></i>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
+
+                            @if (item.IsSignatureAvailable)
+                            {
+                                <a asp-route-id="@item.Id" asp-action="Configure" class="dropdown-item" target="_blank"><i class="fal fa-cog"></i> Setup</a>
+                            }
+
+                            <a href="@item.FileUrl" class="dropdown-item" target="_blank"><i class="fal fa-file-download"></i> Download</a>
+
+                            <div class="dropdown-divider"></div>
+
+                            <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="RenameFile" asp-route-id="@item.Id">
+                                <i class="fal fa-edit"></i> Rename
+                            </a>
+
+                            <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="MxapUser" asp-route-id="@item.Id">
+                                <i class="fal fa-file-user"></i> Share
+                            </a>
+
+
+                            <a class="dropdown-item text-danger" asp-action="RemoveFile" asp-route-id="@item.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@item.Name was just removed');$(this).parents('td').parent().fadeOut();" data-ajax-confirm="Are you sure you want to remove file?"><i class="fal fa-trash-alt"></i> Remove</a>
+                        </div>
+                    </div>
+                </td>
+
+                <td>
+                    <a href="@item.FileUrl" target="_blank"><i class="fal fa-@(item.GetRelevantIconString())"></i> @item.Name</a>
+                </td>
+                <td>@item.FileSizeInMb MB</td>
+            </tr>
+        }
+    </tbody>
+    @if(Model.Count <= 0)
+    {
+        <tfoot>
+            <tr>
+                <td colspan="2">This folder seems to be empty!</td>
+            </tr>
+        </tfoot>
+    }
+</table>

@@ -1,0 +1,61 @@
+﻿@model List<Payroll.Models.JobScrape.Jobsicle_Job>
+@{
+    ViewData["Title"] = "Home Page";
+}
+<link href="~/css/maonry-cards.css" rel="stylesheet" />
+<style>
+    #overlay-back {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        opacity: 0.6;
+        filter: alpha(opacity=60);
+        z-index: 5;
+        display: none;
+    }
+
+    #overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10;
+        display: none;
+    }
+
+    .new-row {
+        background-color: #ffffca;
+    }
+</style>
+<div class="text-lg-left">
+    <h4 class="display">Jobs nearby</h4>
+    <p>View all available jobs</p>
+    @*<small><span class="src btn-outline-success btn-sm btn " data-target="variableaddition">@Model.Count(x => x.VariationType == VariationType.VariableAddition) Variable Addition(s)</span> · <span class="src btn-outline-danger btn-sm btn " data-target="variablededuction">@Model.Count(x => x.VariationType == VariationType.VariableDeduction) Variable Deduction(s)</span> · <span class="src btn-outline-primary btn-sm btn" data-target="constantaddition">@Model.Count(x => x.VariationType == VariationType.ConstantAddition) Constant Addition(s)</span> · <span class="src btn-outline-primary btn-sm btn" data-target="constantdeduction">@Model.Count(x => x.VariationType == VariationType.ConstantDeduction) Constant Deduction(s)</span></small>*@
+</div>
+
+<div class="float-right pb-2">
+    <a class="btn-add btn btn-primary" asp-action="Create" data-ajax-method="POST" data-ajax-update=".data-container" data-ajax="true">Add Record</a>
+
+    <button class="btn-save btn btn-success">Save All</button>
+</div>
+<div class="clearfix"></div>
+<div class="data-container">
+    <partial name="_Listing" model="Model" />
+</div>
+
+@section scripts {
+    <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
+    <script>
+        $('.grid').masonry({
+            // set itemSelector so .grid-sizer is not used in layout
+            itemSelector: '.grid-item',
+            // use element for option
+            columnWidth: '.grid-sizer',
+            percentPosition: true
+        })
+    </script>
+}

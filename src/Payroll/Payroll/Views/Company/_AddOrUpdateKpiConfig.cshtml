@@ -1,0 +1,87 @@
+﻿@model KpiConfig
+
+<form asp-action="AddOrUpdateKpiConfig" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#kpi_table" data-ajax-success="sendNotification('success', 'KPI Variable was just @(Model == null || Model.Id == 0 ? "created" : "updated")'); hideModal()" id="departmentsForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    @if (Model != null && Model.Id > 0)
+    {
+        <input asp-for="Kpi" type="hidden" />
+    }
+    <input asp-for="CmpId" type="hidden" />
+
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @(Model == null || Model.Id <= 0 ? "New Variable" : "Manage Variable")
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+        <div class="form-group">
+            <label asp-for="Kpi" class="control-label">KPI Variable</label>
+            <select asp-for="Kpi" class="form-control" asp-items="@ViewBag.Kpi"></select>
+        </div>
+
+        @*<div class="form-group">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" asp-for="IsTaskRelated" class="date-chooser custom-control-input" onchange="onCheckChange(this); $(this).parent().parent().next().toggle()">
+                <span class="custom-control-label" for="chbxTerms">
+                    Is this value related to a task
+                </span>
+            </label>
+        </div>
+
+        <div class="form-group" style="display:none">
+            <label asp-for="WorkType" class="control-label"></label>
+            <select asp-for="WorkType" class="form-control" asp-items="@Html.GetEnumSelectList<WorkType>()"></select>
+        </div>*@
+
+        <div class="row">
+            <div class="form-group col">
+                <label asp-for="Best" class="control-label">Best Value</label>
+                <input asp-for="Best" as class="form-control" />
+            </div>
+            <div class="form-group col">
+                <label asp-for="Worst" class="control-label">Worst Value</label>
+                <input asp-for="Worst" as class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Weight" class="control-label">Weightage (between 0.1 and 1.0)</label>
+            <input asp-for="Weight" as class="form-control" />
+        </div>
+
+        <div class="row">
+            <div class="form-group col">
+                <label asp-for="DisplayName" class="control-label">Display Name</label>
+                <input asp-for="DisplayName" as class="form-control" />
+            </div>
+            <div class="form-group col">
+                <label asp-for="DisplayOrder" class="control-label">Display/Calculation Order</label>
+                <input asp-for="DisplayOrder" as class="form-control" />
+            </div>
+        </div>
+
+        <div class="form-group">
+        </div>
+
+
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">
+            Save
+        </button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        @if (Model.Id > 0)
+        {
+            <a class="modal__btn modal__btn-danger float-right" asp-action="Remove" asp-route-id="@Model.Id" asp-route-remove="self" data-ajax-method="POST" data-ajax="true" data-ajax-update="#dayOff_table" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', 'Day off was just removed');hideModal();" data-ajax-confirm="Are you sure you want to remove this day off?">Remove</a>
+        }
+    </footer>
+</form>
+
+
+<script>
+    if ('@Model.IsTaskRelated' === "True") {
+        $('#IsTaskRelated').change();
+    }
+
+</script>

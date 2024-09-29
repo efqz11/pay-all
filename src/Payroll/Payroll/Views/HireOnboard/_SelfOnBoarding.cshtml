@@ -1,0 +1,21 @@
+﻿@model Employee
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="p-5">
+
+    <div class="gwb_2-YFS gwb_3YnzF text-center" style="--maxWidth:70rem; --margin:0 auto;">
+        <img src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-musicians-1b672799.svg" alt="Congrats on growing your team!" class="layout-main-simple-icon">
+        <div class="layout-main-flow-subheader text-full">
+            <h2 class="h-3 mt-3">@Model.NameDisplay has been invited to onboard</h2>
+            <p>An email has been sent to @Model.NameDisplay inviting @Model.NameDisplay to onboard. We’ll securely collect @Model.NameDisplay’s personal, tax, and bank account details. @Model.NameDisplay will also be able to sign onboarding documents.</p><p>We’ll send you an email once @Model.NameDisplay completes onboarding.</p>
+        </div>
+        <div class="layout-main-flow-content content-full">
+            <div class="form-actions ajax-spinner formActions-module__spinner___12v5R">
+                <a class="btn btn-secondary" href="/">I’ve Added All Current Employees</a>
+                <a class="btn btn-primary" href="/employees/step_1"><i class="fa fa-plus-cirlce"></i> Add Another Employee</a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,92 @@
+﻿@model Employee
+@{
+    ViewData["name"] = "LogoUrl";
+    ViewData["src"] = Model.Avatar ?? DefaultPictures.default_user;
+}
+
+
+<form asp-action="UploadImage" asp-controller="Employee" data-ajax="true" data-ajax-method="POST" id="avatarUploadForm" data-ajax-failure="handleModalPostFailure" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    <header>
+        <h2 class="modal__title" id="modal-1-title">
+            @*@if (Model != null)
+            {
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update="#change-form-wrapper" asp-action="AddOrUpdateSocial" asp-controller="Employee" asp-route-id="@Model.Id">
+                    <i class="fad fa-arrow-alt-left fa-2x"></i>
+                </a>
+            }*@
+            @("Upload a Profile picture for " + Model.GetSystemName(User))
+        </h2>
+    </header>
+    @*<partial name="_ProgressSteps" model="100" />*@
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <partial name="_AvatarUpload" view-data="ViewData" model="Model">
+        </div>
+        <div class="form-group">
+            <label asp-for="NickName" class="control-label">Preferred Name or Nick name</label>
+            <input asp-for="NickName" class="form-control form-control-lg" />
+            <span asp-validation-for="NickName" class="text-danger"></span>
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button type="button" class="btn btn-primary mr-2 btn-save-img" onclick="saveBase64Image()">Save</button>
+        <button class="btn btn-outline-primary" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+
+</form>
+
+
+@*<form name="foo" method="post" enctype="multipart/form-data">
+    <input type="file" value="c:/passwords.txt" name="FILE" id="XXXX">
+</form>*@
+<script>
+
+    function UploadImage () {
+        var formData = new FormData();
+
+        var file = $("#imagebase64").val();
+        formData.append("base64Image", file);
+
+        var id = $('#avatarUploadForm #Id').val().trim()
+        formData.append("Id", id);
+
+        var nickName = $('#avatarUploadForm #NickName').val().trim()
+        formData.append("NickName", nickName);
+
+
+        var token = $('#avatarUploadForm input[name="__RequestVerificationToken"]').val().trim()
+        formData.append("__RequestVerificationToken", token);
+        
+        $(".btn-save-img").attr('disabled', 'disabled');
+        $(".btn-save-img").html(getLoaderWhiteHtml());
+        
+        $.ajax({
+        type: "POST",
+        url: "@(Url.Action("UploadImage"))",          
+        data: formData,
+        processData: false,
+            contentType: false,
+            beforeSend: function (response) {
+                $("#imagePreview").css(
+                    "background-image", ""
+                );
+                $('#avatar-loader').fadeIn();
+            },
+                success: function (response) {
+                    hideModal();
+                    sendNotification('success', 'New enployee photo was just updated');
+                    console.log(response);
+                    var _ = 'url(' + response['newAvatar'] + ')';
+                    $('.avatar-preview.in-form #imagePreview').css('background-image', _);
+            },
+            complete: function (response) {
+                $('#avatar-loader').fadeOut();
+                $(".btn-save-img").removeAttr('disabled');
+                $(".btn-save-img").html("Save");
+            },
+            error: handleModalPostFailure,
+        });
+    }
+</script>

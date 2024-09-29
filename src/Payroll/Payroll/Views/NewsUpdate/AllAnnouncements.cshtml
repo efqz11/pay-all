@@ -1,0 +1,204 @@
+﻿@model List<Announcement>
+@inject Payroll.Database.PayrollDbContext dbContext
+@{
+    ViewData["Title"] = "Announcements";
+}
+
+<link href="~/css/employee-grade.css" rel="stylesheet" />
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/timeline.css" rel="stylesheet" />
+<link href="~/css/card.css" rel="stylesheet" />
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<form asp-action="AllAnnouncements" id="rosterFilterForm">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="text-lg-left">
+                <h4 class="display">@FeatureMenus.GetFeatureMenuItem(FeatureMenus.MenuItem.Announcements) Announcements</h4>
+                <p>Total @ViewBag.Count announcement(s)</p>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="filters float-right">
+                <div style="display: inline-flex;">
+                    <input type="hidden" name="start" id="start" />
+                    <input type="hidden" name="end" id="end" />
+                    <div class="form-group">
+                        <label class="control-label text-muted">During</label>
+                        <input name="text" id="datefilter" class="form-control form-control-sm" value="@ViewBag.duration" autocomplete="off" />
+                    </div>
+                    <div class="form-group ml-2">
+                        <label class="control-label text-muted">Status</label>
+                        <select name="status" id="status" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                            <option value="0">All</option>
+                            <option value="1">Draft</option>
+                            <option value="2">Published</option>
+                            <option value="3">Scheduled</option>
+                            <option value="4">Expired</option>
+                        </select>
+                    </div>
+                    <div class="form-group ml-2">
+                        <label class="control-label text-muted">Limit</label>
+                        <select name="limit" id="limit" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                    <div class="form-group ml-2">
+                        <label class="control-label text-muted">Sort</label>
+                        <select name="sort" id="sort" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                            <option value="None">None</option>
+                            <option value="Recent">Recent</option>
+                            <option value="Archived">Archived</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="clearfix"></div>
+    <div class="form-group has-search mb-1">
+        <span class="form-control-feedback"><i class="fad fa-search"></i></span>
+        <input type="text" class="txt-search form-control" name="query" placeholder="Enter title here...">
+    </div>
+    <input type="submit" value="Submit" style="display:none">
+</form>
+<div class="clearfix"></div>
+<p>
+    <a class="btn btn-primary" asp-controller="Base" asp-action="SelectEmployees" asp-route-update=".modal__container" asp-route-act="NewAnnouncement" asp-route-cnt="NewsUpdate" data-ajax-update=".modal__container" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-begin="showModal()">
+        <i class="fad fa-plus-circle"></i> Add New Announcement
+    </a>
+</p>
+<div id="listing">
+    <partial name="_Announcements" model="@Model" />
+</div>
+
+<div class="text-center">
+    <button type="button" data-form="#rosterFilterForm" data-update="#listing" class="btn btn-outline-info btn-load-more-normal" id="btn-load-more-normal" data-page="2" style="display:block">Load More</button>
+</div>
+
+
+<div class="hidden-container hide"></div>
+
+
+@section scripts{
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
+    <script>
+
+        var start = '@ViewBag.start';
+        if (start)
+            $('#empId').val(start);
+
+        var end = '@ViewBag.end';
+        if (end)
+            $('#end').val(end);
+
+        var status = '@ViewBag.status';
+        if (status)
+            $('#status').val(status);
+
+        var limit = '@ViewBag.limit';
+        if (limit)
+        $('#limit').val(limit);
+
+
+        $('#datefilter').daterangepicker({
+            autoUpdateInput: false,
+            locale: {
+                cancelLabel: 'Clear'
+            },
+            opens: 'bottom',
+
+            ranges: {
+                'This Week': [moment().startOf('week'), moment().endOf('week')],
+                'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        });
+
+
+        $('#datefilter').on('apply.daterangepicker', function (ev, picker) {
+            console.log(picker);
+
+            var date = picker.startDate.format('MM/DD/YYYY HH:mm:ss');
+            var end = picker.endDate.format('MM/DD/YYYY HH:mm:ss');
+            var url = GetAppRootPath() + '/Schedule?date=' + date + '&end=' + end;
+            $('#start').val(date);
+            $('#end').val(end);
+
+            $(this).val(picker.startDate.format('MMM DD') + ' - ' + picker.endDate.format('DD, YYYY'));
+
+            submitFIlterForm();
+        });
+        function submitFIlterForm() { $('#rosterFilterForm').submit() }
+
+
+
+        $(document).on('click', '#btn-load-more-normal', function () {
+            var btnLoad = $(this);
+            var form = $($(this).data('form'));
+            var url = $(form).attr('action');
+            var update = $(btnLoad).data('update') || $(form).data('ajax-update');
+            var page = $(btnLoad).data('page');
+            console.log(url, form, update);
+
+
+            console.log('scrolled to bottom of page, canFetch = ' + canFetch);
+            var fd = $(form).serializeArray();
+            fd.push({ name: "page", value: page });
+
+            console.log('fd', fd);
+
+            $.get(url, fd, function (data) {
+            }).done(function (data) {
+                $('.hidden-container').html(data);
+                var rows = $('.hidden-container').find('.message-item');
+
+                console.log('data (clean rows): ', rows);
+
+                if ($.isEmptyObject(rows) || rows === undefined || rows === "" || $(rows).length <= 0) {
+                    canFetch = false;
+                    $(btnLoad).hide();
+                    console.log('EMPTY DATA (fetch aborted)');
+                    $(btnLoad).parent().prepend(' ∞ ');
+                }
+                else if ($(update).find('.message-item').length <= 0) {
+                    $(update).html(data);
+                }
+                else {
+                    $(update).append(rows);
+                    console.log('data updated');
+                }
+
+                if (canFetch === true && $(rows).length < 10) {
+                    console.log('received less than 10 records, hence we have reached the end');
+                    canFetch = false;
+                    $(btnLoad).hide();
+                }
+
+            }).always(function (data) {
+                if ($.isEmptyObject(data) || data === undefined || data === "") {
+                    canFetch = false;
+                    $(btnLoad).hide();
+                } else {
+                    var newPage = (parseInt(page) + 1);
+                    console.log('newpage: ' + newPage);
+                    $(btnLoad).data('page', newPage);
+                }
+                //$(btnLoad).hide();
+                $('.hidden-container').empty();
+
+            }).fail(function (e) {
+                canFetch = false;
+                $(btnLoad).hide();
+            });
+        });
+    </script>
+}

@@ -1,0 +1,101 @@
+﻿@model Attendance
+
+<form asp-action="AddOrUpdateAttendance" asp-controller="Schedule" data-ajax="true" data-ajax-method="POST"  data-ajax-update="#weekly-schedule" data-ajax-begin="showModal()" data-ajax-success="sendNotification('success', 'Attendance record was just saved');hideModal()" id="addUpdateConnectionForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    <header>
+        <h2 class="modal__title" id="modal-1-title">
+            @if (Model != null || Model.Id > 0)
+            {
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewAttendance" asp-controller="Schedule" asp-route-id="@Model.Id">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+            }
+
+            @(Model == null || Model.Id <= 0 ? "Create New Attendance" : "Change Attendance")
+            <br />
+            <small>@Model.Date.ToLongDateString()</small>
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <partial name="_EmployeeSummary" model="@Model.Employee" />
+        </div>
+        <div class="form-group">
+            <label asp-for="Date" class="control-label"></label>
+            <small>@Model.Date.ToLongDateString()</small>
+            <br />
+            <small>LateMins: @Model.TotalLateMins - EarlyMins: @Model.TotalEarlyMins - TotalAfterWorkMins: @Model.TotalAfterWorkMins</small>
+            <br />
+            <small>In hours - TotalWorked: @Model.TotalWorkedHours - PerSchedule: @Model.TotalHoursWorkedPerSchedule - OutOfSchedule: @Model.TotalHoursWorkedOutOfSchedule - HasClockRecords: @Model.HasClockRecords</small>
+
+            <small> - WorkedOverTime: @Model.WorkedOverTime - TotalWorkedHoursCalculated: @Model.TotalWorkedHoursCalculated</small>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="CompanyWorkTimeId" class="control-label">Choose Shift</label>
+            <select asp-for="CompanyWorkTimeId" asp-items="@ViewBag.ShiftId" class="form-control"></select>
+            <span asp-validation-for="CompanyWorkTimeId" class="text-danger"></span>
+        </div>
+        @*<div class="row">
+            <div class="form-group col">
+                <label asp-for="WorkStartTime" class="control-label"></label>
+                <input type="text" asp-for="WorkStartTime" class="form-control has-timepicker" value="@Model.WorkStartTime.TimeOfDay" />
+                <span class="text-danger" asp-validation-for="WorkStartTime"></span>
+            </div>
+
+            <div class="form-group col">
+                <label asp-for="WorkEndTime" class="control-label"></label>
+                <input type="text" asp-for="WorkEndTime" class="form-control has-timepicker" value="@Model.WorkEndTime.TimeOfDay" />
+                <span class="text-danger" asp-validation-for="WorkEndTime"></span>
+            </div>
+        </div>*@
+
+        <span>@Model.WorkStartTime - @Model.WorkEndTime }</span>
+        <hr />
+
+        <div class="row">
+            <div class="form-group col">
+                <label asp-for="CheckInTime" class="control-label"></label>
+                <input type="text" asp-for="CheckInTime" class="form-control has-timepicker" value="@Model.CheckInTime?.TimeOfDay" />
+                <span asp-validation-for="CheckInTime" class="text-danger"></span>
+            </div>
+
+            <div class="form-group col">
+                <label asp-for="CheckOutTime" class="control-label"></label>
+                <input type="text" asp-for="CheckOutTime" class="form-control has-timepicker" value="@Model.CheckOutTime?.TimeOfDay" />
+                <span asp-validation-for="CheckOutTime" class="text-danger"></span>
+            </div>
+        </div>
+        <span>@Model.CheckInTime - @Model.CheckOutTime</span>
+        <div class="form-group">
+            <label asp-for="CurrentStatus" class="control-label"></label>
+            <select asp-for="CurrentStatus" asp-items="@Html.GetEnumSelectList<AttendanceStatus>()" class="form-control"></select>
+            <span asp-validation-for="CheckOutTime" class="text-danger"></span>
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        @if (Model != null && Model.Id > 0)
+        {
+            <a class="modal__btn modal__btn-danger float-right" asp-action="Remove" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', 'Attendance record from @Model.Duration was just removed');hideModal();$('div.item-@Model.Id').hide()" data-ajax-confirm="Are you sure you want to remove this Attendance record from @Model.Duration" data-ajax-begin="convertToLoadingTable('#tblMasterPayAdjustments')">Remove</a>
+        }
+    </footer>
+</form>
+
+
+<script>
+    
+    $(".has-datepicker").flatpickr({
+        dateFormat: "j-M-Y"
+    });
+    
+    $(".has-timepicker").flatpickr({
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+    });
+</script>

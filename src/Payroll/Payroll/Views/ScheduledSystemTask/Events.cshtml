@@ -1,0 +1,134 @@
+﻿@model List<Payroll.Model.Logs.EventLog>
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="text-lg-left">
+            <h4 class="display">
+                <a class="text-muted" asp-action="Index">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+                @ViewBag.SystemTask.Name
+            </h4>
+            @*<p>Total @Model.Count Pay periods(s)</p>*@
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="filters float-right">
+            <form asp-action="Events" style="display: inline-flex;" id="rosterFilterForm">
+                <input type="hidden" name="start" id="start" value="@ViewBag.Start" />
+                <input type="hidden" name="end" id="end"  value="@ViewBag.End"/>
+                <div class="form-group">
+                    <label class="control-label text-muted">During</label>
+                    <input name="text" id="datefilter" class="form-control form-control-sm" value="@ViewBag.duration" autocomplete="off" />
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Limit</label>
+                    <select name="limit" id="limit" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="clearfix"></div>
+
+<div class="row">
+
+    <table class="table table-hover data-container-table">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Event Type</th>
+                <th>Data Type</th>
+                <th>Result</th>
+                <th>Execution Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="text-right" width="20px">
+                        <a asp-action="GetEventActionSummary" asp-route-id="@item.Id" class="btn-link" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()"><i class="fad fa-search"></i></a>
+                    </td>
+                    <td>
+                        @item.EventLogType.Name
+                    </td>
+                    <td>
+                        @item.EventDataType.Name
+                    </td>
+                    <td>
+                        <span style="color:@item.EventResult.TextColor">
+                            <i class="fa @item.EventResult.Icon"></i>
+                            @item.EventResult.Name
+                        </span>
+                    </td>
+                    <td>
+                        @item.TimeStamp.ToSystemFormat(User, true)
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @*<div class="text-center">
+        <button type="button" data-form="#filterForm" class="btn btn-outline-info btn-load-more-table" id="btn-load-more" data-page="1" style="display:block">Load More</button>
+    </div>*@
+</div>
+
+@section scripts{
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script>
+        var limit = '@ViewBag.limit';
+        if (limit)
+        $('#limit').val(limit);
+        
+
+        function submitFIlterForm() { $('#rosterFilterForm').submit() }
+
+        $('input[name="date"]').on('apply.daterangepicker', function (ev, picker) {
+            submitFIlterForm();
+        });
+
+        $('#datefilter').daterangepicker({
+            autoUpdateInput: false,
+            locale: {
+                cancelLabel: 'Clear'
+            },
+
+            ranges: { 
+                'This Week': [moment().startOf('week'), moment().endOf('week')],
+                'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        });
+
+
+        $('#datefilter').on('apply.daterangepicker', function (ev, picker) {
+            console.log(picker);
+
+            var date = picker.startDate.format('MM/DD/YYYY HH:mm:ss');
+            var end = picker.endDate.format('MM/DD/YYYY HH:mm:ss');
+            var url = GetAppRootPath() + '/Schedule?date=' + date + '&end=' + end;
+            $('#start').val(date);
+            $('#end').val(end);
+
+            $(this).val(getDuration(picker.startDate, picker.endDate));
+            submitFIlterForm();
+        });
+    </script>
+}

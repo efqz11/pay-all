@@ -1,0 +1,47 @@
+﻿@model Payroll.Models.Employee
+
+@{
+    ViewData["Title"] = "Change employee details";
+    Layout = "_LayoutEditor";
+    ViewBag.ProgressStep = 4;
+    ViewBag.Header = "Emegency Contact Details";
+    ViewBag.BackAction = Url.Action("AddOrUpdateAddressContact", new { id = Model.Id });
+}
+
+<form asp-action="AddOrUpdateEmergencyContact" data-ajax="true" data-ajax-method="POST" data-ajax-update="#change-form-wrapper" data-ajax-success="sendNotification('success', 'Employee emergency contact information was saved');" id="employeeDetailsCreateForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+
+    <div class="form-group mb-4">
+        <label asp-for="EmergencyContactName" class="control-label"></label>
+        <input asp-for="EmergencyContactName" class="form-control form-control-lg" />
+        <span asp-validation-for="EmergencyContactName" class="text-danger"></span>
+    </div>
+    <div class="form-group  mb-5">
+        <label asp-for="EmergencyContactNumber" class="control-label"></label>
+        <input asp-for="EmergencyContactNumber" class="form-control form-control-lg" />
+        <span asp-validation-for="EmergencyContactNumber" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-5">
+        <label asp-for="EmergencyContactRelationshipId" class="control-label">Emergency Contact Relationship</label>
+        <p class="small">
+            @Html.DisplayNameFor(t=> Model._EmergencyContactRelationship)
+        </p>
+        <select asp-items="ViewBag.EmergencyContactRelationshipId" asp-for="EmergencyContactRelationshipId" as class="form-control form-control-lg"><option value="0" selected>Choose</option></select>
+        <span asp-validation-for="EmergencyContactRelationshipId" class="text-danger"></span>
+    </div>
+
+
+
+    <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+        <button class="btn btn-lg btn-outline-primary btn-back mr-2" type="button" onclick="$('.modal__btn-back').click()">Back</button>
+        <button class="btn btn-lg btn-primary btn-next" type="submit">Save & Continue</button>
+
+        <a class="btn btn-outline-primary right float-right" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="clearHome()" asp-action="AddOrUpdateBankDetails" asp-controller="Employee" asp-route-id="@Model.Id">Skip and Continue</a>
+    </div>
+</form>

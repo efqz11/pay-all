@@ -1,0 +1,128 @@
+﻿@model BiometricRecord
+@{ 
+    var employees = (List<Employee>)ViewBag.EmployeeId;
+}
+<form asp-action="AddBioMetricRecord" asp-controller="Payroll" data-ajax="true" data-ajax-method="POST"  data-ajax-update="#attendanceDayView" data-ajax-begin="showModal()" data-ajax-success="sendNotification('success', 'new record was just created');hideModal()" id="addUpdateConnectionForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="AttendanceId" type="hidden" value="@Model.AttendanceId" />
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    <input asp-for="WorkItemId" type="hidden" />
+    <input name="pId" type="hidden" value="@ViewBag.pId" />
+    <header>
+        <h2 class="modal__title" id="modal-1-title">
+            @*@if (Model != null || Model.Id > 0)
+            {
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewAnnouncement" asp-controller="Home" asp-route-id="@TempData["AnnouncementId"]">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+            }*@
+            @(Model.Employee != null ? "Edit Record" : "New Record")
+            <br />
+            <small>Manual entry of clock record</small>
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        @if (Model.Employee != null)
+            {
+        <p class="form-group">
+            <img src="@Url.Content(Model.Employee.Avatar ?? DefaultPictures.default_user)" class="rounded-circle" height="30" /> @Model.Employee.NameDisplay
+        </p>
+        }
+        else
+        {
+        <div class="form-group">
+            <label asp-for="EmployeeId" class="control-label">Choose Employee</label>
+            <select asp-for="EmployeeId" class="form-control">
+                <option value="0">Choose Employee</option>
+                @foreach (var dept in employees.GroupBy(x => x.Department.Name))
+                {
+                    <optgroup label="@dept.Key">
+                        @foreach (var emp in dept.ToList())
+                        {
+                            <option value="@emp.Id">@emp.NameDisplay</option>
+                        }
+                    </optgroup>
+                }
+            </select>
+        </div>
+        }
+        @*@(announcements?.Count() ?? 0))*@
+        @*<div class="form-group">
+            <label asp-for="AnnouncementId" class="control-label">Choose Announcement</label>
+            <select asp-for="AnnouncementId" class="form-control" asp-items="@ViewBag.AnnouncementId"></select>
+        </div>*@
+
+        <div class="row">
+            <div class="form-group col">
+                <label asp-for="Location" class="control-label"></label>
+                <input type="text" asp-for="Location" class="form-control" value="@Model.Location" />
+                <span class="text-danger" asp-validation-for="Location"></span>
+            </div>
+
+            <div class="form-group col">
+                <label asp-for="BiometricRecordState" class="control-label"></label>
+                <select type="text" asp-for="BiometricRecordState" class="form-control has-timepicker" asp-items="Html.GetEnumSelectList<BiometricRecordState>()"></select>
+                <span class="text-danger" asp-validation-for="BiometricRecordState"></span>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col">
+                <label asp-for="Date" class="control-label">Date</label>
+                <input type="text" asp-for="Date" class="form-control has-datepicker" value="@Model.Date.ToString("dd-MMM-yyyy")" />
+                <span class="text-danger" asp-validation-for="Date"></span>
+            </div>
+
+            <div class="form-group col">
+                <label asp-for="Time" class="control-label">Time</label>
+                <input type="text" asp-for="Time" class="form-control has-timepicker" value="@Model.Time" />
+                <span class="text-danger" asp-validation-for="Time"></span>
+            </div>
+        </div>
+
+        @*<hr />*@
+
+        <div class="form-group">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" asp-for="IsActive" value="false" class="custom-control-input" tabindex="5">
+                <span class="custom-control-label" for="chbxTerms" onchange="onCheckChange(this)">
+                    Record State (Active/Inactive)
+                </span>
+            </label>
+        </div>
+
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        @if (Model != null && Model.Id > 0)
+        {
+            <a class="modal__btn modal__btn-danger float-right" asp-action="RemoveBioMetricRecord" asp-route-id="@Model.Id" asp-route-pId="@ViewBag.pId" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', 'Record was just removed');hideModal();$('tr.item-bioMe-@Model.Id').hide()" data-ajax-confirm="Are you sure you want to remove this @Model.BiometricRecordState record">Remove</a>
+        }
+    </footer>
+</form>
+
+
+<script>
+    
+    $(".has-datepicker").flatpickr({
+        dateFormat: "j-M-Y"
+    });
+    
+    $(".has-timepicker").flatpickr({
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+    });
+
+    $("#EmployeeId").select2({
+        placeholder: "Search for employees",
+    });
+
+    $('#EmployeeId').on('select2:select', function (e) { 
+        console.log('select event');
+    });
+
+</script>

@@ -1,0 +1,88 @@
+﻿@model PayrollPeriodEmployee
+
+@{
+    var showAll = (bool)ViewBag.ShowAll;
+}
+
+<header class="modal__header">
+    <h2 class="modal__title" id="modal-1-title">
+        Payslip for @Model.PayrollPeriod.Name
+        <br />
+        <small>
+            @Model.PayrollPeriod.StartDate.GetDuration(Model.PayrollPeriod.EndDate, User)
+        </small>
+    </h2>
+    <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+</header>
+
+<main class="modal__content" id="modal-1-content">
+    @if (showAll)
+    {
+        <div class="header row">
+            <div class="col-md-4">
+
+                <div class="image">
+                    <img src="@Model.PayrollPeriod.Company.LogoUrl" height="50" />
+                </div>
+            </div>
+            <div class="col-md-8">
+                <h3>@Model.PayrollPeriod.Company.Name</h3>
+                <p>@Html.Raw(Model.PayrollPeriod.Company.Address.Escape())</p>
+            </div>
+        </div>
+    }
+    <div class="row">
+        <div class="col pr-0">
+
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <td colspan="2">Additions</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.VariationKeyValues.Where(v => v.Type == VariationType.ConstantAddition || v.Type == VariationType.VariableAddition).OrderBy(a => a.MultiOrder))
+                    {
+                        <tr>
+                            <td>@item.Key</td>
+                            <td>@item.Value.ToSystemFormat(User)</td>
+                        </tr>
+                    }
+                    <tr>
+                        <td>Total Gross Pay</td>
+                        <td>@Model.VariationKeyValues.Where(v => v.Type == VariationType.ConstantAddition || v.Type == VariationType.VariableAddition).Sum(a => a.Value).ToSystemFormat(User)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col pr-0">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <td colspan="2">Deductions</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.VariationKeyValues.Where(v => v.Type == VariationType.VariableDeduction || v.Type == VariationType.VariableDeduction).OrderBy(a => a.MultiOrder))
+                    {
+                        <tr>
+                            <td>@item.Key</td>
+                            <td>@item.Value.ToSystemFormat(User)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="text-right">
+        <h4 class="mb-1">MVR @Model.NetSalary.ToSystemFormat(User)</h4>
+        <small> Total Payroll</small>
+    </div>
+</main>
+
+<footer class="modal__footer">
+    <a class="modal__btn modal__btn-primary mr-2" asp-action="DowmloadPaySlip" asp-controller="Payroll" asp-route-id="@Model.Id">
+        <i class="fa fa-user-shield"></i> Download PDF
+    </a>
+    <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+</footer>

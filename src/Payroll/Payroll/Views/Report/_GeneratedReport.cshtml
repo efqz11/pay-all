@@ -1,0 +1,57 @@
+﻿@model List<Dictionary<String, String>>
+@{
+    ViewData["Title"] = "Report - Generated";
+    string[] fields = (String[])ViewBag.Fields;
+    var report = (Report)ViewBag.Report;
+    Layout = "_LayoutEditor";
+    ViewBag.Header = report.Name;
+    ViewBag.FullWidth = true;
+}
+
+
+
+@section breadcrumbs {
+    <nav aria-label="Breadcrumb">
+        <ol class="breadcrumb">
+            <li class=""><a class="gusto-link" asp-action="Index">Reports</a></li>
+            <li class=""><a class="gusto-link" asp-action="SetOptions" asp-route-id="@report.Id">Set Options</a></li>
+            <li class="active" aria-current="page">@report.Name</li>
+        </ol>
+    </nav>
+
+    <div class="" style=" position: absolute; right: 0; top: 0; ">
+        <button class="btn btn-outline-primary" onclick="fnExportPrint('tblReport')">PRINT</button>
+        <button class="btn btn-outline-dark" onclick="fnExportExcel('@report.Name', 'tblReport')" role="tooltip" data-microtip-position="top" aria-label="Download excel file">XLS</button>
+        <button class="btn btn-outline-dark" onclick="fnExportCsv('@report.Name', '#tblReport')">CSV</button>
+    </div>
+}
+
+
+<table class="table table-hover" id="tblReport">
+    <thead>
+        <tr>
+            @foreach (var field in fields)
+            {
+                <td>@field</td>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                @foreach (var v in item.Keys)
+                {
+                    <td>@item[v]</td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<div class="form-group">
+    <span>@Model.Count() records found</span>
+</div>
+
+

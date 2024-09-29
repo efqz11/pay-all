@@ -1,0 +1,152 @@
+﻿@model List<Employee>
+
+@{
+
+    Layout = "_LayoutEditor";
+    ViewBag.Header = "Employee Enrollment";
+}
+
+
+
+@section progressSteps {
+    <ol class="progress-bar-tabs progress-bar-style-default">
+        <li data-step="1" class="progress-bar-item complete"><div class="progress-bar-item-content">Policy</div></li>
+        <li data-step="2" class="progress-bar-item complete"><div class="progress-bar-item-content">Conditions</div></li>
+        <li data-step="3" class="progress-bar-item complete"><div class="progress-bar-item-content">Accrual</div></li>
+        <li data-step="4" class="progress-bar-item complete"><div class="progress-bar-item-content active">Settings</div></li>
+        <li data-step="5" class="progress-bar-item complete"><div class="progress-bar-item-content active">Enrollment</div></li>
+        <li data-step="6" class="progress-bar-item "><div class="progress-bar-item-content">Kickoff</div></li>
+    </ol>
+}
+
+<form asp-action="AddOrRemoveEmployees" asp-controller="DayOff" asp-route-id="@ViewBag.Id" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" data-ajax-success="" id="" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input type="hidden" value="@ViewBag.Id" name="Id" />
+    <input type="hidden" value="@ViewBag.Name" name="Name" />
+
+    <h4 class="pb-4 fs-unmask">Which employees do you want to enroll?</h4>
+
+    <div class="row">
+        <div class="col pt-3" style=" background-color: #f4f4f4;">
+            <div>
+                <h5>Available Employees</h5>
+                <div class="p-2">
+
+                    <a class="btn btn-primary btn-sm" asp-action="EnrollEmployee" asp-route-dayOffId="@ViewBag.Id" asp-route-empId="0" asp-route-rem="0" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" data-ajax-success="ssNoti('All employees enrolled successfully')" id="" data-ajax-failure="handleModalPostFailure">
+                        <i class="fa fa-plus-circle"></i> Add all
+                    </a>
+                    &nbsp;
+
+                    <a class="btn btn-primary btn-sm" asp-action="SelectEmployees" asp-controller="Base" asp-route-dayOffId="@ViewBag.Id" asp-route-empId="0" asp-route-rem="0" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" data-ajax-begin="showModal()" id="" data-ajax-failure="handleModalPostFailure">
+                        <i class="fa fa-search"></i> Choose Employees
+                    </a>
+                </div>
+
+                <div style=" height: 400px; background-color: #f4f4f4; overflow: hidden; overflow-y: scroll;" id="availEmList">
+                    @foreach (var item in Model.Where(x => !x.IsActive))
+                    {
+                        <div class="p-2" data-id="@item.Id">
+                            @*<a asp-action="EnrollEmployee" asp-route-dayOffId="@ViewBag.Id" asp-route-empId="@item.Id" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" data-ajax-success="ssNoti('@item.GetSystemName(User) enrolled successfully')" id="" data-ajax-failure="handleModalPostFailure">
+                                <i class="fa fa-plus-circle"></i> @item.GetSystemName(User)
+                            </a>*@
+                            <a href="#" onclick="addEmp(event,'@item.Id')">
+                                <i class="fa fa-plus-circle"></i> @item.GetSystemName(User)
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col pt-3">
+            <div>
+                <h5>Enrolled Employees</h5>
+            </div>
+            <table class="table" id="enrllEmTable">
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var i = Model.IndexOf(item);
+                        <tr data-id="@item.Id" style="display:none" data-state="@item.IsActive" data-name="@item.GetSystemName(User)">
+                            <td>@item.GetSystemName(User)</td>
+                            <td width="10%">
+                                <input type="hidden" name="model[@i].Id" value="@item.Id" />
+                                <input type="hidden" class="_active" name="model[@i].IsActive" value="@(item.IsActive? "True" : "False")" />
+                            <a href="#" onclick="remEmp(event,'@item.Id')">
+                                <i class="fa fa-minus-circle text-danger" title="Remove employee from enrollment"></i>
+                            </a>
+                                @*<a asp-action="EnrollEmployee" asp-route-dayOffId="@ViewBag.Id" asp-route-empId="@item.Id" asp-route-rem="-1" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" data-ajax-success="ssNoti('@item.GetSystemName(User) removed from time off policy')" data-ajax-confirm="Are you sure?" id="" data-ajax-failure="handleModalPostFailure">
+                                    <i class="fa fa-minus-circle text-danger"></i>
+                                </a>*@
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+        <button class="btn btn-lg btn-outline-primary  mr-2" type="button">Back</button>
+        <button class="btn btn-lg btn-primary " type="submit">Submit</button>
+    </div>
+</form>
+
+
+
+<script>
+    function addEmp(e, id) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        var newEmpRow = $("table#enrllEmTable tr[data-id='" + id + "']");
+        if (newEmpRow.length > 0) {
+            $(newEmpRow).show();
+            $(newEmpRow).find('._active').val('True');
+        }
+            
+
+        // hide from available list
+        newEmpRow = $("div#availEmList div[data-id='" + id + "']");
+        if (newEmpRow.length > 0) 
+            $(newEmpRow).hide();
+    }
+
+    function remEmp(e, id) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        var newEmpRow = $("table#enrllEmTable tr[data-id='" + id + "']");
+        if (newEmpRow.length > 0) {
+            $(newEmpRow).hide();
+            $(newEmpRow).find('._active').val('False');
+        }
+
+        var name = newEmpRow.attr('name');
+        $('div#availEmList').append(`<div class="p-2"><a href="#" onclick="addEmp(event,${id})"><i class="fa fa-plus-circle"></i>${name}</a></div>`);
+    }
+
+    $('.color-chooser').change(function (e) {
+        $(this).removeClass('sch-red sch-blue sch-green sch-aqua sch-orange sch-purple');
+
+        var val = $(this).find(":selected").val();
+        console.log(val);
+
+        $(this).attr('class', function (i, c) {
+            return c.replace(/(^|\s)bg-\S+/g, '');
+        });
+
+        $(this).addClass('bg-' + val);
+        $(this).val(val);
+    })
+
+        //$('.iconpicker-element').iconpicker();
+
+        //$('.iconpicker-element').on('iconpickerSelected', function(e) {
+        //    $('.lead .picker-target').get(0).className = 'picker-target fa-3x ' +
+        //            e.iconpickerInstance.options.iconBaseClass + ' ' +
+        //            e.iconpickerInstance.getValue(e.iconpickerValue);
+        //    });
+</script>
+
+@*
+
+*@

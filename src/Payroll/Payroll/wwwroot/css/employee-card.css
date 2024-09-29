@@ -1,0 +1,127 @@
+﻿
+.card-container {
+    background-color: #231E39;
+    border-radius: 5px;
+    box-shadow: 0px 10px 20px -10px rgba(0,0,0,0.75);
+    color: #B3B8CD;
+    padding-top: 30px;
+    position: relative;
+    width: 350px;
+    max-width: 100%;
+    text-align: center;
+}
+
+    /*.card-container h6,
+    .card-container h5 {
+        color: white !important;
+    }*/
+
+    .card-container .btn-link {
+        font-weight: 100;
+    }
+
+    .card-container .pro {
+        color: #231E39;
+        background-color: #FEBB0B;
+        border-radius: 3px;
+        font-size: 18px;
+        font-weight: bold;
+        padding: 4px 9px;
+        position: absolute;
+        top: 30px;
+        left: 30px;
+    }
+
+        .card-container .pro._a {
+            color: #ffffff;
+            background-color: #31ea0a;
+        }
+
+        .card-container .pro._b {
+            color: #ffffff;
+            background-color: #35c5d8;
+        }
+
+        .card-container .pro._c {
+            color: #ffffff;
+            background-color: #c828d6;
+        }
+
+        .card-container .pro._d {
+            color: #ffffff;
+            background-color: #d27710;
+        }
+
+        .card-container .pro._e {
+            color: #191818;
+            background-color: #fb0505;
+        }
+
+        .card-container .pro._f {
+            color: #191818;
+            background-color: #fb0505;
+        }
+
+        .card-container .pro._u {
+            color: #ffffff;
+            background-color: #585555;
+        }
+
+    .card-container p {
+        padding: 0 10px;
+    }
+
+    .card-container img {
+        height: 125px;
+        width: 125px;
+        margin-bottom: 4px;
+    }
+
+    .card-container .round {
+        border: 1px solid #03BFCB;
+        border-radius: 50%;
+        padding: 7px;
+    }
+
+button.primary {
+    background-color: #03BFCB;
+    border: 1px solid #03BFCB;
+    border-radius: 3px;
+    color: #231E39;
+    font-family: Montserrat, sans-serif;
+    font-weight: 500;
+    padding: 10px 25px;
+}
+
+    button.primary.ghost {
+        background-color: transparent;
+        color: #02899C;
+    }
+
+.skills {
+    background-color: #1F1A36;
+    text-align: left;
+    padding: 15px;
+    margin-top: 30px;
+    border-radius: 5px;
+}
+
+    .skills ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+
+        .skills ul li {
+            width: 100%;
+            border-bottom: 1px solid #2D2747;
+            border-radius: 2px;
+            display: inline-block;
+            font-size: 12px;
+            margin: 0 7px 7px 0;
+            padding: 7px;
+        }
+
+.hide {
+    display: none !important
+}

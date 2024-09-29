@@ -1,0 +1,24 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@model DayOff
+@{
+    ViewData["Title"] = "Home Page";
+}
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+@*<div class="row mt-8 mb-3">
+        <div class="col-md-8">
+            <h4 class="title">@FeatureMenus.GetFeatureMenuItem(FeatureMenus.MenuItem.TimeOff) Time off</h4>
+        </div>
+        <div class="col-md-4 text-right">
+        </div>
+    </div>*@
+
+
+<partial name="_ShowAlertMessage" />
+<div id="main-content">
+    <partial name="_Detail" model="@Model" />
+</div>
+

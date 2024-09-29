@@ -1,0 +1,532 @@
+﻿@model Schedule
+@inject Payroll.Database.PayrollDbContext dbContext
+@{
+    ViewData["Title"] = "Schedule - " + Model.Name;
+
+    var work = (Work)ViewBag.Work;
+    var dayOWeek = (DayOfWeek)ViewBag.CompanyWorkStartDay;
+    var workShiftVm = (List<WeeklyEmployeeShiftVm>)ViewBag.WeekEmployeeShift;
+    var activeContacts = (List<Employee>)ViewBag.ActiveContracts;
+}
+<link href="~/css/employee-grade.css" rel="stylesheet" />
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/timeline.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+
+<h2>Schedule</h2>
+<div class="row mt-8 mb-3">
+    <div class="col-md-8">
+        <span class="link-summary">
+            @Model.Name ~ (@(Model.ScheduleFor)) <a class="text-muted " data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="UploadImage" asp-route-id="1" style="">
+                <i class="fa fa-angle-down"></i>
+            </a>
+        </span>
+
+    </div>
+    <div class="col-md-4 text-right">
+        <partial name="_DisplayRequestStatus" model="@Model.Status" />
+    </div>
+</div>
+
+
+<div class="row">
+
+    <div class="col-md-12">
+        <div class="tab-wrapper bnb">
+            <ul class="tabs">
+                <li class="tab-link active" data-tab="1">Details</li>
+                <li class="tab-link" data-tab="2">Data</li>
+                <li class="tab-link" data-tab="3">Background Jobs</li>
+                <li class="tab-link" data-tab="4">Schedule</li>
+            </ul>
+        </div>
+        <div class="content-wrapper bnb p-0">
+            <div id="tab-3" class="tab-content">
+                <table class="table table-sm">
+                    <tbody>
+                        @foreach (var item in Model.backgroundJobs.OrderByDescending(x => x.RunDate).Take(5))
+                        {
+                            <tr>
+                                <td>@item.HangfireJobId</td>
+                                <td>@item.TaskStatus</td>
+                                <td>@item.RunDate.ToString("dd-MMM-yyyy HH:mm")</td>
+                                @*<td>@item.NextRunDate?.ToString("dd-MMM-yyyy HH:mm")</td>*@
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="tab-2" class="tab-content">
+                <h6>Employee(s)</h6>
+                <table class="table table-sm table-borderless table-responsive">
+                    <thead>
+                        <tr>
+                            <th>Employee(s)</th>
+                            <th>Contract</th>
+                            <th>Rostering Summary</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.EmployeeIdsData)
+                        {
+                        <tr>
+                            <td class="text-left font-weight-bold sticky-col first-col" style=" vertical-align: middle;display:flex">
+                                <div class="image-container">
+                                    <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.id">
+                                        <img src="@Url.Content(item.Photo ?? DefaultPictures.default_user)" height="35" class="mt-1 mr-2 rounded-circle" />
+                                    </a>
+                                </div>
+                                <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.id">
+                                    <div class="name-display pt-1">
+                                        <span class="">@item.Name</span>
+                                        <br>
+                                        <small class="text-muted" style="position: relative;top: -4px;">@(activeContacts.FirstOrDefault(a => a.Id == item.id)?.JobTitle ?? "No Designation") &middot; @item.Department</small>
+                                    </div>
+                                </a>
+                            </td>
+                            @if (activeContacts.Any(a => a.Id == item.id))
+                            {
+                                <td>
+                                    <h6>
+                                        <span><i class="fa fa-dot-circle text-success"></i> @activeContacts.FirstOrDefault(a => a.Id == item.id).EmployeeStatus.GetDisplayName()</span>
+
+                                        <br />
+                                        <small>@activeContacts.FirstOrDefault(a => a.Id == item.id).GetDuration(User)</small>
+                                    </h6>
+                                </td>
+                            }
+
+                            else
+                            {
+                                <td colspan="2">
+                                    <span class="text-danger"><i class="fa fa-exclamation-triangle"></i> No Employment!</span>
+                                </td>
+                            }
+                            <td>
+                                @if (activeContacts.Any(a => a.Id == item.id))
+                                {
+                                    <span><i class="fa fa-play text-success"></i>  Shifts will Start on @(activeContacts.FirstOrDefault(a => a.Id == item.id).ContractStartDate < Model.Start ? Model.Start.ToSystemFormat(User) : activeContacts.FirstOrDefault(a => a.Id == item.id).ContractStartDate.ToSystemFormat(User))</span>
+                                    @if (activeContacts.FirstOrDefault(a => a.Id == item.id).ContractEndDate < Model.End)
+                                    {
+                                        <br />
+                                        <span><i class="fa fa-stop text-info"></i>  Shifts will End on @activeContacts.FirstOrDefault(a => a.Id == item.id).ContractEndDate.ToLocalFormat()</span>
+                                    }
+                                    @if ((activeContacts.FirstOrDefault(a => a.Id == item.id).ContractStartDate.GetValueOrDefault() - Model.Start).TotalDays > 0)
+                                    {
+                                        <br />
+                                        <span class="text-muted">(Starting after @((activeContacts.FirstOrDefault(a => a.Id == item.id).ContractStartDate.GetValueOrDefault() - Model.Start).TotalDays) days)</span>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+                <hr />
+                <h6>Work Timing(s)</h6>
+                @if (Model.WorkTimeIdsData != null && Model.WorkTimeIdsData.Any())
+                {
+                    foreach (var item in Model.WorkTimeIdsData)
+                    {
+                        <span title="@item.Name" class="shift sch-@item.Color" style="margin-right: 5px;border-radius:6px; color:#fff;padding:5px 5px">@item.Name</span>
+                    }
+                }
+                else
+                {
+                    <p>No Work timing was found!</p>
+                }
+                <hr />
+                <h6>Day(s) Information</h6>
+                <table class="table table-sm table-borderless table-responsive">
+                    <thead>
+                        <tr>
+                            <td>Date</td>
+                            <td>Shift</td>
+                            <td>Work</td>
+                            <td>Is Off</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.DaysData)
+                        {
+                        <tr>
+                            <td>@item.Date.ToSystemFormat(User) (@item.Date.ToString("ddd"))</td>
+                            <td>
+                                @if (!item.IsOff)
+                                {
+                                <span title="@item.ShiftName" class="shift sch-@item.Color" style="margin-right: 5px;border-radius:6px; color:#fff;padding:5px 5px">@item.ShiftName (@item.ShiftId)</span>
+                                }
+                            </td>
+                            <td>
+                                @if (item._Work != null && item._Work.Any())
+                                {
+                                    foreach (var w in item._Work)
+                                    {
+                                        <p title="id: @w.id">@w.Name (@w.Type)</p>
+                                    }
+                                }
+                            </td>
+                            <td>@item.IsOff</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="tab-1" class="tab-content active">
+
+                <table class="table table-sm table-borderless table-responsive table-details">
+                    <tbody>
+                        <tr>
+                            <td>For / Type</td>
+                            <td>@Model.ScheduleFor</td>
+                        </tr>
+                        @if (!string.IsNullOrWhiteSpace(Model.Name))
+                        {
+                            <tr>
+                                <td>Name</td>
+                                <td>@Model.Name</td>
+                            </tr>
+                        }
+                        <tr>
+                            <td>From &mdash; To</td>
+                            <td>@Model.GetDuration(User) @(Model.End.HasValue ? $"({(Model.End.Value - Model.Start).TotalDays} d)" : "")</td>
+                        </tr>
+                        <tr>
+                            <td>Work</td>
+                            <td>@Model.WorkId - @(work?.Name ?? "NA")</td>
+                        </tr>
+                        @if (Model.IsForDepartment)
+                        {
+                            <tr>
+                                <td>Run for department</td>
+                                <td>@Model.DepartmentId - @(Model.Department?.Name ?? "NA")</td>
+                            </tr>
+                        }
+                        <tr>
+                            <td>Total Work Items</td>
+                            <td>@ViewBag.WorkItemCount</td>
+                        </tr>
+                        <tr>
+                            <td>Total Attendances</td>
+                            <td>@ViewBag.AttendancesCount</td>
+                        </tr>
+                        <tr>
+                            <td>Is Repeat?</td>
+                            <td>@(Model.IsRepeating)</td>
+                        </tr>
+                        <tr>
+                            <td>Frequency</td>
+                            <td>@Model.Repeat</td>
+                        </tr>
+                        <tr>
+                            <td>Repeat</td>
+                            <td>@(Model.IsRepeatEndDateNever ? "End date is to auto repeat indefinately" : "End date is set & repeat has ended" )</td>
+                        </tr>
+                        <tr>
+                            <td>Has backrgound Job</td>
+                            <td>@(Model.HasBackgroundJob ?? false)</td>
+                        </tr>
+                        <tr>
+                            <td>Next Run</td>
+                            <td>@Model.NextRunDate?.ToSystemFormat(User, false) &middot; @Model.HangfireJobId</td>
+                        </tr>
+
+                        <tr>
+                            <td class="text-muted">Owner</td>
+                            <td>
+                                <a asp-action="Detail" asp-controller="AppUser" asp-route-id="@dbContext.Entry(Model).Property(AuditFileds.CreatedById).OriginalValue)">
+                                    @dbContext.Entry(Model).Property(AuditFileds.CreatedByName).OriginalValue
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Created Date</td>
+                            <td>@(((DateTime)dbContext.Entry(Model).Property(AuditFileds.CreatedDate).OriginalValue).ToSystemFormat(User, true))</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <a class="btn btn-danger" asp-action="RemoveSchedule" asp-controller="Schedule" asp-route-id="@Model.Id" asp-route-remove="self" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', 'Tasks and Attendance records were just removed');redirect();" data-ajax-confirm="Are you sure you want to remove all tasks and attendance records created under this schedule, and also schedule itself"><i class="fad fa-minus-circle"></i> Remove</a>
+            </div>
+
+            <div id="tab-4" class="tab-content">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        @if (ViewBag.AttendancesCount != null && ViewBag.AttendancesCount > 0)
+                        {
+                            <a class="btn btn-danger" asp-action="RemoveSchedule" asp-controller="Schedule" asp-route-id="@Model.Id" asp-route-remove="a" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', 'Attendance records were just removed');$('#weekly-table11 .item-X').empty()" data-ajax-confirm="Are you sure you want to remove all attendance records created under this schedule"><i class="fad fa-minus-circle"></i> Remove Attendance (@ViewBag.AttendancesCount)</a>
+                        }
+                        @if (ViewBag.WorkItemCount != null && ViewBag.WorkItemCount > 0)
+                        {
+                            <a class="btn btn-danger" asp-action="RemoveSchedule" asp-controller="Schedule" asp-route-id="@Model.Id" asp-route-remove="w" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', 'Work items were just removed');$('#weekly-table11 .item-t').empty()" data-ajax-confirm="Are you sure you want to remove all work items created under this schedule"><i class="fad fa-minus-circle"></i> Remove Tasks (@ViewBag.WorkItemCount)</a>
+                        }
+                    </div>
+                    <div class="col-md-6 text-right ">
+                        <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+                            <div class="btn-group mr-2" role="group" aria-label="First group">
+                                <select class="form-control" id="filter-schedule">
+                                    <option value="0">Show All</option>
+                                    <option value="1" selected>Only Attendances</option>
+                                    <option value="2">Only Tasks</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="weekly-schedule-table-container">
+                    <table class="table table-schedule" id="weekly-table11">
+                        <tbody>
+                            <tr id="">
+                                <th class="text-left sticky-col first-col" style="z-index: 1">
+                                    <h6 class="">Employeee / Days</h6>
+                                </th>
+
+                                @for (var start = Model.Start; start <= Model.End; start = start.AddDays(1))
+                                {
+
+                                    <td class="@(start.Date == DateTime.Now.Date ? "active" : "") @(start.DayOfWeek == dayOWeek ? "prova" : "") text-center" data-ribbon=" @(start.DayOfWeek == dayOWeek ? "★" : "")">
+                                        <div class="text-left font-weight-bold" style=" vertical-align: middle;display:inline-flex">
+                                            <h3 class="mt-1 pr-1">@start.Day</h3>
+                                            <div class="name-display pl-1" style="font-size: 11px;padding-top: 4px;">
+                                                <span class="">@start.ToString("ddd").ToUpper()</span>
+                                                <br>
+                                                <small style="position: relative;top: -4px;">@start.ToString("MMM").ToString()</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                }
+                            </tr>
+
+                            @foreach (var item in workShiftVm)
+                            {
+                                <tr>
+                                    <td class="text-left font-weight-bold sticky-col first-col" style=" vertical-align: middle;display:flex">
+                                        <div class="image-container">
+                                            <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.Employee.Id">
+                                                <img src="@Url.Content(item.Employee.Avatar ?? DefaultPictures.default_user)" height="35" class="mt-1 mr-2 rounded-circle" />
+                                            </a>
+                                        </div>
+                                        <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.Employee.Id">
+                                            <div class="name-display pt-1">
+                                                <span class="">@item.Employee.GetSystemName(User)</span>
+                                                <br>
+                                                <small class="text-muted" style="position: relative;top: -4px;">
+                                                    @(activeContacts.FirstOrDefault(a => a.Id == item.Employee.Id)?.JobTitle ?? "No Designation")
+
+                                                    @if (activeContacts.Any(a => a.Id == item.Employee.Id))
+                                                    {
+                                                        <i class="fa fa-signature text-info" title="@activeContacts.FirstOrDefault(a => a.Id == item.Employee.Id)?.GetDuration(User)"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="fa fa-exclamation-circle text-warning" title="No Contract was not found for employee"></i>
+                                                    }
+                                                </small>
+
+
+                                            </div>
+                                        </a>
+                                    </td>
+
+
+                                    @*@item.Attendances.Count*@
+                                    @for (var start = Model.Start; start <= Model.End; start = start.AddDays(1))
+                                    {
+                                        <td class="text-left cell-attndance">
+                                            @if (item.Attendances.Any(x => x.Date.Date == start.Date))
+                                            {
+                                                foreach (var attn in @item.Attendances.Where(x => x.Date.Date == start.Date))
+                                                {
+                                                    <div class="item-X">
+                                                        <div class="item item-@attn.Id @attn.ShiftColor  @(attn.IsOvertime ? "overtime" : "") @(start >= DateTime.Now.Date ? "active" : "")" onclick="$(this).next().click()">
+                                                            <small>
+                                                                <span>
+                                                                    @if (attn.IsOvertime)
+                                                                    {
+                                                                        <i class="fa fa-hourglass-start"></i>
+                                                                    }
+                                                                    @(attn.IsOvertime ? "Overtime" : @attn.ShiftName)
+
+                                                                </span>
+                                                                <br />
+                                                            </small>
+                                                        </div>
+                                                        <a asp-action="ViewAttendance" asp-controller="Schedule" asp-route-id="@attn.Id" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" aria-label="Change attendance record" role="tooltip" data-microtip-position="top" class="hide" style="display:none">
+                                                            XX
+                                                        </a>
+                                                    </div>
+                                                }
+                                                //var attn = @item.Attendances.First(x => x.Date == start.Date);
+
+                                            }
+
+                                            @if (item.WorkItems.Any(x => x.Date == start.Date))
+                                            {
+                                                foreach (var attn in item.WorkItems.Where(x => x.Date == start.Date))
+                                                {
+                                                    <div class="item item-t @attn.WorkId" onclick="$(this).next().click()" style="display:none">
+                                                        <small>
+                                                            <span>
+                                                                @(attn.WorkName)
+                                                            </span>
+                                                        </small>
+                                                    </div>
+                                                    <a asp-action="ViewWorkItem" asp-controller="Schedule" asp-route-id="@attn.Id" asp-route-date="@start" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" aria-label="Change attendance record" role="tooltip" data-microtip-position="top" class="hide" style="display:none">
+                                                        XX
+                                                    </a>
+                                                }
+                                                //var attn = @item.WorkItems.First(x => x.Date == start.Date);
+                                            }
+
+
+                                            @*@if (!item.Attendances.Any(x => x.Date.Date == start.Date))
+                                            {
+                                                <div class="item empty item-X" onclick="$(this).next().click()">
+                                                    <small>
+                                                        Off
+                                                        <br />
+                                                        <span>&nbsp;</span>
+                                                    </small>
+                                                </div>
+                                                <a class="text-muted" asp-action="AddOrUpdateSchedule" asp-route-onDate="@start" asp-route-empId="@item.Employee.Id" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure" style="display:none"><i class="ion ion-plus"></i> Add </a>
+                                            }*@
+
+                                        </td>
+                                    }
+
+                                    <td style="vertical-align: middle;">
+                                        @*@foreach (var inteRaction in Model.ScheduleInteractions.Where(a => a.EmployeeId == item.Employee.Id))
+                                {
+                                    @if (inteRaction.IsRecieved)
+                                    {
+                                        <span><i class="fas fa-check-circle text-success"></i></span>
+                                    }
+                                    else
+                                    {
+                                        <a asp-action="InteractionApproved" asp-controller="Interaction" asp-route-id="@inteRaction.Id" asp-route-approve="1" data-ajax="true" data-ajax-method="GET" data-ajax-update=".modal__container" data-ajax-begin="" title="Mark as approved" class="btn btn-sm btn-outline-danger" style="" data-ajax-success="$(this).fadeOut();sendNotification('success', 'Interaction was just approved');">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        </a>
+                                    }
+                                }*@
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+    </div>
+</div>
+
+<div class="text-center">
+</div>
+<div class="clearfix"></div>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+
+@section scripts {
+    <!-- Resources -->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script src="~/js/micro-charts.js"></script>
+    <script>
+
+        InitializeTabs();
+
+        $('#filter-schedule').change(function (e) {
+            $('#weekly-table11 .item-t, #weekly-table11 .item-X').hide();
+            switch ($(this).val()) {
+                case "0":
+                    $('#weekly-table11 .item-t, #weekly-table11 .item-X').show();
+                    break;
+                case "1":
+                    $('#weekly-table11 .item-X').show();
+                    break;
+                case "2":
+                    $('#weekly-table11 .item-t').show();
+                    break;
+                default:
+            }
+        })
+
+        function redirect() {
+            setTimeout(function () {
+                location.href = GetAppRootPath() + '/schedule';
+            }, 1000);
+        }
+
+    var waiting = '@ViewBag.Waiting';
+    var viewed = '@ViewBag.Viewed';
+    //var data = [{ "Waiting", waiting }, { "Viewed", viewed }];
+    var data = [
+        {
+            key: "Waiting",
+            value: waiting
+        },
+        {
+            key: "Viewed",
+            value: viewed
+        }];
+    console.log('data', data);
+
+    darwSubmissionTaskChart(data);
+
+    // search for employees
+    var _custom = $('intrrAction-custom');
+
+    $('.intrrAction-search').keyup(debounce(function () {
+        console.log('starting... ');
+        listgroup_search($('.intrrAction-search').val(), $('.list-group.intrrAction'));
+    }, 500));
+
+    function darwSubmissionTaskChart(data) {
+
+        var chart = am4core.create("chartdiv_announcementInteraction", am4charts.PieChart);
+        chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
+
+        chart.data = data;
+        chart.radius = am4core.percent(70);
+        chart.innerRadius = am4core.percent(40);
+        //chart.radius = am4core.percent(60);
+        //chart.innerRadius = am4core.percent(40);
+        //chart.pullOutRadius = am4core.percent(10);
+        //chart.maxLabelWidth = 100;
+
+        chart.startAngle = 180;
+        chart.endAngle = 360;
+
+        var series = chart.series.push(new am4charts.PieSeries());
+        series.dataFields.value = "value";
+        series.dataFields.category = "key";
+
+        series.slices.template.cornerRadius = 10;
+        series.slices.template.innerCornerRadius = 7;
+        series.slices.template.draggable = true;
+        series.slices.template.inert = true;
+        series.alignLabels = false;
+
+        series.hiddenState.properties.startAngle = 90;
+        series.hiddenState.properties.endAngle = 90;
+
+        //chart.legend = new am4charts.Legend();
+
+
+        hidelogos();
+    }
+
+    </script>
+}

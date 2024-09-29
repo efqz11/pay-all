@@ -1,0 +1,57 @@
+﻿@model List<DayOffEmployee>
+
+@{ 
+    int limit = (int)ViewBag.Limit;
+    int year = (int)ViewBag.Year;
+
+}
+
+<table class="table table-hover table-sm">
+    @for (int i = 0; i < limit; i++)
+    {
+    <tr>
+        <td>
+            <b>Year @(year)</b>
+        </td>
+        @if (Model.Any(x => x.Year == year))
+        {
+            foreach (var emp in Model.Where(x => x.Year == (year)))
+            {
+                <td>
+                    <small>Update Summary</small>
+                    <br />
+                    <small>@(emp.TotalHours + " employee(s)")</small>
+                    <br />
+
+                    <small>@(emp.TotalCollectedHours + " collected day(s)")</small>
+                </td>
+
+                <td class="text-right">
+                    <a class="btn btn-outline-danger btn-sm" data-ajax="true" data-ajax-method="POST" data-ajax-update="#day-off-empls-result" data-ajax-begin="" asp-action="AddOrUpdateDayOffEmployee" asp-route-dayOffId="@ViewBag.DayOffId" asp-route-year="@year" asp-route-cmpId="@ViewBag.CmpId" asp-route-force="1" data-ajax-success="">
+                        <i class="fa fa-user-shield" ata-ajax-confirm="This action will remove all Employee dayoff records and create new records for year @year"></i> Force Update
+                    </a>
+                    <br />
+                    <a class="btn btn-warning btn-sm mt-2" data-ajax="true" data-ajax-method="POST" data-ajax-update="#day-off-empls-result" data-ajax-begin="" asp-action="AddOrUpdateDayOffEmployee" asp-route-dayOffId="@ViewBag.DayOffId" asp-route-year="@year"  asp-route-cmpId="@ViewBag.CmpId" data-ajax-success="">
+                        <i class="fa fa-users-cog" ata-ajax-confirm="This action will update only to employees who doesnt have DayOff in year @year"></i>  Update Safely
+                    </a>
+                    <a class="btn btn-danger btn-sm mt-2" data-ajax="true" data-ajax-method="POST" data-ajax-update="#day-off-empls-result" data-ajax-begin="" asp-action="AddOrUpdateDayOffEmployee" asp-route-dayOffId="@ViewBag.DayOffId" asp-route-remove="1" asp-route-year="@year"  asp-route-cmpId="@ViewBag.CmpId" data-ajax-success="" data-ajax-confirm="This action will remove all Employee DayOffs for year @year">
+                        <i class="fa fa-times-circle"></i> Remove
+                    </a>
+                </td>
+            }
+        }
+        else
+        {
+
+            <td></td>
+            <td class="text-right">
+                <a class="btn btn-warning btn-sm mt-2" data-ajax="true" data-ajax-method="POST" data-ajax-update="#day-off-empls-result" data-ajax-begin="" asp-action="AddOrUpdateDayOffEmployee" asp-route-dayOffId="@ViewBag.DayOffId" asp-route-year="@year"  asp-route-cmpId="@ViewBag.CmpId" data-ajax-success="">
+                    <i class="fa fa-users-cog" ata-ajax-confirm="This action will update only to employees who doesnt have DayOff in year @year"></i> Create All
+                </a>
+            </td>
+        }
+    </tr>
+
+        year = year + 1;
+    }
+</table>

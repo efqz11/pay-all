@@ -1,0 +1,33 @@
+﻿
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-lg-left">
+    <h4 class="display">Manage Scraaping</h4>
+    <p>Configure how you wish</p>
+</div>
+
+<div class="clearfix"></div>
+
+<div class="text-left">
+
+    <a class="btn-add btn btn-primary" asp-action="UpdateJobsicle" data-ajax-method="POST" data-ajax-update="#genReport" data-ajax="true">Update From JobSicle</a>
+
+    <div id="genReport"></div>
+</div>
+
+<form method="post" data-ajax="true" data-ajax-method="POST" data-ajax-update=".data-container" id="masterFormPayAdjustments" data-ajax-success="sendNotification('success', 'Maste Pay adjustments list was jsut updated');itializeSortable();" data-ajax-begin="convertToLoadingTable('#tblMasterPayAdjustments')" asp-action="Index">
+    <div class="float-right pb-2">
+        <a class="btn-add btn btn-primary" asp-action="Create" data-ajax-method="POST" data-ajax-update=".data-container" data-ajax="true">Add Record</a>
+
+        <button class="btn-save btn btn-success">Save All</button>
+    </div>
+    <div class="data-container">
+
+    </div>
+</form>
+
+    @section scripts {
+
+    }

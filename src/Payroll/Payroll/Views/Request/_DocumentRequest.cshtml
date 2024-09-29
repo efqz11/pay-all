@@ -1,0 +1,112 @@
+﻿@model Request
+
+<form asp-action="ProcessRequest" asp-controller="Request" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" data-ajax-begin="SetAjaxUpdate()"  id="addOrUpdateDocumentRequest" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    <input asp-for="AttendanceId" type="hidden" />
+    <input asp-for="EmployeeId" type="hidden" />
+    <input asp-for="RequestType" type="hidden" />
+    <input asp-for="Status" type="hidden" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+
+            <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewRequest" asp-controller="Request" asp-route-id="@Model.Id">
+                <i class="fa fa-arrow-left"></i>
+            </a>
+
+            @(Model == null || Model.Id <= 0 ? "New Document Request" : "Update Document Request")
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <textarea asp-for="Reason" class="form-control" placeholder="Reason for requesting docments"></textarea>
+            <span asp-validation-for="Reason" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label>Create a list of document to request for</label>
+          
+
+
+            <div class="input_fields_wrap">
+                <button class="add_field_button btn btn-sm btn-outline-primary mb-2"><i class="ion ion-plus"></i> Add More Documents</button>
+
+                @if (Model.Id > 0)
+                {
+                    @foreach (var item in Model.DocumentsDataArray)
+                    {
+                        <div class="input-group mb-1">
+                            <input type="text" class="form-control" name="Documents" placeholder="New Document" value="@item">
+                            <div class="input-group-append" >
+                                <span class="input-group-text text-white bg-danger remove_field"><i class="fa fa-trash"></i></span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="input-group mb-1">
+                        <input type="text" class="form-control" name="Documents" placeholder="New Document">
+                    </div>
+                }
+                @*<div><input type="text" name="mytext[]"></div>*@
+            </div>
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+        @if (Model.Status != WorkItemStatus.Submitted)
+        {
+            <button type="submit" class="modal__btn modal__btn-warning" onclick="$('#Status').val('Submitted')">Send for Approval</button>
+        }
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        @*@if (Model != null && Model.Id > 0)
+        {
+            <a class="modal__btn modal__btn-danger float-right" asp-action="CancelRequest" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@Model.RequestType.ToString() request from was cancelled');hideModal();$('div.item-@Model.Id').hide()">Remove</a>
+        }*@
+    </footer>
+</form>
+
+
+<script>
+    $(document).ready(function () {
+        var max_fields = 10; //maximum input boxes allowed
+        var wrapper = $(".input_fields_wrap"); //Fields wrapper
+        var add_button = $(".add_field_button"); //Add button ID
+
+        var x = 1; //initlal text box count
+        $(add_button).click(function (e) { //on add input button click
+            e.preventDefault();
+            if (x < max_fields) { //max input box allowed
+                x++; //text box increment
+                //$(wrapper).append('<div><input type="text" name="mytext[]"/><a href="#" class="remove_field">Remove</a></div>'); //add input box
+                $(wrapper).append('<div class="input-group mb-1"><input type="text" class="form-control"  name="Documents" placeholder="New Document"><div class="input-group-append"><span class="input-group-text text-white bg-danger remove_field"><i class="fa fa-trash"></i></span></div></div>'); //add input box
+            }
+        });
+
+        $(wrapper).on("click", ".remove_field", function (e) { //user click on remove text
+            e.preventDefault(); $(this).parents('div.input-group').remove(); x--;
+        })
+    });
+
+    function SetAjaxUpdate() {
+        var msg = "Document request was created and saved";
+        if ($("#Status").val() == "Submitted")
+            msg = "Document request was sent for approval";
+
+        msg = "shideModal('" + msg + "')"
+        // data-ajax-success="shideModal('Document request was created and saved');"
+        $('#addOrUpdateDocumentRequest').attr("data-ajax-success", msg);
+    }
+
+    $(".has-datepicker").flatpickr({
+        dateFormat: "j-M-Y"
+    });
+
+    $(".has-timepicker").flatpickr({
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+    });
+</script>

@@ -1,0 +1,142 @@
+﻿@model AccessGrant
+@using Payroll.Services
+@{ 
+    var agRoles = (List<AccessGrantRole>)ViewBag.AccessGrantRoles;
+}
+<form asp-action="AddOrUpdateAccessGrant" asp-controller="AppUser" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" data-ajax-begin="showModal();" id="updateASccessGrantForm" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', 'New access grant was just saved')">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    <input asp-for="UserId" type="hidden" value="@Model.UserId" />
+    <input asp-for="Roles" type="hidden" value="@Model.Roles" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @(Model == null || Model.Id == 0 ? "New Access Grant" : "Manage Access Grant")
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+
+        <div class="form-group">
+            <label name="CompanyAccountId" class="control-label">Choose Company</label>
+            <select name="CompanyAccountId" asp-items="@ViewBag.CompanyAccountId" class="form-control"></select>
+        </div>
+
+        <div class="form-group">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" name="date-chooser1" class="date-chooser custom-control-input">
+                <span class="custom-control-label" for="chbxTerms">
+                    Is this role going to be applied in future?
+                </span>
+            </label>
+
+            <div class="222" style="display:none">
+                <label asp-for="ApplyOnDate" class="control-label">When to activate</label>
+                <input type="text" asp-for="ApplyOnDate" class="form-control has-datepicker" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" name="date-chooser2" class="date-chooser custom-control-input">
+                <span class="custom-control-label" for="chbxTerms">
+                    Will this access gramt expire?
+                </span>
+            </label>
+
+            <div class="222" style="display:none">
+                <label asp-for="ExpiryDate" class="control-label">When to expire</label>
+                <input type="text" asp-for="ExpiryDate" class="form-control has-datepicker" />
+            </div>
+        </div>
+
+        <div class="form-group roles">
+            <label name="CompanyId" class="control-label">Roles</label>
+
+            @foreach (var item in agRoles)
+            {
+
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" name="Roles[1]" value="@item.Role" class="custom-control-input">
+                    <span class="custom-control-label" for="chbxTerms">
+                        @item.Role <small> &mdash;@item.Description</small>
+                    </span>
+                </label>
+            }
+
+            @*<label class="custom-control custom-checkbox">
+                <input type="checkbox" name="Roles[1]" value="@Roles.Company.employee_manager" class="custom-control-input">
+                <span class="custom-control-label" for="chbxTerms">
+                    @Roles.Company.employee_manager <small> &mdash;update direct reporting employee's information</small>
+                </span>
+            </label>
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" name="Roles[0]" value="@Roles.Company.data_entry" class="custom-control-input">
+                <span class="custom-control-label" for="chbxTerms">
+                    @Roles.Company.data_entry <small>&mdash;bulk update employee & department information</small>
+                </span>
+            </label>
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" name="Roles[0]" value="@Roles.Company.analyist" class="custom-control-input">
+                <span class="custom-control-label" for="chbxTerms">
+                    @Roles.Company.analyist <small>&mdash;compare payroll, fields and access to reporting controls</small>
+                </span>
+            </label>
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" name="Roles[0]" value="@Roles.Company.payroll" class="custom-control-input">
+                <span class="custom-control-label" for="chbxTerms">
+                    @Roles.Company.payroll <small>&mdash;manage calculations, performance and run payroll</small>
+                </span>
+            </label>
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" name="Roles[0]" value="@Roles.Company.roster" class="custom-control-input">
+                <span class="custom-control-label" for="chbxTerms">
+                    @Roles.Company.roster <small>&mdash;create and manage roster</small>
+                </span>
+            </label>
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" name="Roles[0]" value="@Roles.Company.pay_components" class="custom-control-input">
+                <span class="custom-control-label" for="chbxTerms">
+                    @Roles.Company.pay_components <small>&mdash;update and maintain pay components</small>
+                </span>
+            </label>
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" name="Roles[1]" value="@Roles.Company.owner" class="custom-control-input">
+                <span class="custom-control-label" for="chbxTerms">
+                    @Roles.Company.owner <small>&mdash;manage company and approvals</small>
+                </span>
+            </label>
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" name="Roles[0]" value="@Roles.Company.admin" class="custom-control-input">
+                <span class="custom-control-label" for="chbxTerms">
+                    administrator <small>&mdash;all Administrator access to company items</small>
+                </span>
+            </label>*@
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+        @*<button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Cancel</button>*@
+
+        <a class="modal__btn" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewAccessGrant" asp-route-id="@Model.UserId">Close</a>
+    </footer>
+</form>
+
+<script>
+    $('.roles input[type="checkbox"]').click(function (e) {
+        var rolesStr = $('.roles').find('input[type="checkbox"]:checked').map(function (d) { console.log($(this).prop('value')); return $(this).prop('value'); }).get().join(',');
+        $("#Roles").val(rolesStr);
+    })
+
+    $('.date-chooser').click(function (e) {
+        if ($(this).prop('checked') === true)
+            $(this).parent().next().show();
+        else {
+            $(this).parent().next().hide();
+            $(this).parent().next().find('input').val('');
+        }
+    })
+
+    $(".has-datepicker").flatpickr({
+        dateFormat: "j-M-Y"
+    });
+</script>

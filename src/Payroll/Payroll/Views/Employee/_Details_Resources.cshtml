@@ -1,0 +1,169 @@
+﻿@inject Payroll.Database.PayrollDbContext context
+@{
+    Layout = "_LayoutCard";
+    ViewBag.CardHeader = "Resources — Pay slips and Signed documents";
+    var payslips = (List<Tuple<int, string, DateTime, DateTime>>)ViewBag.Payslips;
+    var signatureRequ = (List<CompanyFileShare>)ViewBag.CompanyFileShares;
+    var files = (List<FileData>)ViewBag.files;
+    var labels = (List<Label>)ViewBag.Labels;
+}
+
+
+<div class="tab-wrapper bnb">
+    <ul class="tabs scroll">
+        <li class="tab-link active" data-tab="1">My Files</li>
+        <li class="tab-link" data-tab="2">Payslips</li>
+        <li class="tab-link" data-tab="3">Waiting for Signature</li>
+        <li class="tab-link" data-tab="4">Signed Documents</li>
+    </ul>
+</div>
+<div class="content-wrapper bnb p-0" id="">
+
+    <div id="tab-1" class="tab-content active">
+
+            <a class="btn btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddFile" asp-route-id="@ViewBag.Id">
+                <i class="fal fa-file-plus"></i> Add File
+            </a>
+            
+        @* <div class="row">
+            <div class="col-md-3">
+                <div class="list-group">
+                    <a class="list-group-item list-group-item-action border-0 tab-link" data-tab="1001">Personal</a>
+                    <a class="list-group-item list-group-item-action border-0 tab-link" data-tab="1001">JD</a>
+                    <a class="list-group-item list-group-item-action border-0 tab-link" data-tab="1001">Contract</a>
+                    <a class="list-group-item list-group-item-action border-0 tab-link" data-tab="1001">CV</a>
+                    <a class="list-group-item list-group-item-action border-0 tab-link" data-tab="1001">Others</a>
+                </div>
+            </div>
+            <div class="col-md-9"></div>
+        </div> *@
+
+        <table class="table">
+            <thead>
+                <tr colspan="">
+                    <th width="10px"></th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Request</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in files.OrderByDescending(a=> a.Id))
+                {
+                    <tr>
+                        <td><i class="fad fa-dot-circle"></i></td>
+                        <td>
+                            <a href="@Url.Content(item.FileUrl)" target="_blank">@item.FileName</a>
+                            <br /><small class="text-muted">@item.GetSize()</small>
+                        </td>
+                        <td>@item.ContentType @*.FileType.GetDisplayName()*@</td>
+                        <td>
+                            @if(@item.Request != null){
+                            <a asp-controller="Request" asp-action="ViewRequest" asp-route-id="@item.RequestId" asp-route-type="@item.Request.RequestType" class="" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()">
+                            <i class="fad fa-paper-plane"></i> @item.Request.NumberFormat @item.Request.RequestType</a>
+                            }
+                        </td>
+                        <td>
+                            <select class="form-control border-0 form-control-sm">
+                                @foreach (var lbl in labels)
+                                {
+                                <option value="@lbl.Id"><i class="fad fa-dot-circle"></i> @lbl.Name </option>   
+                                }
+                                <option value="" selected><i class="fad fa-dot-circle"></i> No label </option>   
+                            </select>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div id="tab-2" class="tab-content">
+
+        @* <a class="btn btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateCompensation" asp-route-eid="" asp-route-type="addition">
+            <i class="fad fa-plus-circle"></i> Update Compensation
+        </a> *@
+
+        <table class="table">
+            <thead>
+                <tr colspan="">
+                    <th width="10px"></th>
+                    <th>Name</th>
+                    <th>Period</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in payslips)
+                {
+                    <tr>
+                        <td><i class="fa fa-file"></i></td>
+                        <td>@item.Item2</td>
+                        <td>@item.Item3.GetDuration(item.Item4, User)</td>
+                        <td>
+                            <a asp-controller="Siganture" asp-action="Sign" asp-route-id="" class="btn btn-primary btn-sm"><i class="fad fa-arrow-circle-down"></i> Download</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div id="tab-3" class="tab-content">
+
+        <table class="table">
+            <thead>
+                <tr colspan="">
+                    <th width="10px"></th>
+                    <th>Name</th>
+                    <th>Requested Date</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in signatureRequ.Where(a => !a.IsSigned))
+                {
+                    <tr>
+                        <td><i class="fad fa-dot-circle"></i></td>
+                        <td>@item.CompanyFile.Name</td>
+                        <td>@(((DateTime)context.Entry(item).Property(AuditFileds.CreatedDate).CurrentValue).ToSystemFormat(User, true))</td>
+                        <td>
+                            <a asp-controller="Signature" asp-action="Sign" asp-route-id="@item.Id" class="btn btn-primary btn-sm"><i class="fad fa-signature"></i> Sign</a>
+                        </td>
+                        <td></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div id="tab-4" class="tab-content">
+
+        <table class="table">
+            <thead>
+                <tr colspan="">
+                    <th width="10px"></th>
+                    <th>Name</th>
+                    <th>Requested Date</th>
+                    <th>Signed Date</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in signatureRequ.Where(a => a.IsSigned))
+                {
+                    <tr>
+                        <td><i class="fad fa-dot-circle"></i></td>
+                        <td>@item.CompanyFile.Name</td>
+                        <td>@(((DateTime)context.Entry(item).Property(AuditFileds.CreatedDate).CurrentValue).ToSystemFormat(User, true))</td>
+                        <td>
+                            @item.SignedDate.ToSystemFormat(User, true)
+                        </td>
+                        <td></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

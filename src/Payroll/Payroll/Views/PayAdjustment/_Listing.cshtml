@@ -1,0 +1,114 @@
+﻿@model List<PayAdjustment>
+@{
+    Layout = null;
+    var enumLlist = Html.GetEnumSelectList<VariationType>().Select(s => new { s.Text, s.Value }).ToList();
+}
+
+
+<table class="table" id="tblMasterPayAdjustments">
+    <thead>
+        <tr>
+            <th></th>
+            <th></th>
+            <th>Type</th>
+            <th width="60%">Name</th>
+            <th width="10%">Order</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @for (int i = 0; i < Model.Count; i++)
+        {
+            <tr class="@Model[i].VariationType.ToString().ToLower() @(ViewBag.IsNewRow==true && i ==0 ? "new-row" : "")"  data-parent="@Model[i].Id">
+                <input type="hidden" name="[@i].Id" class="pay-adj-Id" value="@Model[i].Id" />
+                @Html.HiddenFor(m => Model[i].EnforceRequirement)
+                @Html.HiddenFor(m => Model[i].IsFilledByEmployee)
+                @*<td>
+                    <a class="text-danger edit_@i" asp-action="Fields" asp-route-id="@(Model[i].Id)" data-ajax-method="GET" data-ajax-update=".modal-dialog" data-ajax="true" data-ajax-failure="alert('unable to edit details')"><i class="ion ion-edit"></i> Edit </a>
+                </td>*@
+                <td>
+                    <span role="tooltip" data-microtip-position="top" aria-label="Click and drag to change order">
+                        <i class="ion-navicon-round handle text-secondary text-lg-center"></i>
+                    </span>
+                </td>
+                <td>
+                    @if (Model[i].VariationType.ToString().Contains("Constant") == false)
+                    {
+                        <a class="btn btn-sm bg-info btn-view-fields" role="tooltip" data-microtip-position="top" aria-label="view fields">
+                            <i class="ion-android-apps text-white text-lg-center"></i>
+                        </a>
+                    }
+                </td>
+                <td>
+                    @*<div class="btn btn-sm btn-dark @(Model[i].VariationType.ToString().ToLower().Contains("add") ? "alert-success" : "alert-danger")" role="tooltip" data-microtip-position="top" aria-label="">
+                        <b>@(Html.DisplayFor(mbox => Model[i].VariationType))</b> <i class="change-variant ion-chevron-down text-secondary text-lg-center" onclick="console.log($(this).parent().siblings('select')); $(this).parent().siblings('select').trigger('click');" role="tooltip" data-microtip-position="top" aria-label="Click to change variant"></i>
+                        <b>@(Model[i].VariationType.ToString().ToLower().Contains("add") ? "Addition" : "Deduction")</b>
+                    </div>*@
+                    <div class="btn-group cell-type">
+                        <button type="button" id="cell-value" class="btn btn-sm @(Model[i].VariationType.ToString().ToLower().Contains("add") ? "btn-success" : "btn-danger")">@(Html.DisplayFor(mbox => Model[i].VariationType))</button>
+                        <button type="button" class="btn btn-sm  dropdown-toggle dropdown-toggle-split @(Model[i].VariationType.ToString().ToLower().Contains("add") ? "btn-success" : "btn-danger")" id="dropdownMenuReference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
+                            <span class="sr-only">Toggle Dropdown</span>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
+                            <a class="dropdown-item" href="#" data-id="2">Constant Addition</a> 
+                            <a class="dropdown-item" href="#"  data-id="1">Variable Addition</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#" data-id="3">Constant Deduction</a>
+                            <a class="dropdown-item" href="#" data-id="0">Variable Deduction</a>
+                        </div>
+                        
+                        <input type="hidden"  name="[@i].VariationType" value="@Model[i].VariationType" />
+                        @*<select name="[10].VariationType" class="form-control">
+                            <option value="0">Variable Deduction</option>
+                            <option selected="selected" value="1">Variable Addition</option>
+                            <option value="2">Constant Addition</option>
+                            <option value="3">Constant Deduction</option>
+                        </select>*@
+                    </div>
+
+                    @*<select name="[@i].VariationType" asp-items="@(new SelectList(enumLlist, "Value", "Text", (int)Model[i].VariationType))" class="form-control text-hide"></select>*@
+                </td>
+                <td><input type="text" name="[@i].Name" id="[@i].Name" value="@Model[i].Name" class="form-control form-control-lg" /></td>
+
+                <td width="10%"><input type="number" name="[@i].CalculationOrder" id="[@i].CalculationOrder" value="@Model[i].CalculationOrder" class="form-control calc-order" /></td>
+                <td>
+                    <a class="btn btn-sm btn-outline-danger" asp-action="Remove" asp-route-payAdjustmentId="@(Model[i].Id)" data-ajax-method="POST" data-ajax-update=".data-container" data-ajax="true" data-ajax-failure="alert('unable to delete, possibly there are childrens')" data-ajax-success="sendNotification('success', '@Model[i].Name was just removed')" data-ajax-confirm="Are you sure you want to remove @Model[i].Name"><i class="ion-trash-b"></i> Remove</a>
+                </td>
+            </tr>
+
+            @if (Model[i].VariationType.ToString().Contains("Constant") == false)
+            {
+                <tr class="@Model[i].VariationType.ToString().ToLower() fields-row" style="display:none" data-id="@Model[i].Id">
+                    <td colspan="5" style="border-width: 0px;padding-top: 0px;">
+                        <div class="btn-group-sm" role="group" aria-label="First group">
+                            @{
+                                var list = Model[i].Fields
+                                    .OrderBy(x => x.PayAdjustmentId).ThenBy(x => x.CalculationOrder)
+                                    .ToList();
+                            }
+                            @foreach (var item in list)
+                            {
+                            <a asp-action="AddOrUpdate" asp-controller="Fields" asp-route-id="@(item.Id)" asp-route-addId="@(Model[i].Id)" asp-route-type="@(Model[i].VariationType)" data-ajax-method="GET" data-ajax-begin="showModal()" data-ajax-update=".modal__container" data-ajax="true" data-ajax-failure="alert('unable to edit details')" class="btn btn-secondary" role="tooltip" data-microtip-position="top" aria-label="@(item.DisplayedValueFrontEnd)">
+                                @(item.CalculationOrder)  ·  @(item.DisplayName)
+                                <i class="@(item.IsReturn ? "ion-checkmark-circled" : item.IsAggregated ? "fa fa-signal" : "")"></i>
+                                @*@(item.DisplayedValueFrontEnd) |*@
+
+                                &nbsp;
+                                <i class="ion ion-compose"></i>
+                            </a>
+                            }
+
+                            <a asp-action="AddOrUpdate" asp-controller="Fields" asp-route-addId="@(Model[i].Id)" asp-route-type="@(Model[i].VariationType)" data-ajax-begin="showModal()" data-ajax-method="GET" data-ajax-update=".modal__container" data-ajax="true" data-ajax-failure="alert('unable to edit details')" class="btn btn-warning btn-add-field">+ Add Field</a>
+
+                            <a asp-action="ViewSampleTable" asp-controller="Fields" asp-route-addId="@(Model[i].Id)" asp-route-type="@(Model[i].VariationType)" data-ajax-method="GET" data-ajax-update=".sample-data-view_@Model[i].Id" data-ajax="true" data-ajax-failure="alert('unable to edit details')" class="btn btn-info btn-add-field">View Sample Data</a>
+                            <a href="#" class="btn btn-light btn-validate" data-adjustment-id="@Model[i].Id"><i class="ion-android-info"></i>Check</a>
+                        </div>
+
+                        <p class="sample-data-view_@Model[i].Id"></p>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+

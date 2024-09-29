@@ -1,0 +1,147 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@model PayrollVm
+@{
+    ViewData["Title"] = "Home Page";
+}
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link href="~/css/employee-card.css" rel="stylesheet" />
+<link href="~/css/card.css" rel="stylesheet" />
+<link href="~/css/payroll.css" rel="stylesheet" />
+
+
+<input type="hidden" asp-for="PayrolPeriodId" />
+<input type="hidden" asp-for="ActiveTab" />
+<input type="hidden" id="__AddJustmentID" />
+@*@Model.PayrollPeriod.CurrentStatus.cssClass*@
+
+@if (TempData["Msg"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <strong>Hello!</strong> @TempData["Msg"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+
+<h2>@FeatureMenus.GetFeatureMenuItem(FeatureMenus.MenuItem.Payroll) Payroll</h2>
+<div class="row mt-8 mb-3">
+    <div class="col-md-8">
+        <span class="link-summary">
+            @Model.PayrollPeriod.Name
+            <a class="text-muted " data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-controller="Search" asp-action="SearchModal" asp-route-what="@EntityType.PayrolPeriod">
+                <i class="fa fa-angle-down"></i>
+            </a>
+            <br />
+            <small>@Model.PayrollPeriod.StartDate.GetDuration(Model.PayrollPeriod.EndDate, User)</small>
+        </span>
+    </div>
+    <div class="col-md-4 text-right">
+        <span class="text-primary">
+            @Html.Raw(HttpContextAccessor.HttpContext.Session.GetString(SessionVariables.EmployeeSelectorSummary) ?? "(no filter)")
+            <a class="text-muted " data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="SelectEmployees" asp-controller="Base" asp-route-onsuccess="location.reload()" asp-route-update="none" style="">
+                <i class="fa fa-angle-down"></i>
+            </a>
+        </span>
+    </div>
+</div>
+
+@*00 - @TempData["WorkingEmployeeId"]*@
+
+<div class="tab-wrapper bnb">
+    <ul class="tabs">
+        <li class="tab-link active" data-tab="0">Dashboard</li>
+        <li class="tab-link" data-tab="1">Performance</li>
+        <li class="tab-link" data-tab="2">Attendance</li>
+        <li class="tab-link" data-tab="3">Calculations</li>
+        <li class="tab-link" data-tab="4">Finals</li>
+        <li class="tab-link" data-tab="5">Reports</li>
+    </ul>
+</div>
+
+<div class="content-wrapper p-0">
+    <div id="tab-0" class="tab-content active">
+        <a asp-action="Dashboard" asp-controller="Payroll" asp-route-id="@Model.PayrollPeriod.Id" data-ajax="true" data-ajax-begin="clearHome(this)" data-ajax-method="GET" data-ajax-update="#dashboard" data-ajax-failure="handleModalPostFailure" id="_loadDashboard" style="display:none">
+        </a>
+
+        <div id="dashboard">
+        </div>
+    </div>
+
+    <div id="tab-1" class="tab-content">
+        <a asp-action="Perforrmance" asp-controller="Payroll" asp-route-id="@Model.PayrollPeriod.Id" data-ajax="true" data-ajax-begin="clearHome(this)" data-ajax-method="GET" data-ajax-update="#weekly-schedule" data-ajax-failure="handleModalPostFailure" id="_loadPayPeriodDays" style="display:none">
+        </a>
+
+        <div id="weekly-schedule">
+        </div>
+
+        <div class="text-center">
+            <button type="button" class="btn btn-outline-info btn-load-more" data-page="1" style="display:none" onclick="$(this).data('page', (parseInt($(this).data('page') || 1) + 1)); makeAjaxRequest_UpdatePayrolPeriod();">Load More</button>
+        </div>
+    </div>
+
+
+    <div id="tab-2" class="tab-content">
+        <a asp-action="AttendanceView" asp-controller="Payroll" asp-route-id="@Model.PayrollPeriod.Id" data-ajax-begin="clearHome(this)" data-ajax="true" data-ajax-method="GET" data-ajax-update="#attendance-tab" data-ajax-failure="handleModalPostFailure" id="_LoadAttendanceTab" data-ajax-complete="$('.tab-content').not('.active').find('> div').empty()" data-ajax-success="getAttendanceOverviewData()" style="display:none">
+        </a>
+        <div id="attendance-tab">
+        </div>
+    </div>
+
+    <div id="tab-3" class="tab-content">
+        <a asp-action="AdjustmentsView" asp-controller="Payroll" asp-route-id="@Model.PayrollPeriod.Id" data-ajax-begin="clearHome(this)" data-ajax="true" data-ajax-method="GET" data-ajax-update="#tasks-schedule" data-ajax-failure="handleModalPostFailure" id="_loadAdjustmentTable" data-ajax-complete="$('.tab-content').not('.active').find('> div').empty()" style="display:none">
+        </a>
+        <div id="tasks-schedule">
+        </div>
+    </div>
+
+    <div id="tab-4" class="tab-content">
+        <a asp-action="Finals" asp-controller="Payroll" asp-route-id="@Model.PayrollPeriod.Id" data-ajax="true" data-ajax-begin="clearHome(this)" data-ajax-method="GET" data-ajax-complete="$('.tab-content').not('.active').find('> div').empty()" data-ajax-update="#calendar" data-ajax-failure="handleModalPostFailure" id="_LoadMasterSheet" style="display:none">
+        </a>
+        <div id="calendar">
+        </div>
+    </div>
+
+    <div id="tab-5" class="tab-content">
+        <a asp-action="Report" asp-controller="Payroll" asp-route-id="@Model.PayrollPeriod.Id" data-ajax="true" data-ajax-begin="clearHome(this)" data-ajax-method="GET" data-ajax-complete="$('.tab-content').not('.active').find('> div').empty()" data-ajax-update="#report" data-ajax-failure="handleModalPostFailure" id="_LoadReports" style="display:none">
+        </a>
+        <div id="report">
+        </div>
+    </div>
+
+
+    @*<div id="tab-3" class="tab-content">jQuery is a fast, small, and feature-rich JavaScript library. It makes things like HTML document traversal and manipulation, event handling, animation, and Ajax much simpler with an easy-to-use API that works across a multitude of browsers.</div>*@
+
+</div>
+
+
+
+@*<form method="post" data-ajax="true" data-ajax-method="POST" data-ajax-update=".data-container" id="masterFormPayAdjustments" data-ajax-success="sendNotification('success', 'Maste Pay adjustments list was jsut updated');itializeSortable();" data-ajax-begin="convertToLoadingTable('#tblMasterPayAdjustments')" asp-action="Index">
+        <div class="float-right pb-2">
+            <a class="btn-add btn btn-primary" asp-action="Create" data-ajax-method="POST" data-ajax-update=".data-container" data-ajax="true">Add Record</a>
+
+            <button class="btn-save btn btn-success">Save All</button>
+        </div>
+        <div class="data-container">
+            <partial name="_Listing" model="Model" />
+        </div>
+    </form>*@
+
+@section scripts {
+
+    <script src="~/js/payroll.js"></script>
+    <script src="~/js/adjustmentEval.js"></script>
+
+    <!-- Resources -->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+    <script>
+
+        InitializeTabs();
+
+    </script>
+}

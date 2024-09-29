@@ -1,0 +1,42 @@
+﻿@using Payroll.Services
+@inject UserResolverService userResolverService
+
+<div id="acess-grant-layout" style="">
+    @*<span class="badge badge-danger" id="noti_cnt">8</span>*@
+
+    <a class=" mr-2 ml-2" id="dropdownUser" data-ajax="true" data-ajax-update="#modal-1-container-layout" data-ajax-begin="showModal()" asp-action="GetMyNotifications" asp-route-layout="@true" asp-controller="Notification" data-ajax-failure="handleModalPostFailure">
+        @* <i class="fad fa-bell-on" style="font-size:20px;vertical-align: middle;"></i> *@
+          <span class="mb-0" style="font-size: 17px;vertical-align: middle">🔔</span>
+    </a>
+
+
+
+
+    @*<li>
+            <span class="badge notification-count" id="notificationCount" data-toggle="popover" title="Notifications"></span>
+        </li>*@
+
+    <a asp-action="Detail" asp-controller="Company" asp-route-id="@userResolverService.GetCompanyId()" title="@userResolverService.Get(CustomClaimTypes.accessgrant_companyName)">
+        <img src="@Url.Content(userResolverService.Get(CustomClaimTypes.accessgrant_companyLogo))" height="25" class="mr-3" />
+    </a>
+
+    @if (!userResolverService.IsEmployee())
+    {
+        <a class=" mr-2 ml-2" id="dropdownUser" data-ajax="true" data-ajax-update="#modal-1-container-layout" data-ajax-begin="showModal()" asp-action="ViewAccessGrant" asp-route-id="@userResolverService.GetUserId()" asp-route-layout="@true" asp-controller="AppUser" data-ajax-failure="handleModalPostFailure">
+            <i class="fal fa-caret-down" style="font-size:20px;vertical-align: middle"></i>
+        </a>
+    }
+
+
+    @*<span>@userResolverService.Get("AccessGrant.CompanyName")</span>*@
+
+
+    @*<div class="dropdown-menu" aria-labelledby="dropdownUser">
+            <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="Account" asp-route-id="@User.Identity.Name">
+                <i class="ion-ios-compose-outline"></i> View Account
+            </a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" asp-action="Details" asp-route-id="@User.Identity.IsAuthenticated" data-id="3">Change Password</a>
+            <a class="dropdown-item" onclick="$('form#userLogOutFormX12').submit()">Log out</a>
+        </div>*@
+</div>

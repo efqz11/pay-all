@@ -1,0 +1,122 @@
+﻿@model WorkItem
+
+@if (Model.Status == WorkItemStatus.Completed && Model.IsEmployeeTask)
+{
+    <tr class="item item-@Model.Id completed">
+        <td style="width: 100%;">
+            <a asp-action="ViewWorkItem" asp-controller="Schedule" asp-route-id="@Model.Id" asp-route-date="@(Model.Date)" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" style="text-decoration:strikeout">
+                <span><strike>@(Model.WorkName)</strike></span>
+            </a>
+        </td>
+        <td></td>
+    </tr>
+}
+else
+{
+    <tr class="item item-@Model.Id">
+        <td>
+
+            @if (Model.IsEmployeeTask)
+            {
+                <a asp-action="ViewWorkItem" asp-controller="Schedule" asp-route-id="@Model.Id" asp-route-date="@(Model.Date)" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" class="@(Model.Date.Date == DateTime.Now.Date ? "active" :"")">
+
+                </a>
+
+                @*<label class="custom-control custom-checkbox">
+                    <input type="checkbox" value="True" class="custom-control-input" tabindex="5" onchange="onCheckChange(this);$('#nonPublic').toggle();">
+                    <span class="custom-control-label" for="chbxTerms">
+                        This is public announcement
+                    </span>
+                </label>*@
+            }
+
+            <a asp-action="ViewWorkItem" asp-controller="Schedule" asp-route-id="@Model.Id" asp-route-date="@(Model.Date)" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" class="@(Model.Date.Date == DateTime.Now.Date ? "active" :"")">
+                @(Model.WorkName)
+            </a>
+            <br />
+
+
+            @if (Model.WorkStartTime > DateTime.Now)
+            {
+                <small class="text-info"><i class="ion ion-android-stopwatch"></i> Starting in @Model.WorkStartTime.GetTimeDifference()</small>
+            }
+            @*else if (Model.WorkStartTime >= DateTime.Now.Date)
+            {
+                <small class="text-info"><i class="ion ion-android-stopwatch"></i> on going!</small>
+            }*@
+            else if (Model.DueDate > DateTime.Now)
+            {
+                <small class="text-danger"><i class="ion ion-android-stopwatch"></i> Due in @Model.DueDate?.GetTimeDifference()</small>
+            }
+            else if (Model.Status == WorkItemStatus.Completed && Model.IsEmployeeTask == false)
+            {
+                <small class="text-success mt-1"><i class="fas fa-check-circle"></i> Checkin @@ @Model.CheckInTime?.ToString("hh:mm tt")</small>
+            }
+
+            else if (Model.Status == WorkItemStatus.FailedWithDeduction && Model.IsEmployeeTask == false)
+            {
+                <span class="text-danger mt-1"><b>Failed</b></span>
+            }
+
+            else if (Model.IsEmployeeTask == false)
+            {
+                <small class="text-success mt-1"><i class="fas fa-check-circle"></i> Checkin @@ @Model.CheckInTime?.ToString("hh:mm tt")</small>
+            }
+            else
+            {
+                <small class="text-danger"><i class="fa fa-ban"></i><b> completed</b> @Model.DueDate.ToLocalFormat(includeTime: true)</small>
+            }
+
+            <br />
+            <a asp-action="ViewAttendance" asp-controller="Schedule" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" class="btn btn-sm btn-outline-primary" style="display:none">
+                <i class="ion ion-plus-round"></i> Submission
+            </a>
+            @*<br /><small>@Model.Address</small>*@
+        </td>
+        <td style="width: 25%;">
+            @if (Model.Work?.IsAdvancedCreate ?? false && Model.Work?.Type == WorkType.RequireSubmissions)
+            {
+                <div class="progress-display mt-2">
+                    <div class="progress-bar">
+                        <span class="bar">
+                            <span class="progress @Model.GetCssStyleFromPercent(Model.PercentSubmitted) p-0 pr-2 text-right" style="width:@Model.PercentSubmitted%;height:7px;"><b></b></span>
+                        </span>
+                    </div>
+                </div>
+
+                <small>
+                    @if (Model.RemainingSubmissions > 1)
+                    {
+                        <span class="text-warning"><i class="fa fa-fa fa-share"></i> @(Model.TotalSubmitted)</span>
+                    }
+                    &middot;
+                    @if (Model.RemainingSubmissions <= 0)
+                    {
+
+                        <span class="text-success">
+                            <i class="fa fa-check-double"></i>
+                            <b>@(Model.PercentApproved + "%")</b>
+                        </span>
+                    }
+                </small>
+            }
+            else if (Model.Work?.Type == WorkType.ExpectClockInRecordsBefore)
+            {
+                <span><i class="ion ion-ios-stopwatch-outline"></i> -@Model.Work.MinsBeforeCheckIn.ToString("#") min(s)</span>
+                <br />
+                @if (Model.IsCompleted)
+                {
+                    @*<small class="@(Model.Status == WorkItemStatus.FailedWithDeduction ? "text-danger" : "text-success")">
+                        <i class="fas fa-check-circle"></i> Checkin @@ @Model.CheckInTime?.ToString("hh:mm:ss")
+                    </small>*@
+                }
+                else
+                {
+                    <small class="text-warning">
+                        <i class="fas fa-hourglass"></i> Waiting
+                    </small>
+                }
+            }
+        </td>
+    </tr>
+}

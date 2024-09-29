@@ -1,0 +1,91 @@
+﻿@model Payroll.Models.Employee
+
+@{
+    ViewData["Title"] = "Change employee details";
+    Layout = "_LayoutEditor";
+    ViewBag.ProgressStep = 7;
+    ViewBag.Header = "Update Pay Components";
+    ViewBag.BackAction = Url.Action("AddEmployment", new { id = Model.Id });
+    int i = 0;
+    var t = 1;
+}
+
+<form asp-action="AddOrUpdatePayComponents" data-ajax="true" data-ajax-method="POST" data-ajax-update="#change-form-wrapper" data-ajax-success="sendNotification('success', 'Employment information was just updated');hideModal();InitializeTabs()" id="employeeJobInfoCreateForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    <input asp-for="FirstName" type="hidden" />
+    @*<input asp-for="EmployeeId" type="hidden" />*@
+    @*<header class="modal__header">
+
+            <h2 class="modal__title" id="modal-1-title">
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update="#change-form-wrapper" asp-action="Change" asp-controller="Employee" asp-route-id="@Model.Id">
+                    <i class="fad fa-arrow-alt-left fa-2x"></i>
+                </a>
+
+                Add Employment
+            </h2>
+        </header>
+        <main class="modal__content" id="modal-1-content">*@
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <h4 class="pb-4 fs-unmask">Employment information</h4>
+    <p class="text-weight-normal">List below shows your pay components thats common to all employees.</p>
+    <table class="table table-hover">
+        <tbody>
+            @foreach (var item in Model.EmployeePayComponents.OrderBy(a => a.PayAdjustment.VariationType.ToString()).ThenBy(a => a.PayAdjustment.Name))
+            {
+                <tr>
+                    <input type="hidden" name="EmployeePayComponents[@i].PayAdjustmentId" value="@item.PayAdjustmentId" />
+                    <input type="hidden" name="EmployeePayComponents[@i].EmployeeId" value="@item.EmployeeId" />
+                    <input type="hidden" name="EmployeePayComponents[@i].Id" value="@item.Id" />
+
+                    <td width="10px">
+                        <label class="custom-control custom-checkbox custom-checkbox-large mb-0">
+                            <input type="checkbox" id="_@item.PayAdjustmentId" name="EmployeePayComponents[@i].IsActive" value="@(item.IsActive ? "True" :"False")" @(item.IsActive ? "checked" :"") class="custom-control-input" onchange="onCheckChange(this); $(this).parent().parent().next().next().find('input').prop('disabled', !$(this).is(':checked')).focus().select()">
+                            <input type="hidden" name="EmployeePayComponents[@i].IsActive" value="false" />
+                            <span class="custom-control-label" for="chbxTerms">
+                            </span>
+                        </label>
+                    </td>
+
+                    <td>
+                        <label class="mb-0" for="_@item.PayAdjustmentId">
+                            @item.PayAdjustment.Name
+                            <br />
+                            <small>@item.PayAdjustment.VariationType</small>
+                        </label>
+                    </td>
+                    <td>
+                        @if (item.PayAdjustment.VariationType.ToString().Contains("Constant"))
+                        {
+                            <input type="number" name="EmployeePayComponents[@i].Total" value="@item.Total" class="form-control form-control-lg" @(item.IsActive ? "" :"disabled") />
+                        }
+                    </td>
+                </tr>
+
+                i++;
+            }
+        </tbody>
+    </table>
+
+
+
+
+    <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+        <button class="btn btn-lg btn-outline-primary btn-back mr-2" type="button" onclick="$('.modal__btn-back').click()">Back</button>
+        <button class="btn btn-lg btn-primary btn-next" type="submit">Save & Continue</button>
+    </div>
+
+</form>
+
+
+    <script>
+    initDatePicker();
+
+        var empId = '@Model.ReportingEmployeeId';
+        if (empId)
+            $('#ReportingEmployeeId').val(empId);
+
+
+    $('#zEmploymentStatus option').eq(5).remove();
+    </script>

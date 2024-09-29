@@ -1,0 +1,302 @@
+﻿@model HomeEmployeeVm
+@*(List<DayOffEmployeeItem>, List<Request>, DateTime, DateTime)*@
+@{
+    Layout = "_LayoutCard";
+    ViewBag.CardHeader = "Time Off Balance & Leaves";
+    ViewBag.IsLeaveRequests = true;
+    ViewBag.Id = Model.FilterForm.EmployeeId;
+            //var dayoffEmplItems = Model.DayOffs.SelectMany(x => x.DayOffEmployeeItems).ToList();
+}
+
+<style>
+
+    #chartdiv {
+        width: 100%;
+        height: 450px;
+    }
+</style>
+
+<a class="hide" id="hidd_gn" data-ajax="true" data-ajax-update="#employee-content" asp-action="General" asp-route-id="1"></a>
+
+
+
+<div class="row">
+
+
+    <div class="col-md-4">
+
+
+        <div class="p-3 rq-type" data-type="@RequestType.Leave">
+
+            <form data-ajax="true" data-ajax-update="#tblDayBalance" asp-action="GetDayOffBalanceList" asp-route-id="@Model.FilterForm.EmployeeId" id="dayOffBalanceList">
+
+                <div class="name-display pt-0 ">
+                    <h5 class="head1 mb-2 text d-flex">
+                        </i> Summary
+                        <select name="year" id="year" asp-items="@ViewBag.Years" class="form-control form-control-sm border-0"
+                                onchange="loadDaysBalance()" style="width:70px"></select>
+                    </h5>
+                    @*<div id="chartdiv_timeOffBalance" style="height:180px"></div>*@
+                </div>
+
+                @*<div class="form-group" style="display:flex;float:left">
+                    <label class="control-label pt-1">Time-off balance for </label>
+                    <select name="year" id="year" asp-items="@ViewBag.Years" class="form-control form-control-sm border-0"
+                            onchange="loadDaysBalance()" style="width:70px"></select>
+                </div>*@
+            </form>
+            @*<div class="text-center bg-light border-0 p-3" style="border-radius:5px">
+                @Model.Item2.Count()
+                <i class="ion ion-flag fa-2x"></i>
+                <br />
+                <small>Leave Request</small>
+            </div>*@
+
+            <div id="tblDayBalance">
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="wrapper">
+
+            <div class="timeoff-bal border-0 bg-light p-3 text-center" style=" ">
+                <div class="name-display pt-0 ">
+                    <h5 class="head1 mb-2 text"><i class="fad fa-ball-pile"></i> Balance</h5>
+                    <div id="chartdiv_timeOffBalance" style="height:180px"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="wrapper">
+            <div class="timeoff-bal border-0 bg-light p-3 text-center" style=" ">
+                <div class="name-display pt-0 ">
+                    <h5 class="head1 mb-2 text"><i class="fad fa-calendar-star"></i> Collected Days</h5>
+                    <div id="chartdiv_collectedDays" style="height:180px"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @*<div class="col-md-4">
+            <div class="wrapper">
+                <a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="@RequestType.Document" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" data-ajax-loading=".loader" class="">
+                    <div class="timeoff-bal border-0 p-3 bg-light text-center" style=" ">
+                        <div class="name-display pt-0 ">
+                            <h5 class="head1 mb-2"><i class="fad fa-comments-alt"></i> Leave Requests</h5>
+                            <div id="chartdiv_leaveRequests" style="height:180px"></div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>*@
+
+
+    @*<div class="col-md-6">
+            <div class="wrapper">
+                <div class="top text-center">
+
+                    <a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="@RequestType.Document" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" title="Click to make changes" data-ajax-loading=".loader" class="">
+                        <div class="bg-success border-0 p-3 pt-4 pb-4 text-center text-white" style="border-radius: 10px !important;">
+                            <i class="ion fa fa-calendar-check fa-3x mb-2"></i>
+                            <br />
+                            <h5 class="pb">@Model.DayOffs.Sum(a => a.TotalRemainingDays) days left</h5>
+                            <span class="text-white">My time offs and paid holidays balance</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="wrapper">
+                <div class="top text-center">
+
+                    <a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="@RequestType.Document" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" title="Click to make changes" data-ajax-loading=".loader" class="">
+                        <div class="bg-danger border-0 p-3 pt-4 pb-4 text-center text-white" style="border-radius: 10px !important;">
+                            <i class="ion fa fa-calendar-times fa-3x mb-2"></i>
+                            <br />
+                            <h5 class="pb">Time Offs</h5>
+                            <span class="text-white">Collected Tme offs and absent days</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>*@
+</div>
+
+<br />
+
+    <div class="row">
+    
+        <div class="col-md-12 rq-type">
+            <form data-ajax="true" data-ajax-update="#tblLeaveRequestAndTimeOffs" asp-action="GetLeaveRequestAndTimeOffs" asp-route-id="@Model.FilterForm.EmployeeId" id="leaveRequestAndTimeOff">
+                <input type="hidden" id="start" name="start" value="@Model.FilterForm.Start" />
+                <input type="hidden" id="end" name="end" value="@Model.FilterForm.End"/>
+                <div class="form-group" style="display:flex;float:left">
+                    <label class="control-label pt-1">Leaves Requests between @ViewBag.DurationText</label>
+                    <span id="datefilter"><i class="fa fa-angle-down mt-2 ml-2"></i></span>
+                </div>
+            </form>
+
+            <div id="tblLeaveRequestAndTimeOffs">
+
+                @*@if (dayoffEmplItems.Any())
+                {
+                    <table class="table table-borderless table">
+                        <tbody>
+                            @foreach (var item in dayoffEmplItems)
+                            {
+                                <tr>
+                                    <td>@item.Start.GetDuration(item.End, false) (@item.TotalDays days)</td>
+                                    <td><partial name="_DisplayRequestStatus.cshtml" model="@item.Status" /></td>
+                                    <td>
+                                        <a class="float-right text-danger" asp-action="ViewRequest" asp-controller="Request" asp-route-id="@item.CreatedFromRequestId" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-begin="showModal();" data-ajax-update=".modal__container" title="Created from request"><i class="fa fa-paper-plane"></i></a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }*@
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="loader loader-blue btn-loading" data-page="2" style="line-height: 1px;display:block;white-space: pre;display:none">
+        <div class="ball-beat"><div></div><div></div><div></div></div>
+    </div>
+
+<div id="___"></div>
+
+
+<script>
+    $(function () {
+        var dataBalance = [];
+        var dataUsage = [];
+        var dataRequests = [];
+        @foreach(var item in Model.DayOffBalances)
+        {
+            <text>dataBalance.push({ key: '@item.Key', value: '@item.Value' });</text>
+        }
+    
+        @foreach(var item in Model.DayOffUsages)
+        {
+            <text>dataUsage.push({ key: '@item.Key', value: '@item.Value' });</text>
+        }
+        @foreach(var item in Model.LeaveRequestByStatus)
+        {
+            <text>dataRequests.push({ key: '@item.Key', value: '@item.Value' });</text>
+        }
+
+        console.log('dataUsage', dataUsage);
+        console.log('dataBalance', dataBalance);
+        console.log('dataRequests', dataRequests);
+
+        drawActionPie(dataBalance, "chartdiv_timeOffBalance", false);
+        drawActionPie(dataUsage, "chartdiv_collectedDays", false);
+        drawActionPie(dataRequests, "chartdiv_leaveRequests", true);
+
+        loadLeaveRequestAndTimeOff();
+        loadDaysBalance();
+    });
+
+    function drawActionPie(data, chartDiv, useSpecificColors) {
+
+        am4core.ready(function () {
+
+            // Themes begin
+            am4core.useTheme(am4themes_animated);
+            // Themes end
+
+            // Create chart instance
+            var chart = am4core.create(chartDiv, am4charts.PieChart);
+
+            // Add data
+            chart.data = data;
+
+            // Set inner radius
+            chart.innerRadius = am4core.percent(50);
+
+
+            // Add and configure Series
+            var pieSeries = chart.series.push(new am4charts.PieSeries());
+            pieSeries.dataFields.value = "value";
+            pieSeries.dataFields.category = "key";
+            pieSeries.slices.template.stroke = am4core.color("#fff");
+            pieSeries.slices.template.strokeWidth = 1;
+            pieSeries.slices.template.strokeOpacity = 1;
+
+            if (useSpecificColors) {
+                var colorSet = new am4core.ColorSet();
+                colorSet.list = ["#FBC02D", "#388E3C", "#0288d1", "#F44336", "#8E24AA"].map(function (color) {
+                    return new am4core.color(color);
+                });
+                pieSeries.colors = colorSet;
+            }
+
+            // This creates initial animation
+            pieSeries.hiddenState.properties.opacity = 1;
+            pieSeries.hiddenState.properties.endAngle = -90;
+            pieSeries.hiddenState.properties.startAngle = -90;
+
+            pieSeries.ticks.template.disabled = true;
+            pieSeries.labels.template.disabled = false;
+            pieSeries.labels.template.text = "";
+
+            var label = pieSeries.createChild(am4core.Label);
+            label.text = "{values.value.sum}";
+            label.horizontalCenter = "middle";
+            label.verticalCenter = "middle";
+            label.fontSize = 30;
+
+            hidelogos();
+        }); // end am4core.ready()
+    }
+
+</script>
+<script>
+
+    $('#datefilter').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear'
+        },
+        opens: 'left',
+
+        ranges: {
+            'This Week': [moment().startOf('week'), moment().endOf('week')],
+            'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        }
+    });
+
+    $('#datefilter').on('apply.daterangepicker', function (ev, picker) {
+        console.log($(this));
+        var days = picker.endDate.diff(picker.startDate, 'days');
+        if (days <= 0)
+            $(this).prev().text(picker.startDate.format('ddd, MMM DD, YYYY'));
+        else
+            $(this).prev().text('Leaves Requests between ' + picker.startDate.format('MMM DD') + ' — ' + picker.endDate.format('DD, YYYY') + " (" + days + " days)");
+
+        // 1/10/2020 12:34:32 PM
+        $('#start').val(picker.startDate.format('MM/DD/YYYY HH:mm:ss'));
+        $('#end').val(picker.endDate.format('MM/DD/YYYY HH:mm:ss'));
+        
+        loadLeaveRequestAndTimeOff();
+    });
+
+    function loadLeaveRequestAndTimeOff() {
+        $('#leaveRequestAndTimeOff').submit();
+    }
+
+    function loadDaysBalance() {
+        $('#dayOffBalanceList').submit();
+    }
+    
+
+</script>

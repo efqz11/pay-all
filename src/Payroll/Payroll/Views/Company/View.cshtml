@@ -1,0 +1,391 @@
+﻿@model CompanyAccount
+@{
+    ViewData["Title"] = Model.Name + " Home";
+    var cmp = (Company)ViewBag.PayrolCompany;
+    var permissions = (Dictionary<UserType, int>)ViewBag.UserPermissionCount;
+    //Model.PayrollPeriodEmployees = Model.PayrollPeriodEmployees.OrderBy(x => x.PayrollPeriod.StartDate).ToList();
+    decimal perc = 0;
+    decimal calcChange = 0;
+    decimal previousTotal = 0;
+}
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/step-progress.css" rel="stylesheet" />
+<link href="~/css/calendar-icon.css" rel="stylesheet" />
+
+
+<h2 class="head-title">Companies</h2>
+<div class="row mt-8 mb-3">
+    <div class="col-md-8">
+        <span class="link-summary">
+            @Model.Name <a class="text-muted " data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-controller="Search" asp-action="SearchModal" asp-route-what="@EntityType.Company" style="">
+                <i class="fa fa-caret-down"></i>
+            </a>
+        </span>
+    </div>
+    <div class="col-md-4 text-right">
+        @*<div class="d-flex" style="width:50px">
+            <div class="percentage-bar percentage-bar-guava"><div class="percentage-bar-foreground" style="width: @Model.ProgressPercent%;"></div></div>
+            <span class="h-7 text-weight-semibold percentage-bar-progress"><span class="h-7 text-weight-semibold">@Model.ProgressPercent%</span></span>
+        </div>*@
+        <partial name="_DisplayRequestStatus" model="@Model.Status" />
+    </div>
+</div>
+
+<div class="tab-wrapper bnb">
+    <ul class="tabs scroll">
+        <li class="tab-link active" data-tab="1"><i class=""></i> Details</li>
+        <li class="tab-link" data-tab="2"><i class=""></i> Settings</li>
+        <li class="tab-link" data-tab="3"><i class=""></i> Permissions</li>
+        @*<li class="tab-link" data-tab="4"><i class=""></i> Leave</li>
+        <li class="tab-link" data-tab="6"><i class=""></i> Files</li>
+        <li class="tab-link" data-tab="7"><i class=""></i> Access</li>
+        <li class="tab-link" data-tab="8"><i class=""></i> Pay Components</li>*@
+        <li class="tab-link" data-tab="9"><i class=""></i> KPI config</li>
+        <li class="tab-link" data-tab="10"><i class=""></i> Request Process</li>
+        @*<li class="tab-link" data-tab="11"><i class=""></i> Notifications</li>*@
+    </ul>
+</div>
+
+<div class="content-wrapper bnb p-0 pt-1">
+    <div id="tab-1" class="tab-content active">
+        <partial name="_Header" model="Model" />
+    </div>
+    <div id="tab-2" class="tab-content">
+        @*<div class="alert-info alert" style="font-size: 14px;">
+            <i class="fa fa-lightbulb"></i>
+            Here you can set departments, division, location and other setting data
+        </div>*@
+
+        <div class="tab-wrapper bnb">
+            <ul class="tabs scroll">
+                <li class="tab-link active" data-tab="21"><i class=""></i> TBD</li>
+                <li class="tab-link" data-tab="22"><i class=""></i> Others</li>
+            </ul>
+        </div>
+
+        <div class="content-wrapper bnb p-0 pt-1">
+            <div id="tab-21" class="tab-content active">
+
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="list-group list-group-folders" id="empl-sidebar">
+                            <a asp-action="ViewDepartments" asp-controller="Companydata" data-ajax="true" data-ajax-update="#settingDataListing" asp-route-id="@Model.Id" class="list-group-item list-group-item-action filter" onclick="setActiveTab(this)">
+                                <i class="fad fa-user-friends"></i> Departments
+                            </a>
+                            <a asp-action="ViewDivisions" asp-controller="Companydata" data-ajax="true" data-ajax-update="#settingDataListing" asp-route-id="@Model.Id" class="list-group-item list-group-item-action filter" onclick="setActiveTab(this)">
+                                <i class="fad fa-sitemap"></i> Divisions
+                            </a>
+                            <a asp-action="ViewLocations" asp-controller="Companydata" data-ajax="true" data-ajax-update="#settingDataListing" asp-route-id="@Model.Id" class="list-group-item list-group-item-action filter" onclick="setActiveTab(this)">
+                                <i class="fad fa-map-marker-alt"></i> Locations
+                            </a>
+
+                            <a asp-action="ViewTeams" asp-controller="Companydata" data-ajax="true" data-ajax-update="#settingDataListing" asp-route-id="@Model.Id" class="list-group-item list-group-item-action filter" onclick="setActiveTab(this)">
+                                <i class="fad fa-users-crown"></i> Teams
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <div id="settingDataListing" class="data-list"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="tab-22" class="tab-content ">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="list-group list-group-folders" id="empl-sidebar">
+                            <a asp-action="ViewEmergencyContactRelationships" asp-controller="Companydata" data-ajax="true" data-ajax-update="#settingDataListing2" asp-route-id="@Model.Id" class="list-group-item list-group-item-action filter" onclick="setActiveTab(this)">
+                                <i class="fad fa-book-medical"></i> Emergency Contact Relationship
+                            </a>
+                            <a asp-action="ViewNationalities" asp-controller="Companydata" data-ajax="true" data-ajax-update="#settingDataListing2" asp-route-id="@Model.Id" class="list-group-item list-group-item-action filter" onclick="setActiveTab(this)">
+                                <i class="fad fa-globe-asia"></i> Nationality
+                            </a>
+                            <a asp-action="ViewTerminationReasons" asp-controller="Companydata" data-ajax="true" data-ajax-update="#settingDataListing2" asp-route-id="@Model.Id" class="list-group-item list-group-item-action filter" onclick="setActiveTab(this)">
+                                <i class="fad fa-page-break"></i> Termination Reasons
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <div id="settingDataListing2" class="data-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="tab-3" class="tab-content">
+        @*<div class="alert-info alert" style="font-size: 14px;">
+            <i class="fa fa-lightbulb"></i>
+            Upcoming two public holidays will be displayed on employee home page
+        </div>*@
+        <partial name="_PermissionSummary" model="permissions" />
+    </div>
+
+    <div id="tab-4" class="tab-content">
+        @*<h4 style="color:#55518a;text-align:left;padding-top:10px" class="pb-3">
+                <i class="fa fa-calendar-day" style="font-size:1.2em;color:#55518a"></i> Day offs
+            </h4>*@
+
+        <div class="alert-info alert" style="font-size: 14px;">
+            <i class="fa fa-lightbulb"></i>
+            Leaves and Paid Time Off (PTO) Policies
+        </div>
+
+        <div class="text-left pb-1">
+            <a class="btn btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdate" asp-controller="DayOff" asp-route-cmpId="@Model.Id">
+                New Policy
+            </a>
+            <a class="btn btn-danger" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="UpdateForEmployees" asp-controller="DayOff" asp-route-id="@Model.Id" dddd="This action will create for non existing records and update existing records. Area ">
+                Apply for Employees
+            </a>
+
+            <br />
+
+
+            @*<small>@cmp.DayOffs.Sum(x => x.DayOffEmployees.Count) employee(s) set for this day off</small>*@
+        </div>
+
+        <div id="dayOff_table">
+            <partial name="~/Views/DayOff/_Listing.cshtml" model="cmp.DayOffs" />
+        </div>
+
+    </div>
+
+    <div id="tab-6" class="tab-content">
+
+        <div class="row">
+
+            <div class="col-md-3" id="folders">
+                <partial name="_Folders" model="cmp" />
+            </div>
+            <div class="col-md-9">
+                <div id="cmpFiles-content">
+                    @*<partial name="_Files" model="Model" />*@
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="tab-7" class="tab-content">
+
+        @*<div class="alert-info alert" style="font-size: 14px;">
+            <i class="fa fa-shield-alt"></i>
+            Find out who has access to what information on your company
+        </div>*@
+
+        <partial name="~/Views/AppUser/_AccessGrantsRolesTable.cshtml" model="@cmp.EmployeeRoles" />
+
+    </div>
+
+    <div id="tab-8" class="tab-content">
+
+        <div class="alert-info alert" style="font-size: 14px;">
+            <i class="fa fa-sliders-h"></i>
+            Constatnt Pay Adjustments are defined when Employee is hired, while Variable Components may be changed based on performance
+        </div>
+
+        <p>
+            <a class="btn btn-outline-primary" asp-action="Index" asp-controller="PayAdjustment">
+                <i class="fa fa-external-link-square-alt"></i>&nbsp;Mange Pay Adjustments
+            </a>
+        </p>
+        <div class="row">
+            <div class="col">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Additions</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (cmp.PayAdjustments.Any())
+                        {
+                            foreach (var item in cmp.PayAdjustments.Where(x => x.VariationType.ToString().Contains("Addition")))
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-action="Index" asp-controller="PayAdjustment" asp-route-addId="@(item.Id)" class="btn-link">
+                                            @item.Name
+                                            <small>@(item.VariationType.ToString().Contains("Constant") ? "*" : "")</small>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="cell-action text-center">
+                                            @if (item.Fields.Any())
+                                            {
+                                                <span><i class="fa fa-exclamation-circle "></i> <b>@item.Fields.Count field(s)</b></span>
+                                            }
+                                            else
+                                            {
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="col">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Deductions</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (cmp.PayAdjustments.Any())
+                        {
+                            foreach (var item in cmp.PayAdjustments.Where(x => x.VariationType.ToString().Contains("Deduction")))
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-action="Index" asp-controller="PayAdjustment" asp-route-addId="@(item.Id)" class="btn-link">
+                                            @item.Name
+                                            <small>@(item.VariationType.ToString().Contains("Constant") ? "*" : "")</small>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="cell-action text-center">
+                                            @if (item.Fields.Any())
+                                            {
+                                                <span><i class="fa fa-exclamation-circle "></i> <b>@item.Fields.Count field(s)</b></span>
+                                            }
+                                            else
+                                            {
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-9" class="tab-content">
+
+        @*<div class="alert-info alert" style="font-size: 14px;">
+                <i class="fa fa-calendar-day"></i>
+                Pay Adjustments are defined when calculating payroll
+            </div>
+
+
+            <h4 style="color:#55518a;text-align:left;padding-top:10px" class="pb-3">
+                <i class="fa fa-calendar-day" style="font-size:1.2em;color:#55518a"></i> Key Performance Indicators
+            </h4>*@
+
+
+        <div id="kpi_table">
+            <partial name="_ListingKpi" model="Model" />
+        </div>
+
+    </div>
+    <div id="tab-10" class="tab-content">
+        <div class="alert-info alert" style="font-size: 14px;">
+            <i class="fa fa-bezier-curve"></i>
+            Please define the chain of required approval steps. For each step the responsible employee(s) will have to confirm the request before it is passed on to the next level.
+        </div>
+     
+
+        <div id="reqProcess_table">
+            <partial name="_ListingRequestProcessConfig" model="cmp" />
+        </div>
+    </div>
+
+    <div id="tab-11" class="tab-content">
+        <form asp-action="GetCompanyNotifications" asp-controller="Notification" data-ajax="true" data-ajax-method="POST" data-ajax-update="#listing" data-ajax-success="" id="form-filter" data-ajax-failure="handleModalPostFailure">
+            <input type="hidden" name="page" id="page" value="1" />
+            <input type="hidden" name="id" value="@Model.Id" />
+        </form>
+
+        <div id="listing">
+
+        </div>
+
+        <div class="text-center">
+            <button type="button" data-form="#form-filter" class="btn btn-outline-info btn-load-more" id="btn-load-more" data-page="1" style="display:block">Load More</button>
+        </div>
+    </div>
+</div>
+
+
+
+@section scripts {
+
+    <script>
+        $(function () {
+            InitializeTabs();
+            $('#btn-load-more').click();
+
+
+            // set checkbox to indetermined on roles tables
+            $('.tableUserRights').find('tbody tr .ctrAction.setIndeterminate').prop("indeterminate", true);
+        });
+
+        //$(document).ready(function () {
+        //    $("div.bhoechie-tab-menu>div.list-group>a").click(function (e) {
+        //        e.preventDefault();
+        //        $(this).siblings('a.active').removeClass("active");
+        //        $(this).addClass("active");
+        //        var index = $(this).index();
+        //        $("div.bhoechie-tab>div.bhoechie-tab-content").removeClass("active");
+        //        $("div.bhoechie-tab>div.bhoechie-tab-content").eq(index).addClass("active");
+        //    });
+        //});
+
+        /// Temp fix to routing issue
+        function GetAppRootPath() {
+            var url = window.location.href;
+            if (url.indexOf('hr') != -1)
+                return '/hr';
+            else return '';
+        }
+
+
+        //function reload() {
+        //    var url = GetAppRootPath() + "/employee/detail/" + $('#empId :selected').val();
+        //    console.log(url);
+
+        //    location.href = url;
+        //}
+
+        function initTimePicker() {
+
+            $(".has-timepicker").flatpickr({
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                time_24hr: true,
+                onClose: function () {
+                    $("#IsSaveOtf").val(true);
+                    //$('#changeworktypeform').attr("data-ajax-success", "sendnotification('success', 'wo')");
+                    $('#changeworktypeform').attr("data-ajax-update", ".modal__container");
+                    $('.btn-save-master').trigger('click');
+                    $("#createnewbreakhour").val(false);
+                }
+            });
+        }
+
+
+        function setActiveTab(item) {
+            var lg = $(item).parents('.list-group');
+            console.log(lg, item);
+            $(lg).find('.list-group-item').removeClass("active");
+            $(item).addClass("active");
+            $('.data-list').html(getLoaderHtml());
+        }
+
+        $('.cal-dd').each(function (e) {
+            $(this).val($(this).attr('value'));
+        });
+
+        $('.cal-dd').change(function (e) {
+            console.log('calendar change =>', e);
+            $(e.target).parents('form').find('.btn-save-cal').fadeIn();
+        });
+    </script>
+}

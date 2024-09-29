@@ -1,0 +1,275 @@
+﻿@model List<WeeklyEmployeeShiftVm>
+@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    ViewData["Title"] = "Home Page";
+    var month = (int)ViewBag.month;
+    var year = (int)ViewBag.year;
+    var totalEmpls = (int?)ViewBag?.totalEmpls;
+    var comAcc = (CompanyAccount)ViewBag.comAcc;
+    var dayOffs = (List<DayOff>)ViewBag.dayOffs;
+    var _daysTotals = DateTime.DaysInMonth(year, month);
+    var start = new DateTime(year, month, 1);
+    var end = start.AddDays(_daysTotals);
+}
+
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link href="~/css/employee-card.css" rel="stylesheet" />
+<link href="~/css/card.css" rel="stylesheet" />
+<link href="~/css/payroll.css" rel="stylesheet" />
+
+<style>
+        .table-schedule td.holiday {
+            color: #4649c4;
+            padding: 4px;
+            background-color: #f6f6f6;
+        }
+
+        .bg-light-grey {
+            background-color: #f6f6f6;
+        }
+
+        .cell-attndance {
+            vertical-align: middle !important;
+            padding: 0 !important;
+            margin: 0;
+        }
+
+            .cell-attndance .item.pending {
+                opacity: 0.3
+            }
+
+            .cell-attndance .item {
+                border-radius: 0;
+                will-change: transform;
+                -moz-osx-font-smoothing: grayscale;
+                -webkit-backface-visibility: hidden;
+                backface-visibility: hidden;
+                -webkit-transform: translateZ(0);
+                transform: translateZ(0);
+                transition: -webkit-transform .25s ease-out;
+                transition: transform .25s ease-out;
+                transition: transform .25s ease-out,-webkit-transform .25s ease-out;
+            }
+
+        .highlight {
+            background-color: #ccffcc;
+        }
+
+
+        .cell-attndance .item:not(.pending).hover {
+            -webkit-transform: scale(1.5);
+            transform: scale(1.5);
+            text-decoration: none;
+        }
+
+        .table-schedule td.active {
+            color: #ffffff;
+            padding: 4px;
+            background-color: #d5f3f7;
+        }
+
+
+            .table-schedule td.active h6,
+            .table-schedule td.active small {
+                color: #00bcd4 !important;
+            }
+
+
+        .fa-rorate-180 {
+            transform: rotate( 180deg );
+        }
+
+        .tableEmpAtt tr.bottom {
+            transition: all linear 1s;
+        }
+    @@keyframes anim {
+      0% {
+        transform: scaleY(0);
+      }
+      100% {
+        transform: scaleY(1);
+      }
+    }
+        /*    .table-schedule tr td:not(:first-child) {
+            border-left: 1px solid #dee2e6;
+        }*/
+</style>
+@*<input type="hidden" asp-for="PayrolPeriodId" />
+    <input type="hidden" asp-for="ActiveTab" />*@
+<input type="hidden" id="__AddJustmentID" />
+@*@Model.PayrollPeriod.CurrentStatus.cssClass*@
+
+@if (TempData["Msg"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <strong>Hello!</strong> @TempData["Msg"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+<div class="row mt-8 mb-3">
+
+    <div class="col-md-8">
+        <h2 class="">@FeatureMenus.GetFeatureMenuItem(FeatureMenus.MenuItem.TimeTrackingApprovals) Time Tracking Approvals</h2>
+    </div>
+        <div class="col-md-4 text-right">
+            <span class="text-primary">
+                @Html.Raw(HttpContextAccessor.HttpContext.Session.GetString(SessionVariables.EmployeeSelectorSummary) ?? "(no filter)")
+                <a class="text-muted " data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="SelectEmployees" asp-controller="Base" asp-route-onsuccess="location.reload()" asp-route-update="none" style="">
+                    <i class="fa fa-angle-down"></i>
+                </a>
+            </span>
+        </div>
+    </div>
+
+
+
+<div class="row mb-3">
+
+    <div class="col-md-3">
+        <span class="link-summary">Employees</span>
+        <div class="list-group" id="empList">
+            @foreach (var item in Model)
+            {
+                <a class="list-group-item text-left font-weight-bold sticky-col first-col e_@item.Employee.Id" style=" vertical-align: middle;display:flex" asp-action="EmployeeTimeSheet" asp-route-id="@item.Employee.Id" data-ajax="true" data-ajax-update="#AttednaceTimeSheetsDiv" data-ajax-success="setEmpListActive('@item.Employee.Id')">
+                    <div class="image-container">
+                        <img src="@Url.Content(item.Employee.Avatar ?? DefaultPictures.default_user)" height="35" class="mt-1 mr-2 rounded-circle" />
+                    </div>
+                    <div class="name-display pt-1">
+                        <span class="">@item.Employee.EmpID &middot; @item.Employee.GetSystemName(User)</span>
+                        <br>
+                        <small class="text-dark" style="position: relative;top: -4px;">@item.Employee.Job?.JobID &middot; @item.Employee.JobTitle</small>
+                    </div>
+                </a>
+            }
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div id="AttednaceTimeSheetsDiv"></div>
+    </div>
+</div>
+
+<a asp-action="AttendanceView" asp-route-id="Id" data-ajax-begin="clearHome(this)" data-ajax="true" data-ajax-method="GET" data-ajax-update="#attendance-tab" data-ajax-failure="handleModalPostFailure" id="_LoadAttendanceTab" data-ajax-complete="$('.tab-content').not('.active').find('> div').empty()" data-ajax-success="getAttendanceOverviewData()" style="display:none">
+</a>
+<div id="attendance-tab">
+</div>
+
+<style>
+    .list-group-item.active,
+    .list-group-item.active small {
+        color: white !important;
+    }
+    .list-group-item:hover {
+        background-color: rgba(0, 166, 153, 0.12) !important;
+    }
+    .list-group-item.active {
+        z-index: 2;
+        color: #fff;
+        background-color: #00a699a8 !important;
+        /* border: 1px solid #086861e8 !important; */
+    }
+    .animate {
+        transition: all 0.25s
+    }
+</style>
+
+@section scripts {
+
+    @*<script src="~/js/payroll.js"></script>
+        <script src="~/js/adjustmentEval.js"></script>*@
+
+    <!-- Resources -->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+    <script>
+
+        InitializeTabs();
+        $('.item').on('mouseover', function () {
+            $('.item').removeClass('hover');
+            $('.item[data-cell="' + $(this).data('cell') + '"]').addClass('hover');
+        });
+        $('.item').on('mouseleave', function () {
+            $('.item').removeClass('hover');
+        });
+
+
+        $('.src').click(function (e) {
+            var isShown = $(this).hasClass('active');
+            if (isShown) {
+                $('.table-schedule').find('.cell-attndance .bg-' + $(this).data('target')).fadeOut();
+                $(this).removeClass('active');
+            } else {
+                $('.table-schedule').find('.cell-attndance .bg-' + $(this).data('target')).fadeIn();
+                $(this).addClass('active');
+            }
+            //var match = $('.table-schedule')
+            //    .find('.cell-attndance .bg-' + $(this).data('target'));
+
+
+            //if ($(this).data('target') === "all") {
+            //    $('.table-schedule').find('.item').show();
+            //    $('.src').removeClass('active');
+            //    return;
+            //}
+            //$('.table-schedule').find('.item').not(match).hide();
+            //$(match).show();
+
+            //$('.src').removeClass('active');
+            //$(this).addClass('active');
+        });
+
+        function setEmpListActive(id, empId) {
+            $('#empList .list-group-item').removeClass('active');
+            $('#empList .list-group-item.e_'+id).addClass('active');
+        }
+
+        function toggleEmpDayAttendanceRecord(e, empId, id) {
+            var tr = $(e).parent().parent();
+            var svg = $(e);
+            if ($(tr).next().hasClass('hide')) {
+                convertToLoadingTable($('#tablebio'));
+                $(".tableEmpAtt tr.bottom:not(.hide)").addClass('hide');
+                $(".tableEmpAtt tr.top .animate.fa-rorate-180").removeClass('fa-rorate-180');
+                $.get(GetAppRootPath() + '/manage/EmployeeDayBiometricRecords/' + empId + '?aid=' + id, function (d) {
+                    $(tr).next().find("#BioRecords_" + id).html(d);
+                    console.log("#BioRecords_" + id);
+                    console.log(d);
+                });
+
+                $(tr).next().removeClass('hide');
+                
+            } else {
+                $(tr).next().addClass('hide');
+            }
+            $(svg).toggleClass('fa-rorate-180');
+        }
+
+        //$(function () {
+        //    var active = true;
+
+        //    $("td.cell-attndance").mousedown(function (ev) {
+        //        active = true;
+        //        $(".highlight").removeClass("highlight"); // clear previous selection
+        //        ev.preventDefault(); // this prevents text selection from happening
+        //        $(this).addClass("highlight");
+        //    });
+
+        //    $("td.cell-attndance").mousemove(function (ev) {
+        //        if (active) {
+        //            $(this).addClass("highlight");
+        //        }
+        //    });
+
+        //    $(document).mouseup(function (ev) {
+        //        active = false;
+        //    });
+        //});
+
+        //$(function () { $('#_LoadAttendanceTab').trigger('click'); });
+    </script>
+}

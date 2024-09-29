@@ -1,0 +1,25 @@
+﻿@model List<Attendance>
+
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Date</th>
+                <th>Work Time</th>
+                <th>Check-in/out</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td></td>
+                    <td>@item.Date.Date</td>
+                    <td>@item.Duration</td>
+                    <td>@item.DurationCheckin</td>
+                    <td>@item.StatusString</td>
+                </tr>
+            }
+        </tbody>
+    </table>

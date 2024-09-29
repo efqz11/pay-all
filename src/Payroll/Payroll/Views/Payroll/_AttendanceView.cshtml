@@ -1,0 +1,169 @@
+﻿@model PayrollVm
+
+@{
+    var daysInStartMonth = DateTime.DaysInMonth(Model.PayrollPeriod.StartDate.Year, Model.PayrollPeriod.StartDate.Month);
+    var colspan = daysInStartMonth - (Model.PayrollPeriod.StartDate.Date.Day - 1);
+    var endColspan = (Model.PayrollPeriod.EndDate.Date - Model.PayrollPeriod.StartDate.Date).TotalDays - colspan;
+    var emp = (Employee)ViewBag.Employee;
+
+    var lateSpan = @TimeSpan.FromMinutes(Model.EmployeeStatusDays.Sum(a => a.TotalLateMins));
+}
+<input type="hidden" asp-for="SelectedDate" />
+@*<div class="row mt-2">
+    <div class="col">
+        <h5 class="text-left">
+            @(ViewBag.Header)
+            <br />
+            <small class="pt-1">Showing Employee interactions througout payrol period</small>
+        </h5>
+    </div>
+    <div class="col">
+        <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+            @*<div class="float-right mr-2">
+                <select class="form-control form-control-sm empId" style="width:250px !important" name="empId" id="empId" onchange="loadEmployeeAttendance()"></select>
+            </div>*@
+            @*<div class="btn-group" role="group" aria-label="Third group">
+                    <a class="btn btn-sm btn-outline-primary" asp-action="AddOrUpdateSchedule" data-ajax-method="GET" data-ajax="true" data-ajax-update="#modal-1 .modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="ion ion-plus"></i> Add Schedule</a>
+                </div>*
+        </div>
+    </div>
+</div>*@
+
+
+<table class="table table-schedule table-borderless" id="tableAttendance">
+    <tbody>
+        <tr>
+            @for (var start = Model.PayrollPeriod.StartDate; start <= Model.PayrollPeriod.EndDate; start = start.AddDays(1))
+            {
+                <td class="date @(start.Date == DateTime.Now.Date ? "active" : "") @(Model.SelectedDate == start ? "selected" : "")" style="width:20px" id="@start.Date.ToString("yyyyMMdd")">
+                    <a asp-action="AttendanceDayView" asp-controller="Payroll" asp-route-date="@start" asp-route-id="@Model.PayrollPeriod.Id" data-ajax-begin="clearAttendanceDayView()" data-ajax="true" data-ajax-method="GET" data-ajax-update="#attendanceDayView" data-ajax-failure="handleModalPostFailure" data-ajax-success="setDateInTable('@start.Date.ToString("yyyyMMdd")')" id="" style="">
+                        <div class="text-center">
+                            <h6 class="text-muted mb-0 pt-1">@start.Day</h6>
+                            <small style="font-size:10px; padding-top:2px">@start.ToString("ddd").Substring(0, 1)</small>
+                        </div>
+                    </a>
+                </td>
+            }
+        </tr>
+        <tr>
+            <td colspan="@colspan" class="text-center"><h6>@Model.PayrollPeriod.StartDate.ToString("MMMM")</h6></td>
+            <td colspan="@endColspan" class="text-center"><h6>@Model.PayrollPeriod.EndDate.ToString("MMMM")</h6></td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="mt-4" id="attendanceDayView">
+    <div class="row">
+        <div class="col-md-2">
+            <div class="border-0 list-group attendanceChartType">
+                <div class="list-group-item list-group-flush"><h6><b>Dimensions</b></h6></div>
+                <a class="list-group-item list-group-item-action" data-type="workedHrs">
+                    <i class='fad fa-business-time text-info'></i> Worked Hours
+                </a>
+                <a class="list-group-item list-group-item-action" data-type="late">
+                    <i class='fa fa-circle  text-danger'></i> Late Minutes
+                </a>
+                <a class="list-group-item list-group-item-action" data-type="late-emp">
+                    <i class='fad fa-times-octagon text-danger'></i> Late & Absent Employees
+                </a>
+                <a class="list-group-item list-group-item-action">
+                    <i class='fa fa-times-octagon  text-secondary'></i> Absent Days
+                </a>
+                <a class="list-group-item list-group-item-action">
+                    <i class='fa fa-hourglass-start  text-warning'></i> Overtime Hours
+                </a>
+                <a class="list-group-item list-group-item-action">
+                    <i class='fad fa-calendar-check  text-success'></i> Paid Time Offs
+                </a>
+            </div>
+        </div>
+        <div class="col-md-10">
+            <h5 class="head1 text-center"></h5>
+            <!-- HTML -->
+            <div id="chartdiv" style="width: 100%;height: 500px;">
+                <div class="loader loader-blue btn-loading" data-page="2" style="line-height: 85px;display:block;white-space: pre">
+                    <div class="ball-beat"><div></div><div></div><div></div></div>
+                </div>
+            </div>
+
+            <table class="table">
+                <tbody>
+                    @foreach (var item in Model.EmployeeStatusDays)
+                    {
+                        <tr>
+                            <td style=" vertical-align: middle;display:flex" class="">
+                                <img src="@Url.Content(item.Employee.Avatar ?? DefaultPictures.default_user)" height="30" class="mt-1 mr-2 rounded-circle" />
+                                <div class="name-display pt-1 text-left">
+                                    <span class="">@item.Employee.GetSystemName(User)</span>
+                                    <br>
+
+                                    <small>
+                                        @(Html.Raw(item.GetAttendanceStatusString())) @item.DaysCount day(s)
+                                    </small>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @*<div class="col-md-1" id="absent-ontime-late-empls">
+            <h5 class="head1 text-center">Overall Stats</h5>
+            <div class="wrapper">
+                <div class="container">
+                    <div class="top text-center text-info mt-3">
+                        <h1 class="display-2">@Model.EmployeeStatusDays.Sum(a => a.TotalHoursWorkedPerSchedule).ToString("N2")</h1>
+                        <p class="pb-2">
+                            <span>Worked Hours</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <br />
+
+            <div class="wrapper">
+                <div class="container">
+                    <div class="top text-center text-danger mt-3">
+                        <h2 class="display-2" style="">@TimeSpan.FromMinutes(Model.EmployeeStatusDays.Sum(a => a.TotalLateMins)).ToString("hh\\:mm")</h2>
+                        <p class="pb-2">
+                            <span class="">Total Late (@Model.EmployeeStatusDays.Sum(a => a.TotalLateMins) mins) </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <br />
+            <h5 class="head1 text-center">Employee Status</h5>
+            <table class="table">
+                <tbody>
+                    @foreach (var item in Model.EmployeeStatusDays.Take(6))
+                    {
+                        <tr>
+                            <td style=" vertical-align: middle;display:flex" class="">
+                                <img src="@Url.Content(item.Employee.PhotoLink ?? DefaultPictures.default_user)" height="30" class="mt-1 mr-2 rounded-circle" />
+                                <div class="name-display pt-1 text-left">
+                                    <span class="">@item.Employee.GetSystemName(User)</span>
+                                    <br>
+
+                                    <small>
+                                        @(Html.Raw(item.GetAttendanceStatusString())) @item.DaysCount day(s)
+                                    </small>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>*@
+    </div>
+</div>
+<script>
+    loadEmpddSearch('#empId');
+
+    function setDateInTable(date) {
+        $('#tableAttendance td.date').removeClass('selected');
+        $('#tableAttendance td#' + date).addClass('selected');
+    }
+    
+</script>

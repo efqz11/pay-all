@@ -1,0 +1,61 @@
+﻿@model RegisterViewModel
+
+<h4 class="card-title">Register</h4>
+<div asp-validation-summary="All" class="p-1 text-danger"></div>
+<form method="POST" class="my-login-validation" novalidate="">
+    @*<div class="form-group">
+            <label for="name">Name</label>
+            <input id="name" type="text" class="form-control" asp-for="UserName" required autofocus>
+            <div class="invalid-feedback">
+                What's your name?
+            </div>
+            <span class="text-danger" asp-validation-for="UserName"></span>
+        </div>*@
+
+    <div class="form-group">
+        <label for="email">E-Mail Address</label>
+        <input id="email" type="email" class="form-control" asp-for="Email" required>
+        <div class="invalid-feedback">
+            Your email is invalid
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" class="form-control" asp-for="Password" required data-eye>
+        <div class="invalid-feedback">
+            Password is required
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="password">Confirm Password</label>
+        <input id="passwordConfirm" type="password" class="form-control" asp-for="ConfirmPassword" required data-eye>
+        <div class="invalid-feedback">
+            Confirmation password is required
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="custom-control custom-checkbox">
+            @*<input type="checkbox" asp-for="AcceptTermsAndConditions" class="custom-control-input" tabindex="5" data-rule-required="true" data-msg-required="You must accept the Terms and Conditions before logging in">*@
+            <span class="custom-control-label" for="AcceptTermsAndConditions">
+                I have read and accept the
+                <a href="#divTerms" data-toggle="modal" tabindex="6">
+                    Terms and Conditions
+                </a> of use for this site.
+            </span>
+        </label>
+        <div class="invalid-feedback">
+            You must agree with our Terms and Conditions
+        </div>
+    </div>
+
+    <div class="form-group m-0">
+        <button type="submit" class="btn btn-primary btn-block">
+            Register
+        </button>
+    </div>
+    <div class="mt-4 text-center">
+        Already have an account? <a asp-action="Login">Login</a>
+    </div>
+</form>

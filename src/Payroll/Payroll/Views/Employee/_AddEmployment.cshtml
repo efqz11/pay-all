@@ -1,0 +1,180 @@
+﻿@model Payroll.Models.Employee
+
+@{
+    ViewData["Title"] = "Change employee details";
+    Layout = "_LayoutEditor";
+    ViewBag.ProgressStep = 6;
+    ViewBag.Header = "Add Employment";
+    ViewBag.BackAction = Url.Action("AddOrUpdateBankDetails", new { id = Model.Id });
+}
+
+<form asp-action="AddEmployment" data-ajax="true" data-ajax-method="POST" data-ajax-update="#change-form-wrapper" data-ajax-success="sendNotification('success', 'Employment information was just updated');hideModal();InitializeTabs()" id="employeeJobInfoCreateForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    <input asp-for="FirstName" type="hidden" />
+    @*<input asp-for="EmployeeId" type="hidden" />*@
+    @*<header class="modal__header">
+
+            <h2 class="modal__title" id="modal-1-title">
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update="#change-form-wrapper" asp-action="Change" asp-controller="Employee" asp-route-id="@Model.Id">
+                    <i class="fad fa-arrow-alt-left fa-2x"></i>
+                </a>
+
+                Add Employment
+            </h2>
+        </header>
+        <main class="modal__content" id="modal-1-content">*@
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <h4 class="pb-4 fs-unmask">Employment information</h4>
+
+    <div class="form-group mb-4">
+        <label asp-for="JobId" class="control-label">Choose any vacant Job</label>
+        <p class="text-weight-normal">List shows all vacant jobs in the company.</p>
+        <select asp-items="ViewBag.JobId" asp-for="JobId" class="form-control form-control-lg">
+            <option value="0">Choose Job</option>
+        </select>
+        <span asp-validation-for="JobId" class="text-danger"></span>
+    </div>
+    <div class="form-group mb-4">
+        <label class="custom-control custom-checkbox custom-checkbox-large">
+            <input type="checkbox" asp-for="IsCreateNewJob" class="date-chooser custom-control-input" onchange="onCheckChange(this);$('#ddd').toggle()">
+            <span class="custom-control-label" for="chbxTerms">
+                No, I want to create a new job
+            </span>
+        </label>
+    </div>
+
+    <div id="ddd" style="display:none">
+        <div class="form-group mb-4">
+            <label asp-for="JobTitle" class="control-label">Job title</label>
+            <p class="text-weight-normal">To create a job, we require title, department, level and type. On successfult completion system will create and occupy job with the employee.</p>
+            @*<select asp-items="ViewBag.JobId" asp-for="DepartmentId" class="form-control form-control-lg">
+                <option value="0">Choose</option>
+                <option value="-1">Create new job</option>
+            </select>*@
+            <input asp-for="JobTitle" class="form-control form-control-lg" placeholder="ex: 'Director of Sales'" />
+            <span asp-validation-for="JobTitle" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mb-4">
+            <label asp-for="DepartmentId" class="control-label">Department</label>
+            <select asp-for="DepartmentId" class="form-control form-control-lg" asp-items="ViewBag.DepartmentId">
+                <option value="0">Choose Department</option>
+            </select>
+            <span asp-validation-for="DepartmentId" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mb-4 row">
+            <div class="col">
+                <label asp-for="Level" class="control-label">Job level</label>
+                <input asp-for="Level" class="form-control form-control-lg" placeholder="ex: 'Managers'" />
+                <span asp-validation-for="Level" class="text-danger"></span>
+            </div>
+            <div class="col">
+                <label asp-for="JobType" class="control-label">Job Type</label>
+                <select asp-for="JobType" type="text" class="form-control form-control-lg has-datepicker" asp-items="@Html.GetEnumSelectList<JobType>()"></select>
+                <span asp-validation-for="JobType" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group mb-4">
+        <label asp-for="ReportingEmployeeId" class="control-label">Reporting Employee</label>
+        <p class="text-weight-normal">This person will be your immediate supervisor and who will approved your time sheets and paid leaves.</p>
+        <select asp-for="ReportingEmployeeId" class="form-control form-control-lg">
+            <partial name="_EmployeeDropdownOpt" model="(List<Employee>)ViewBag.ReportingEmployeeId" />
+        </select>
+        <span asp-validation-for="ReportingEmployeeId" class="text-danger"></span>
+    </div>
+
+
+    <div class="row mb-4">
+        <div class="form-group col">
+            <label asp-for="EmploymentType" class="control-label">Employment Type</label>
+            <select asp-for="EmploymentType" type="text" class="form-control form-control-lg has-datepicker" asp-items="@Html.GetEnumSelectList<EmployeeType>()"></select>
+            <span asp-validation-for="EmploymentType" class="text-danger"></span>
+        </div>
+        <div class="form-group col">
+            <label asp-for="EmploymentTypeOther" class="control-label">Other <i class="fad fa-question" title="Internal or external employment"></i></label>
+            <select asp-for="EmploymentTypeOther" type="text" class="form-control form-control-lg has-datepicker" asp-items="@Html.GetEnumSelectList<EmploymentTypeOther>()"></select>
+            <span asp-validation-for="EmploymentTypeOther" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="row mb-4">
+        <div class="form-group col">
+            <label asp-for="ContractStartDate" class="control-label">Date of Joining</label>
+            <input type="text" name="DateOfBirth" value="@Model.ContractStartDate?.ToString("dd-MMM-yyyy")" class="form-control form-control-lg has-datepicker" />
+        </div>
+        <div class="form-group col">
+            <label asp-for="ContractEndDate" class="control-label">End date of employment</label>
+            <input type="text" name="ContractEndDate" value="@Model.ContractEndDate?.ToString("dd-MMM-yyyy")" class="form-control form-control-lg has-datepicker" />
+            <span asp-validation-for="Gender" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="form-group mb-4">
+        <label class="custom-control custom-checkbox custom-checkbox-large">
+            <input type="checkbox" asp-for="HasProbationEndDate" class="date-chooser custom-control-input" onchange="onCheckChange(this);$('#ssss').toggle()">
+            <span class="custom-control-label" for="chbxTerms">
+                Employee has probation end date
+            </span>
+        </label>
+    </div>
+
+    <div class="form-group mb-4" id="ssss" style="display:none">
+        <label asp-for="ProbationEndDate" class="control-label">Probation end date</label>
+        <p class="text-weight-normal">Probation period will be starting from the joined date until date selected here.</p>
+        <input type="text" name="ProbationEndDate" value="@Model.ProbationEndDate?.ToString("dd-MMM-yyyy")" class="form-control form-control-lg has-datepicker" />
+        <span asp-validation-for="ProbationEndDate" class="text-danger"></span>
+    </div>
+
+
+
+    @* <div class="row mb-2">
+            <div class="form-group col">
+                <label asp-for="EffectiveDate" class="control-label">Contract Start Date</label>
+                <input asp-for="EffectiveDate" type="text" class="form-control has-datepicker" />
+                <span asp-validation-for="EffectiveDate" class="text-danger"></span>
+            </div>
+            <div class="form-group col">
+                <label asp-for="EndDate" class="control-label">Contract End Date <i class="fad fa-question" title="Contract end date"></i></label>
+                <input asp-for="EndDate" type="text" class="form-control has-datepicker" />
+                <span asp-validation-for="EndDate" class="text-danger"></span>
+            </div>
+        </div> *@
+
+
+    <div class="form-inline" style="font-size:">
+        <div class="form-group mb-2">
+            <label for="PayrolPeriodStartDate" class="">Employee works &nbsp;</label>
+            <input type="number" asp-for="WeeklyWorkingHours" class="form-control form-control-lg" style="width:75px">&nbsp; hours per week and &nbsp;
+            <input type="number" asp-for="DailyWorkingHours" class="form-control form-control-lg" style="width:75px">&nbsp; hours per day &nbsp;
+        </div>
+    </div>
+
+
+
+    <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+        <button class="btn btn-lg btn-outline-primary btn-back mr-2" type="button" onclick="$('.modal__btn-back').click()">Back</button>
+        <button class="btn btn-lg btn-primary btn-next" type="submit">Save & Continue</button>
+    </div>
+
+</form>
+
+
+    <script>
+    initDatePicker();
+
+        var empId = '@Model.ReportingEmployeeId';
+        if (empId)
+            $('#ReportingEmployeeId').val(empId);
+
+        $('#zEmploymentStatus option').eq(5).remove();
+        $("#JobId").change(function (e) {
+            console.log(this.value, 'jobid');
+            if (this.value != "0" && $("#IsCreateNewJob").is(':checked')) {
+                $("#IsCreateNewJob").click();
+            }
+        });
+    </script>

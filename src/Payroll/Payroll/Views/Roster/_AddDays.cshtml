@@ -1,0 +1,143 @@
+﻿@model List<DayVm>
+@{
+    var total = Model.Count();
+    var rows = total / 7;
+    var cols = total / rows;
+    var moveDate = Model.First().Date;
+    var index = 0;
+    var dayIndex = 0;
+    var tabIndex = 0;
+}
+<style>
+    .disabled {
+        opacity: 0.3;
+        text-decoration: line-through;
+    }
+
+    .table-calendar h4 {
+        font-size: 1.1rem;
+    }
+
+    .day-shift-slot .custom-control.custom-checkbox {
+        padding-left: 2rem;
+        margin-bottom: 0.1rem;
+    }
+</style>
+<form asp-action="AddDays" asp-controller="Roster" data-ajax="true" data-ajax-method="POST" data-ajax-update="#weekly-schedule" data-ajax-success="shideModal('Schedule was created successfully');" id="addOrUpdatScheduleForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            Choose @ViewBag.Type
+            <br />
+            <small>@ViewBag.Employee</small>
+            <input type="hidden" value="@ViewBag.TypeT" name="t" />
+            <input type="hidden" value="@ViewBag.Emp" name="emp" />
+            <input type="hidden" value="@ViewBag.SchId" name="sId" />
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <span>Selected @Model.SelectMany(z => z.WorkTimes).Count(x => x.IsSelected) slot(s) selected</span>
+        <br />
+        Total Days &middot; @Model.Count() | rows &middot; @rows | cols = @cols
+        <div class="row" id="tasks-schedule">
+            @if (Model == null || Model.Any() == false)
+            {
+                <div class="p-5 text-center" style="width:100%">
+                    <p class="text-lead mt-5">No schedules were found for the week @ViewBag.CurrentRangeDisplay</p>
+                    <a class="btn btn-primary" asp-action="AddOrUpdateWork" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="ion ion-plus"></i> Add Schedule</a>
+                </div>
+            }
+            else
+            {
+                <table class="table table-calendar table-schedule">
+                    <thead>
+
+                        <tr>
+                            <td colspan="7">
+                                <div class="p-1 text-center">
+                                    <h5>@Model.First().Date.ToString("MMMM") @(Model.Last().Date.Month != Model.First().Date.Month ? " / " + Model.Last().Date.ToString("MMMM") : "")</h5>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+
+                            @for (var start = moveDate; start < moveDate.AddDays(7).Date; start = start.AddDays(1))
+                            {
+                            <td>
+                                <small class="text-center">@start.Date.ToString("ddd").ToUpper()</small>
+                            </td>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+
+
+                        @for (int i = 0; i <= rows; i++)
+                        {
+                            @*@if (i == 0)
+                            {
+                                <tr>
+                                    <td colspan="7">
+                                        <div class="p-1 text-center">
+                                            <h5>@moveDate.AddDays(7).ToString("MMMM")</h5>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }*@
+
+                                <tr>
+                                    @for (var start = moveDate; start < moveDate.AddDays(7); start = start.AddDays(1))
+                                    {
+                                        <td class="@(start.Date == DateTime.Now.Date ? "active" : "")">
+                                            <div class="p-2 text-center">
+                                                <h4>@start.Day</h4>
+                                                @if (Model.Any(x => x.Date.Date == start.Date))
+                                                {
+                                                    <input type="hidden" name="[@dayIndex].Date" value="@Model.FirstOrDefault(x => x.Date.Date == start.Date).Date" />
+                                                    <input type="hidden" name="[@dayIndex].Day" value="@Model.FirstOrDefault(x => x.Date.Date == start.Date).Day" />
+
+                                                    index = 0;
+
+                                                    foreach (var wi in Model.FirstOrDefault(x => x.Date.Date == start.Date).WorkTimes)
+                                                    {
+                                                        <input type="hidden" name="[@dayIndex].WorkTimes[@index].id" value="@wi.id" />
+                                                        <div class="day-shift-slot">
+                                                            <label class="custom-control custom-checkbox">
+
+                                                                <input type="checkbox" tabindex="@(tabIndex++)" name="[@dayIndex].WorkTimes[@index].IsSelected" value="@(wi.IsSelected ? "True" : "False")" class="custom-control-input" onchange="onCheckChange(this)"  @(wi.IsSelected ? "checked" : "")>
+                                                                <input type="hidden" name="[@dayIndex].WorkTimes[@index].IsSelected" value="False" />
+                                                                <span class="custom-control-label" for="chbxTerms">
+                                                                    @*@wi.Name.Substring(0, 1).ToUpper()*@
+                                                                </span>
+                                                            </label>
+                                                        </div>
+
+                                                        index++;
+                                                    }
+                                                }
+
+                                                @{dayIndex = dayIndex + 1;}
+
+                                            </div>
+                                        </td>
+                                    }
+                                </tr>
+                                
+                                moveDate = moveDate.AddDays(7);
+                            }
+                        
+                    </tbody>
+                </table>
+            }
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary btn-save-master">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>
+
+
+<script>
+</script>

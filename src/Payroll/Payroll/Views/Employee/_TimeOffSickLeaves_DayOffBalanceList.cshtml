@@ -1,0 +1,41 @@
+﻿@model List<DayOffEmployee>
+
+
+
+<table class="table table-borderless">
+    @foreach (var item in Model)
+    {
+    <tr>
+        <td class="pl-0 pr-0">
+            <b style="font-size:13px">@item.DayOff.Name</b>
+            @*<br />
+            <small class="text-info"><i class="fa @(item.DayOff.ResetAnnuallyFromJoinDate ? "fa-hourglass-half" : "fa-hourglass-end")" title="@(item.DayOff.ResetAnnuallyFromJoinDate ? "Reset from joined date" : "Reset every yeaar")"></i> refreshing on @item.NextRefreshDate.ToLocalFormat()</small>*@
+        </td>
+        <td class="pl-0 pr-0">
+
+            <div class="progress-display mt-1">
+                <div class="progress-bar">
+                    <span class="bar">
+                        <span class="progress red p-0 text-right" style="width:@((item.TotalCollectedHours/(decimal)item.TotalHours)*100)%;height:7px;"><b></b></span>
+                    </span>
+                </div>
+            </div>
+            <small class="text-muted">@item.TotalCollectedHours hours</small>
+
+            @*@((item.TotalCollectedDays / (decimal)item.TotalDays) * 100)*@
+            @*@item.TotalCollectedDays / @item.TotalDays*@
+
+            @*@item.TotalCollectedDays / @item.TotalRemainingDays*@
+            @*<span class="badge">@item.Status</span>
+            <br />
+
+            <i class="@(item.IsConfigured ? "text-success ion ion-check-circle" : "text-danger ion ion-alert") float-right"
+               title="@(item.IsConfigured ? "Company is not configured" : "Configured")"></i>*@
+        </td>
+    </tr>
+    }
+</table>
+@*@if (Model.DayOffs.Any() && Model.DayOffs.All(a => a.DayOff.ResetAnnuallyFromJoinDate))
+{
+    <span class="text-muted">All days will reset on @Model.DayOffs.First().NextRefreshDate.ToLocalFormat()</span>
+}*@

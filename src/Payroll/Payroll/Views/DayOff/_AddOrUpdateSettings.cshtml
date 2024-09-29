@@ -1,0 +1,252 @@
+﻿@model DayOff
+
+@{
+
+    Layout = "_LayoutEditor";
+    ViewBag.Header = (Model == null || Model.Id <= 0 ? "New Time Off" : "Manage Time Off");
+}
+
+@section progressSteps {
+    <ol class="progress-bar-tabs progress-bar-style-default">
+        <li data-step="1" class="progress-bar-item complete"><div class="progress-bar-item-content">Policy</div></li>
+        <li data-step="2" class="progress-bar-item complete"><div class="progress-bar-item-content">Conditions</div></li>
+        <li data-step="3" class="progress-bar-item complete"><div class="progress-bar-item-content">Accrual</div></li>
+        <li data-step="4" class="progress-bar-item complete"><div class="progress-bar-item-content">Settings</div></li>
+        <li data-step="5" class="progress-bar-item"><div class="progress-bar-item-content active">Enrollment</div></li>
+        <li data-step="6" class="progress-bar-item "><div class="progress-bar-item-content">Kickoff</div></li>
+    </ol>
+}
+
+<form asp-action="AddOrUpdateSettings" asp-controller="DayOff" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" data-ajax-success="sendNotification('success', 'Day off was just @(Model == null || Model.Id == 0 ? "created" : "updated")'); hideModal()" id="" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+    <input asp-for="Name" type="hidden" />
+
+    <div>
+        <h4 class="pb-4 fs-unmask">Waiting Period</h4>
+
+        <div class="form-group mb-5">
+            <label asp-for="IsThereWaitingPeriodForAccrue" class="control-label">Do your employees go through a waiting period before they begin accruing time off?</label>
+            <p class="small">If you select Yes, new employees won’t accrue time off until the payroll after their waiting period ends.</p>
+
+            <label class="custom-control custom-radio custom-radio-large">
+                <input type="radio" group="2" asp-for="IsThereWaitingPeriodForAccrue" class=" custom-control-input" onchange="$('#w_acc').show();" value="True" data-val="true">
+                <span class="text-large custom-control-label text-weight-normal">
+                    Yes, there is an accrual waiting period
+                </span>
+            </label>
+            <label class="custom-control custom-radio custom-radio-large">
+                <input type="radio" group="2" asp-for="IsThereWaitingPeriodForAccrue" class=" custom-control-input" onchange="$('#w_acc').hide();" value="False" data-val="true">
+                <span class="text-large custom-control-label text-weight-normal">
+                    No, they can immediately begin accruing time off
+                </span>
+            </label>
+        </div>
+
+        <div class="form-group mb-5 " id="w_acc" style="display:none">
+            <label asp-for="LengthWaitingPeriodForAccrue" class="control-label"></label>
+            <p class="small">
+                The length of the waiting period is calculated in calendar days (not business days)
+            </p>
+
+            <div class="input-group mb-3">
+                <input asp-for="LengthWaitingPeriodForAccrue" as class="form-control form-control-lg" value="@(Model.LengthWaitingPeriodForAccrue > 0 ? Model.LengthWaitingPeriodForAccrue : "")">
+                <div class="input-group-append">
+                    <span class="input-group-text" id="basic-addon2">days</span>
+                </div>
+            </div>
+
+        </div>
+
+
+        <div class="form-group mb-5">
+            <label asp-for="IsThereWaitingPeriodForRequest" class="control-label">
+                Do your employees go through a waiting period before they can request time off?
+            </label>
+            <p class="small">
+                If you select Yes, new employees won’t be able to request time off during their waiting period, but they will continue to accrue hours.
+            </p>
+
+            <label class="custom-control custom-radio custom-radio-large">
+                <input type="radio" group="42" asp-for="IsThereWaitingPeriodForRequest" class=" custom-control-input" onchange="$('#w_req').show();" value="True" data-val="true">
+                <span class="text-large custom-control-label text-weight-normal">
+                    Yes, there is an accrual waiting period
+                </span>
+            </label>
+            <label class="custom-control custom-radio custom-radio-large">
+                <input type="radio" group="42" asp-for="IsThereWaitingPeriodForRequest" class=" custom-control-input" onchange="$('#w_req').hide();" value="False" data-val="true">
+                <span class="text-large custom-control-label text-weight-normal">
+                    No, they can immediately begin requesting time off
+                </span>
+            </label>
+        </div>
+
+        <div class="form-group mb-5 " id="w_req" style="display:none">
+            <label asp-for="LengthWaitingPeriodForRequest" class="control-label"></label>
+            <p class="small">
+                The length of the waiting period is calculated in calendar days (not business days)
+            </p>
+
+            <div class="input-group mb-3">
+                <input asp-for="LengthWaitingPeriodForRequest" as class="form-control form-control-lg" value="@(Model.LengthWaitingPeriodForRequest > 0 ? Model.LengthWaitingPeriodForRequest : "")">
+                <div class="input-group-append">
+                    <span class="input-group-text" id="basic-addon2">days</span>
+                </div>
+            </div>
+        </div>
+
+
+        <h4 class="mt-3 pb-4 fs-unmask">Max Balance and Carryover</h4>
+        <div class="form-group mb-4">
+            <label asp-for="MaxAccuredHoursPerYear" class="control-label"></label>
+            <p class="small">
+                Once employees reach the max, they will stop accruing hours until the following calendar year.
+            </p>
+            <div class="input-group mb-3">
+                <input asp-for="MaxAccuredHoursPerYear" as class="form-control form-control-lg" value="@(Model.MaxAccuredHoursPerYear > 0 ? Model.MaxAccuredHoursPerYear : "")">
+                <div class="input-group-append">
+                    <span class="input-group-text" id="basic-addon2">hours</span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group mb-5">
+            <label asp-for="MaxBalance" class="control-label"></label>
+            <p class="small">
+                Once your employees reach the max balance, they'll temporarily stop accruing time off. If their balance falls below the max, they'll start accruing time off again.
+            </p>
+            <div class="input-group mb-3">
+                <input asp-for="MaxBalance" as class="form-control form-control-lg" value="@(Model.MaxBalance > 0 ? Model.MaxBalance : "")">
+                <div class="input-group-append">
+                    <span class="input-group-text" id="basic-addon2">hours</span>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="form-group mb-5">
+            <label asp-for="IsThereCarryOverLimit" class="control-label"></label>
+            <p class="small">
+                The carryover limit sets the maximum number of hours your employees can carry over from one calendar year to the next. Any extra hours will be removed from their time off balance as soon as you run your last payroll in December.
+            </p>
+
+
+            <label class="custom-control custom-radio custom-radio-large">
+                <input type="radio" group="32" asp-for="IsThereCarryOverLimit" class=" custom-control-input" onchange="$('#carr_limit').show();" value="True" data-val="true">
+                <span class="text-large custom-control-label text-weight-normal">
+                    Yes, there’s a limit
+                </span>
+            </label>
+            <label class="custom-control custom-radio custom-radio-large">
+                <input type="radio" group="32" asp-for="IsThereCarryOverLimit" class=" custom-control-input" onchange="$('#carr_limit').hide();" value="False" data-val="true">
+                <span class="text-large custom-control-label text-weight-normal">
+                    No, all hours can be carried over
+                </span>
+            </label>
+            <span asp-validation-for="IsThereCarryOverLimit" class="control-label"></span>
+        </div>
+
+        <div class="form-group mb-5 " id="carr_limit" style="display:none">
+            <label asp-for="CarryOverLimit" class="control-label"></label>
+            <p class="small">
+                Please specify how many hours an employee can carry over from one calendar year to the next.
+            </p>
+
+            <div class="input-group mb-3">
+                <input asp-for="CarryOverLimit" as class="form-control form-control-lg" value="@(Model.CarryOverLimit > 0 ? Model.CarryOverLimit : "")">
+                <div class="input-group-append">
+                    <span class="input-group-text" id="basic-addon2">hours</span>
+                </div>
+            </div>
+        </div>
+
+
+
+        @*<h4 class="mt-3 pb-4 fs-unmask">Additional settings</h4>
+            <div class="form-group mb-4">
+                <label asp-for="MaxBalance" class="control-label"></label>
+                <p class="text-weight-normal">
+                    Some states require dismissed employees to be paid out their remaining unused paid time off balances with their final payroll. To stay compliant, check the state regulations where each employee works.
+                </p>
+                <label class="custom-control custom-radio custom-radio-large">
+                    <input type="radio" group="12" asp-for="IsOutstandingBalancePaidUponDismissial" class=" custom-control-input" onclick="$('#pp').show()" value="True" data-val="true">
+                    <span class="text-large custom-control-label text-weight-normal">
+                        Yes, employees should be paid out
+
+                    </span>
+                </label>
+                <label class="custom-control custom-radio custom-radio-large">
+                    <input type="radio" group="12" asp-for="IsOutstandingBalancePaidUponDismissial" class=" custom-control-input" onclick="$('#pp').hide()" value="False" data-val="true">
+                    <span class="text-large custom-control-label text-weight-normal">
+                        No, employees should not be paid out
+                    </span>
+                </label>
+            </div>
+
+            <div class="form-group mb-4 " id="pp" style="display:none">
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    The pay will be calculated based on number of hours left in this policy. If the employee is paid by the hour, we will use the employee's primary pay rate. If the employee is salaried, we will use the hourly rate based on their salary and a default 40 hour work week.
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>*@
+    </div>
+
+
+    <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+        <a class="btn btn-lg btn-outline-primary  mr-2" asp-action="AddOrUpdate" asp-controller="DayOff" asp-route-id="@Model.Id" asp-route-cmpId="@Model.CompanyId" data-ajax="true" data-ajax-method="GET" data-ajax-update="#main-content">Back</a>
+        <button class="btn btn-lg btn-primary " type="submit">Submit</button>
+
+        @* @if (Model.Id > 0)
+            {
+                <a class="modal__btn modal__btn-danger float-right" asp-action="Remove" asp-route-id="@Model.Id" asp-route-remove="self" data-ajax-method="POST" data-ajax="true" data-ajax-update="#dayOff_table" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', 'Day off was just removed');hideModal();" data-ajax-confirm="Are you sure you want to remove this day off?">Remove</a>
+            } *@
+    </div>
+
+    @*<footer class="modal__footer">
+            <button type="submit" class="modal__btn modal__btn-primary">
+                Save
+            </button>
+            <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+
+        </footer>*@
+</form>
+
+
+
+
+
+@if (Model.IsActive == false)
+{
+    <script>
+        $('#IsThereWaitingPeriodForAccrue:checked').prop('checked', false);
+        $('#IsThereWaitingPeriodForRequest:checked').prop('checked', false);
+        $('#IsThereCarryOverLimit:checked').prop('checked', false);
+    </script>
+}
+<script>
+    if ('@Model.IsThereWaitingPeriodForAccrue' === "True") {
+        $('#IsThereWaitingPeriodForAccrue').prop('checked', true);
+        $('#IsThereWaitingPeriodForAccrue').change();
+    }
+    if ('@Model.IsThereWaitingPeriodForRequest' === "True") {
+        $('#IsThereWaitingPeriodForRequest').prop('checked', true);
+        $('#IsThereWaitingPeriodForRequest').change();
+    }
+    if ('@Model.IsThereCarryOverLimit' === "True") {
+        $('#IsThereCarryOverLimit').prop('checked', true);
+        $('#IsThereCarryOverLimit').change();
+    }
+
+
+    $('.date-chooser').change(function (e) {
+        if ($(this).prop('checked') === true)
+            $(this).val(true);
+        else {
+            $(this).val(false);
+        }
+    })
+
+
+
+</script>

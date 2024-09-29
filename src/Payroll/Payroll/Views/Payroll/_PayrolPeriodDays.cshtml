@@ -1,0 +1,173 @@
+﻿@model PayrollVm
+
+@{
+    var daysInStartMonth = DateTime.DaysInMonth(Model.PayrollPeriod.StartDate.Year, Model.PayrollPeriod.StartDate.Month);
+    var colspan = daysInStartMonth - (Model.PayrollPeriod.StartDate.Date.Day - 1);
+    var endColspan = (Model.PayrollPeriod.EndDate.Date - Model.PayrollPeriod.StartDate.Date).TotalDays - colspan;
+
+    bool isOneEmmp = Model.EmployeeRecords.Count == 1;
+}
+@*<div class="row mt-2">
+    <div class="col">
+        <h5 class="text-left">
+            @(ViewBag.Header)
+            <br />
+            <small class="pt-1">Employees in the payroll (@Model._ActiveContracts.Count())</small>
+        </h5>
+    </div>
+    <div class="col">
+        <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+        </div>
+    </div>
+</div>*@
+
+<div class="row mt-2">
+
+    <div class="col-md-12">
+        @*<div class="input-group mb-1">
+            <div class="input-group-prepend border-right-0">
+                <span class="input-group-text bg-white border-right-0"><i class="fad fa-search"></i></span>
+            </div>
+            <input type="text" class="form-control no-focus border-left-0" name="search" id="searchCntr" placeholder="Search by employee name, department or designation" />
+        </div>*@
+        <table class="table" id="contractMainTable_pp">
+            <thead>
+                <tr>
+                    <td>Employee(s)</td>
+                    <td>Employment</td>
+                    <td colspan="3">Stats</td>
+
+                    <td>Task Progress</td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model._ActiveContracts)
+                {
+                    <tr>
+                        <td class="text-left font-weight-bold sticky-col first-col">
+                            <div style=" vertical-align: middle;display:flex">
+                                <div class="image-container">
+                                    <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.Id">
+                                        <img src="@Url.Content(item.Avatar ?? DefaultPictures.default_user)" class="mt-1 mr-2 rounded-circle" />
+                                    </a>
+                                </div>
+                                <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.Id">
+                                    <div class="name-display pt-1">
+                                        <span class="">@item.EmpID &sim; @item.GetSystemName(User)</span>
+                                        <br>
+                                        <small class="text-muted" style="position: relative;top: -4px;">@(item.JobTitle ?? "No Designation") &middot; @item.Department.Name</small>
+                                    </div>
+                                </a>
+                            </div>
+                        </td>
+                        <td>
+                            <i class="fad fa-dot-circle text-primary"></i> @Html.DisplayFor(x => item.EmployeeStatus)
+                        </td>
+                        
+                        <td class="">
+                            @* text-left pt-2 *@
+                            @if (item._totalWorkedHrsPerSchedule > 0)
+                            {
+                                <p class="mb-0">
+                                    <a class="" asp-controller="Payroll" asp-action="GetStatDetails" asp-route-id="@Model.PayrolPeriodId" asp-route-empId="@item.Id" asp-route-type="workedHrs" data-ajax-begin="showModal()" data-ajax="true" data-ajax-update=".modal__container">
+                                        <span><i class='fad fa-business-time text-info' title='@item._totalWorkedHrsPerSchedule.ToString("N2")'></i> @(item._totalWorkedHrsPerSchedule.GetHourMinString())</span>
+                                    </a>
+                                    @if (item._totalWorkedHrsPerSchedule < item._totalWorkedHrs)
+                                    {
+                                        <i class="fa fa-star-half text-muted" title="Total worked for @item._totalWorkedHrs.ToString("N2")"></i>
+                                    }
+                                </p>
+                                @if (item._otHrs > 0)
+                                {
+                                    <p class="mb-0">
+                                        <a class="" asp-controller="Payroll" asp-action="GetStatDetails" asp-route-id="@Model.PayrolPeriodId" asp-route-empId="@item.Id" asp-route-type="ot" data-ajax-begin="showModal()" data-ajax="true" data-ajax-update=".modal__container">
+                                            <span><i class='fad fa-hourglass-half text-warning'></i> @(item._otHrs.GetHourMinString())</span>
+                                        </a>
+                                    </p>
+                                }
+                                <small class="text-muted">Tracked</small>
+                            }
+                        </td>
+                        <td>
+                            @if (item._lateMins > 0)
+                            {
+                                <p  class="mb-0">
+                                    <a class="" asp-controller="Payroll" asp-action="GetStatDetails" asp-route-id="@Model.PayrolPeriodId" asp-route-empId="@item.Id" asp-route-type="late" data-ajax-begin="showModal()" data-ajax="true" data-ajax-update=".modal__container">
+                                    <i class='fa fa-circle fa-sm text-danger' title=''></i> @(item._lateMins.GetHourMinString(isMinutes: true)) <span class="text-muted"> (@(item._lateDays + "d"))</span>
+                                </a>
+                                </p>
+                                <small class="text-muted">Late</small>
+                            }
+                        </td>
+                        <td>
+                            @if (item._AbsentDays > 0)
+                            {
+                                <a class="" asp-controller="Payroll" asp-action="GetStatDetails" asp-route-id="@Model.PayrolPeriodId" asp-route-empId="@item.Id" asp-route-type="absent" data-ajax-begin="showModal()" data-ajax="true" data-ajax-update=".modal__container">
+                                    <p class="mb-0"><i class='fa fa-times-octagon fa-sm text-secondary' title=''></i> @(item._AbsentDays + "d")</p>
+                                </a>
+                                <small class="text-muted">Absent Days</small>
+                            }
+                        </td>
+                        <td>
+                            @if (item._submissionOverallCompletionPercent > 0)
+                            {
+                                <span>
+                                    <span><i class='fad fa-tasks' title=''></i> @item._submissionOverallCompletionPercent.ToString("N2") %</span>
+                                </span>
+                            }
+                            
+                            @if (item._submissionOverallCompletionPercent > 0 && item._clockTasksOverallCompletionPercent > 0)
+                            {
+                                <br />
+                            }
+
+                            @if (item._clockTasksOverallCompletionPercent > 0)
+                            {
+                                <span>
+                                    <span><i class='fad fa-stopwatch' title=''></i> @item._clockTasksOverallCompletionPercent.ToString("N2") %</span>
+                                </span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+
+
+<script>
+
+    $(document).on('keyup', '#searchCntr', debounce(function () {
+        console.log('starting... ');
+        table_search($(this).val(), $('#contractMainTable_pp tbody tr'), '012');
+    }, 500));
+
+
+    $('.src').click(function (e) {
+        var match = $('#tablePayPeriod')
+            .find('.item-c.' + $(this).data('target'));
+
+
+        if ($(this).data('target') === "all") {
+            $('#tablePayPeriod').find('.item-c').show();
+            $('.src').removeClass('active');
+            return;
+        }
+        $('#tablePayPeriod').find('.item-c').not(match).hide();
+        $(match).show();
+
+        $('.src').removeClass('active');
+        $(this).addClass('active');
+    });
+
+</script>
+<script>
+
+    loadEmpddSearch('#empId');
+    @*if ('@isOneEmmp' === "True") {
+        $('#empId').val('5').trigger('change');
+    }*@
+</script>

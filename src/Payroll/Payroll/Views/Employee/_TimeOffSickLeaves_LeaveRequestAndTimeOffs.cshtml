@@ -1,0 +1,55 @@
+﻿@model List<DayOffEmplVm>
+
+<table class="table table-borderless table">
+
+    @if (Model.Any())
+    {
+        <thead>
+            <tr>
+                <td></td>
+                <td>Leave</td>
+                <td>Duration</td>
+                <td>Status</td>
+                <td>Approvals</td>
+                @*<td>
+                </td>*@
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+            <tr>
+                <td>
+                    <a class="" asp-action="ViewRequest" asp-controller="Request" asp-route-id="@item.RequestId" asp-route-type="@RequestType.Leave" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="handleModalPostFailure">
+                        @item.RequestReference
+                    </a>
+                </td>
+                <td>
+                    @*<span class="square mr-2 bg-@item.DayOffColor"></span>*@
+                    @(item.DayOffName ?? "NA")
+                </td>
+                <td>
+                    @item.RequestedDuration
+                </td>
+                <td>
+                    @Html.Raw(item.RequestedStatusIcon) @item.RequestedStatus
+                </td>
+                <td>
+                    @*@item.ActionTakenDate.ToSystemFormat(User, true)*@
+                </td>
+                @*<td>
+            @(item.TotalDays)
+        </td>*@
+            </tr>
+            }
+        </tbody>
+    }
+    else
+    {
+        <tr>
+            <td colspan="3">
+                <p class="text-muted">Looks like you do not have any requests within this period</p>
+            </td>
+        </tr>
+    }
+</table>

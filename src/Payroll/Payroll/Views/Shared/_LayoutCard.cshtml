@@ -1,0 +1,93 @@
+﻿@{
+
+    var rosterVm = (ViewBag.RosterVm != null ? (RosterVm)ViewBag.RosterVm : null);
+    var payrolVm = (ViewBag.PayrollVm != null ? (PayrollVm)ViewBag.PayrollVm : null);
+    var emp = (ViewBag.Employee != null ? (Employee)ViewBag.Employee : null);
+
+    var IsCardHeaderSearch = (ViewBag.CardHeaderSearch != null ? (bool)ViewBag.CardHeaderSearch : true);
+}
+
+<style>
+    .card {
+        padding: 0px !important;
+    }
+
+    .card-header {
+        padding: 1.35rem 1.85rem !important;
+    }
+
+    .card-body {
+        padding: 10px !important;
+    }
+</style>
+
+
+<div class="card" style="@((ViewBag.Style != null ? (string)ViewBag.Style : null))">
+
+    <!--Card Header-->
+    <div class="card-header">
+        <span class="title">@ViewBag.CardHeader</span>
+        <div class="p-actions mb-0 float-right">
+            @*<a asp-action="EmployeeHome" asp-controller="Home" data-ajax="true" data-ajax-update="#main-area" data-ajax-begin="$('#main-area').empty()" data-ajax-loading=".loader" class="active" data-ajax-success="$('.p-actions a').removeClass('active');$(this).addClass('active')">
+                <i class="fa fa-home"></i> Home
+            </a>
+            <a asp-action="ViewSchedule" asp-controller="Home" data-ajax="true" data-ajax-update="#main-area" data-ajax-begin="$('#main-area').empty()" data-ajax-loading=".loader" class="" data-ajax-success="$('.p-actions a').removeClass('active');$(this).addClass('active')">
+                <i class="fa fa-calendar-alt"></i> Schedule
+            </a>
+            <a asp-action="ViewTasks" asp-controller="Home" data-ajax="true" data-ajax-update="#main-area" data-ajax-begin="$('#main-area').empty()" data-ajax-loading=".loader" class="" data-ajax-success="$('.p-actions a').removeClass('active');$(this).addClass('active')">
+                <i class="fa fa-tasks"></i> Tasks
+            </a>
+            <a asp-action="ViewRequests" asp-controller="Home" data-ajax="true" data-ajax-update="#main-area" data-ajax-begin="$('#main-area').empty()" data-ajax-loading=".loader" class="" data-ajax-success="$('.p-actions a').removeClass('active');$(this).addClass('active')">
+                <i class="fa fa-paper-plane"></i> Requests
+            </a>*@
+
+            @if (rosterVm != null || payrolVm != null)
+            {
+                @*<i class="fa fa-star ml-4" aria-hidden="true"></i>*@
+            }
+            @*<span class="float-right">*@
+
+                @if (rosterVm != null)
+                {
+                    <a data-ajax="true" data-ajax-update="#main-area" data-ajax-begin="$('#main-area').empty()" data-ajax-loading=".loader" class="active" data-ajax-success="$('.p-actions a').removeClass('active');$(this).addClass('active')">
+                        <i class="fa fa-braille" aria-hidden="true"></i> @rosterVm.Slots
+                    </a>
+                    @(" · ")
+                    @(rosterVm.StartDate.GetDuration(rosterVm.EndDate, User))
+                }
+                else if (payrolVm != null)
+                {
+                    if (payrolVm.SelectedDate.HasValue)
+                    {
+                        <a asp-action="AttendanceDayView" asp-controller="Payroll" asp-route-date="@payrolVm.SelectedDate.Value.AddDays(-1)" asp-route-id="@Model.PayrollPeriod.Id" asp-route-empId="@(emp?.Id ?? 0)" data-ajax-begin="clearAttendanceDayView()" data-ajax="true" data-ajax-method="GET" data-ajax-update="#attendanceDayView" data-ajax-success="setDateInTable('@payrolVm.SelectedDate.Value.AddDays(-1).ToString("yyyyMMdd")')" data-ajax-failure="handleModalPostFailure" id="" style="">
+                            <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                        </a>
+                        <span>
+                            &nbsp; @payrolVm.SelectedDate.Value.ToString("dd MMM") &nbsp;
+                        </span>
+                        <a asp-action="AttendanceDayView" asp-controller="Payroll" asp-route-date="@payrolVm.SelectedDate.Value.AddDays(1)" asp-route-id="@Model.PayrollPeriod.Id" asp-route-empId="@(emp?.Id ?? 0)" data-ajax-begin="clearAttendanceDayView()" data-ajax="true" data-ajax-method="GET" data-ajax-update="#attendanceDayView" data-ajax-success="setDateInTable('@payrolVm.SelectedDate.Value.AddDays(1).ToString("yyyyMMdd")')" data-ajax-failure="handleModalPostFailure" id="" style="">
+                            <i class="fa fa-chevron-right" aria-hidden="true"></i>
+                        </a>
+                    }
+                }
+                else if (ViewBag.IsLeaveRequests != null && ViewBag.IsLeaveRequests)
+                {
+                    <a class="btn btn-sm btn-primary" asp-action="NewRequestOfType" asp-route-empId="@(ViewBag.Id)" asp-route-type="@RequestType.Leave" asp-controller="Request" data-ajax-method="POST" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="fad fa-plus-circle"></i> New Request</a>
+                }
+                else if (IsCardHeaderSearch)
+                {
+                    @*<a asp-action="EmployeeHome" asp-controller="Home" data-ajax="true" data-ajax-update="#main-area" data-ajax-begin="$('#main-area').empty()" data-ajax-loading=".loader" class="active" data-ajax-success="$('.p-actions a').removeClass('active');$(this).addClass('active')">
+                        <i class="fa fa-search" aria-hidden="true"></i>
+                    </a>*@
+                }
+            @*</span>*@
+        </div>
+    </div>
+
+    <!--Card Body-->
+    <div class="card-body">
+        <div id="main-area">
+            @RenderBody()
+        </div>
+    </div>
+</div>

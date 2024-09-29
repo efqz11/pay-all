@@ -1,0 +1,67 @@
+﻿@model List<DayOff>
+@{
+    var i = 0;
+    var job = (Job)ViewBag.job;
+    var _dayOffs = job.DayOffIds ?? default(int[]);
+}
+
+@{
+    Layout = "_LayoutCard";
+    ViewBag.CardHeader = $"Leaves ({job.DayOffIds?.Count()})";
+    var leaves = (List<DayOff>)ViewBag.leaves;
+}
+
+
+<form asp-action="AddDayOffs" data-ajax="true" data-ajax-method="POST" data-ajax-update="#ViewLeaves" data-ajax-success="sendNotification('success', 'Default leaves for job were just updated');" id="employeeDetailsCreateForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="Id" value="@job.Id" />
+
+    @*<header class="modal__header">
+            <h2 class="modal__title" id="modal-1-title">
+                Update Default Leaves
+            </h2>
+        </header>*@
+
+    <partial name="_ShowAlertMessage" />
+    <main class="modal__content mt-0" id="modal-1-content">
+        @*<div class="form-group">
+                <h6>Available leaves (@Model.Count)</h6>
+            </div>*@
+        <table class="table table-hover">
+            <tbody>
+                @foreach (var item in Model.OrderByDescending(a => a.IsActive).ThenBy(a => a.Name))
+                {
+                    <tr>
+                        <input type="hidden" name="[@i].Id" value="@item.Id" />
+                        <input type="hidden" name="[@i].Name" value="@item.Name" />
+
+                        <td width="10px">
+                            <label class="custom-control custom-checkbox mb-0">
+                                <input type="checkbox" name="[@i].IsActive" value="@(item.IsActive ? "True" :"False")" id="_@item.Id" class="custom-control-input" tabindex="5" onchange="onCheckChange(this);showFooter()" @(job.DayOffIds != null && job.DayOffIds.Contains(item.Id) ? "checked" : "")>
+                                <input type="hidden" name="[@i].IsActive" value="false" />
+                                <span class="custom-control-label" for="chbxTerms">
+                                </span>
+                            </label>
+                        </td>
+
+                        <td><label for="_@item.Id">@item.Name</label></td>
+                    </tr>
+
+                    i++;
+                }
+            </tbody>
+        </table>
+    </main>
+    <footer class="modal__footer" style="display:none">
+        <button type="submit" class="btn btn-primary mr-2">Save</button>
+        <button type="button" class="btn btn-outline-primary" onclick="$('.modal__btn-back').click()">Back</button>
+    </footer>
+</form>
+
+
+<script>
+    initDatePicker();
+    function showFooter() {
+        $('.modal__footer').fadeIn();
+    }
+</script>

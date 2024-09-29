@@ -1,0 +1,71 @@
+﻿@model LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+}
+@* <h4 class="card-title">Login</h4> *@
+<form method="POST" class="my-login-validation" novalidate="">
+    @* <div class="alert alert-danger">
+            <i class="fal fa-info-circle"></i>
+            You’ve been signed out due to inactivity. Please sign in again to continue.
+        </div> *@
+    <partial name="_ShowAlertMessage"></partial>
+    <div class="form-group">
+        <label for="email">Username</label>
+        <input id="email" type="text" class="form-control" asp-for="Email" value="" required autofocus tabindex="1">
+        <div class="invalid-feedback">
+            Username is invalid
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="password">
+            Password
+            <a href="forgot.html" class="float-right">
+                Forgot Password?
+            </a>
+        </label>
+        <input id="password" type="password" class="form-control" asp-for="Password" required data-eye tabindex="2">
+        <div class="invalid-feedback">
+            Password is required
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="custom-control custom-checkbox-large custom-checkbox ">
+            <input type="checkbox" name="RememberMe" id="RememberMe" value="false" class="custom-control-input" tabindex="5">
+            <label class="custom-control-label text-weight-normal" for="RememberMe">
+                Remember this device <i class="fal fa-info-circle" data-toggle="popover" title="Popover title" data-content="Check this box only if you’re using a trusted device, like your personal computer or mobile phone."></i>
+            </label>
+        </label>
+    </div>
+
+    @*@if (ViewBag.IsError != null && ViewBag.IsError)
+        {
+            <div class="form-group m-0">
+                <div class="alert btn-danger btn-block text-center">
+                    Invalid login details
+                </div>
+            </div>
+        }*@
+    @*<span class="text-danger text-center pb-2" asp-validation-for="Password"></span>*@
+
+
+    <div class="form-group m-0">
+        <button type="submit" class="btn btn-primary btn-block">
+            <i class="far fa-lock-alt"></i> &nbsp; Sign In
+        </button>
+    </div>
+</form>
+<div>
+    <div class="pt-3 pb-3">
+        <div class="google-signup-or text-center overflow-hidden"><span>or sign in with</span></div>
+    </div>
+    <form asp-action="ExternalLogin" asp-controller="Account" asp-action="ExternalLogin" asp-route-provider="Google" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+        <button type="submit" class="mb-0 d-flex align-items-center justify-content-center btn-action btn btn-outline-primary btn-block">
+            <img alt="Google Logo" class="img-square-20px"
+                 src="/img/partner-logo-google-cd0f2b38.svg"><strong class="pl-2">Google</strong>
+        </button>
+    </form>
+</div>
+<div class="mt-4 text-center">
+    Don't have an account? <a asp-action="Register">Create One</a>
+</div>

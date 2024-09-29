@@ -1,0 +1,68 @@
+﻿@model AppUser
+@{
+    ViewData["Title"] = "Account Company";
+}
+
+<form asp-action="AddOrUpdate" asp-controller="AppUser" data-ajax="true" data-ajax-method="POST" data-ajax-update="#masterEmployeeArea" data-ajax-success="hideModal();" id="userForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    <input asp-for="SecurityStamp" type="hidden" value="@Model.SecurityStamp" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @Model.NameDisplay
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <partial name="_AvatarUpload" />
+        </div>
+        <div class="form-group">
+            <label asp-for="NickName" class="control-label">Friendly Name</label>
+            <input asp-for="NickName" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label asp-for="UserName" class="control-label">User Name</label>
+            <input asp-for="UserName" class="form-control" />
+            <span class="text-danger" asp-validation-for="UserName"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Email" class="control-label"></label>
+            <input asp-for="Email" as class="form-control" /> @(Model?.EmailConfirmed ?? false ? "<i class='fa fa-check-circle'></i>" : "")
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="PhoneNumber" class="control-label">Phone Number</label>
+            <input asp-for="PhoneNumber" as class="form-control" /> @(Model?.PhoneNumberConfirmed ?? false ? "<i class='fa fa-check-circle'></i>" : "")
+            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="PasswordHash" class="control-label">Password</label>
+            <input asp-for="PasswordHash" class="form-control" type="password" />
+            <span asp-validation-for="PasswordHash" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" asp-for="LockoutEnabled" value="false" class="custom-control-input" tabindex="5">
+                <span class="custom-control-label" for="chbxTerms">
+                    LockoutEnabled: @Model.LockoutEnd
+                </span>
+            </label>
+        </div>
+
+
+        <div class="form-group">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" asp-for="TwoFactorEnabled" value="false" class="custom-control-input" tabindex="5">
+                <span class="custom-control-label" for="chbxTerms">
+                    TwoFactorEnabled
+                </span>
+            </label>
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>

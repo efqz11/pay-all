@@ -1,0 +1,150 @@
+﻿@model Employee
+@{
+    var i = 0;
+
+    ViewData["name"] = "Avatar";
+    ViewData["src"] = Url.Content(Model.Avatar ?? DefaultPictures.default_company);
+    ViewData["type"] = "inline";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.css" />
+
+<link href="~/css/webSetup.css" rel="stylesheet" />
+<link href="~/css/tabs.css" rel="stylesheet" />
+<style>
+    .step {
+        display: block !important;
+    }
+</style>
+
+<div>
+    <div class="layout-main-landing">
+        <div class="row">
+            <div class="layout-main-landing-header col-sm-12">
+                <div class="relative">
+                    <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                        @*<img class="zp-icon-image large content-block-with-icon__icon hidden-xs flex-self-start" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-map-288f54db.svg" alt="">*@
+                        <div class="content-block-with-icon__content">
+                            <h1 class="page-title margin-top-none margin-bottom-none">
+                                Continue self-onboarding
+                            </h1>
+                        </div>
+                    </div>
+                    @*<div class="layout-landing-header-details"><p class="layout-landing-header-pricing margin-bottom-none"></p></div>*@
+                </div>
+            </div>
+        </div>
+        <div class="layout-main-landing-row row margin-bottom-20px">
+            <ol class="progress-bar-tabs progress-bar-style-default">
+                <li data-step="1" class="progress-bar-item complete"><div class="progress-bar-item-content">Basics</div></li>
+                <li data-step="2" class="progress-bar-item complete"><div class="progress-bar-item-content">Employment</div></li>
+                <li data-step="3" class="progress-bar-item complete"><div class="progress-bar-item-content">Pay components</div></li>
+                <li data-step="3" class="progress-bar-item complete"><div class="progress-bar-item-content">Employee info</div></li>
+                <li data-step="3" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Address</div></li>
+                <li data-step="3" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Bank details</div></li>
+                @*<li data-step="3" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Bank details</div></li>*@
+            </ol>
+            <div class="col-sm-12 col-md-8 content">
+                <form asp-action="UpdateEmployeeDetails" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" data-ajax-success="sendNotification('success', 'New employee was just created');" id="form" data-ajax-failure="handleModalPostFailure">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="CompanyId" type="hidden" />
+                    <input asp-for="FirstName" type="hidden" />
+
+                    <div class="step" data-step="1">
+                        <h4 class="pb-4 fs-unmask">Employee information</h4>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="Avatar" class="control-label">Profile picture</label>
+                            <partial name="_AvatarUpload" view-data="ViewData" model="Model">
+                        </div>
+                        @*<div class="row mb-4">
+                                <div class="form-group col-md-2">
+                                    <label asp-for="Initial" class="control-label">Initials</label>
+                                    <select asp-for="Initial" asp-items="@(Html.GetEnumSelectList<Initial>())" class="form-control form-control-lg"></select>
+                                </div>
+
+                                <div class="form-group col-md-10">
+                                    <label asp-for="FirstName" class="control-label">Their official, legal first name</label>
+                                    <input asp-for="FirstName" as class="form-control form-control-lg" />
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-4">
+                                <label asp-for="LastName" class="control-label">
+                                    Their official, legal last name
+                                </label>
+                                <input asp-for="LastName" as class="form-control form-control-lg" />
+                            </div>*@
+
+                        <div class="form-group mb-4">
+                            <label asp-for="DateOfBirth" class="control-label">Birthday</label>
+                            <p class="small">
+                                Your date of birth.
+                            </p>
+                            <input asp-for="DateOfBirth" class="form-control form-control-lg has-datepicker" />
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="Gender" class="control-label">Gender</label>
+                            <select asp-for="Gender" type="text" class="form-control form-control-lg " asp-items="@Html.GetEnumSelectList<Gender>()">
+                                <option value="0">Choose</option>
+                            </select>
+                            <span asp-validation-for="Gender" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="MaritialStatus" class="control-label">Marital Status</label>
+                            <select asp-for="MaritialStatus" type="text" class="form-control form-control-lg " asp-items="@Html.GetEnumSelectList<MaritialStatus>()">
+                                <option value="0">Choose</option>
+                            </select>
+                            <span asp-validation-for="MaritialStatus" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="IdentityType" class="control-label">Identity Type</label>
+                            <select asp-for="IdentityType" type="text" class="form-control form-control-lg " asp-items="@Html.GetEnumSelectList<IdentityType>()">
+                                <option value="0">Choose</option>
+                            </select>
+                            <span asp-validation-for="IdentityType" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-4" id="newDpt">
+                            <label asp-for="IdentityNumber" class="control-label">Identity Number</label>
+                            <input asp-for="IdentityNumber" as class="form-control form-control-lg" />
+                        </div>
+                    </div>
+
+
+                    <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+                        <button class="btn btn-lg btn-outline-primary btn-back mr-2" type="button">Back</button>
+                        <button class="btn btn-lg btn-primary btn-next" type="button">Submit</button>
+
+                    </div>
+
+                    @*<footer class="modal__footer">
+                            <button type="submit" class="modal__btn modal__btn-primary">
+                                Save
+                            </button>
+                            <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+
+                        </footer>*@
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+
+    <script>
+        initDatePicker();
+        $("#DepartmentId").change(function () {
+            if ($(this).val() == "-1")
+                $('#newDpt').show();
+            else
+                $('#newDpt').hide();
+        }).change();
+    </script>
+}

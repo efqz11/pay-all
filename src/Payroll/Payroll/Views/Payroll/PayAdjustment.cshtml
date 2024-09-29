@@ -1,0 +1,387 @@
+﻿@model PayItemVm
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<style>
+    .dirty {
+        background-color: #ffffca;
+    }
+
+    #tblCalculationTable {
+        text-align: left;
+        position: relative;
+        border-collapse: collapse;
+    }
+
+        #tblCalculationTable thead th {
+        }
+
+    /* The sticky class is added to the header with JS when it reaches its scroll position */
+    .sticky {
+        position: fixed;
+        top: 0;
+        width: 100%
+    }
+
+        /* Add some top padding to the page content to prevent sudden quick movement (as the header gets a new position at the top of the page (position:fixed and top:0) */
+        .sticky + .content {
+            padding-top: 102px;
+        }
+</style>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="form-inline form-group">
+            <label asp-for="PayrolPeriodId" class="col-form-label">Payrol Period: &nbsp;</label>
+            <select asp-for="PayrolPeriodId" asp-items="ViewBag.PayrolPeriodId" onchange="reload(this)" class="form-control"></select>
+        </div>
+
+        <div class="form-inline form-group">
+            <label asp-for="ItemId" class="col-form-label">Pay Adjustment: &nbsp;</label>
+            <select asp-for="ItemId" asp-items="ViewBag.ItemId" onchange="reload()" class="form-control"></select>
+            &nbsp;
+            <span class="btn btn-info" onclick="reload(this)"><i class="fa fa-list-alt"></i>  View All</span>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="text-lg-right">
+            <a asp-controller="payroll" asp-action="detail" asp-route-id="@Model.PayrolPeriodId">
+                <h4 class="display">@(ViewBag.PayrolPediodText ?? "NA")</h4>
+            </a>
+            <p class="mb-1">@ViewBag.ItemName</p>
+            <span class="@(ViewBag.ItemTypeCssClass)">@ViewBag.ItemType</span>
+            @if (Model.ItemId == 0)
+            {
+                <span class="">@Model.PayrolPeriod.PayrollPeriodStrings</span>
+            }
+            @*<a class="btn btn-sm btn-outline-dark" role="tooltip" data-microtip-position="top" aria-label="Click to view other deductions in this period" asp-action="Deduction" asp-route-addId="@(Model.ItemId)" asp-route-payrolId="@(Model.PayrolPeriodId)"><i class="ion-android-open"></i> other deductions</a>*@
+        </div>
+    </div>
+</div>
+
+
+@*<form method="post" data-ajax="true" id="masterPayAdjustmentsForm" data-ajax-success="sendNotification('success', 'Table to calculate @ViewBag.ItemName was just saved')" data-ajax-failure="alert('Error occured while saving, please check pay adjustment configuration')" data-ajax-begin="convertToLoadingTable('.data-container-table')"  data-ajax-update=".data-container" asp-action="SavePayAdjustments">*@
+
+@if (Model.ItemId != 0)
+{
+    <div class="float-left pb-2">
+        <form asp-controller="Payrol" asp-action="PayAdjustment" class="" data-ajax-begin="convertToLoadingTable('.data-container-table')" data-ajax="true" data-ajax-method="GET" data-ajax-update=".data-container" data-ajax-success="">
+            @*<input type="hidden" name="addId" value="@Model.ItemId" />
+                <input type="hidden" name="payrolId" value="@Model.PayrolPeriodId" />*@
+            <div class="form-group has-search mb-1">
+                <span class="fa fa-search form-control-feedback"></span>
+                <input type="text" class="txt-search form-control" name="query" placeholder="Search employees">
+            </div>
+            @*<input type="text" class="txt-search form-control" name="query" placeholder="Type name to search" />*@
+        </form>
+    </div>
+    <div class="float-right pb-2">
+        <a class="btn-recreate-table btn btn-warning" asp-action="UpdatePayAdjustmentFields" asp-route-addId="@(Model.ItemId)" asp-route-payrolId="@(Model.PayrolPeriodId)" data-ajax-begin="convertToLoadingTable('.data-container-table');showModal('modal-recreate-table');$('#modal-recreate-table').find('.d1 .d1-span').text('Please wait while we re-create table for @(ViewBag.ItemName)')" data-ajax-method="POST" data-ajax-success="createTableSuccess('@ViewBag.ItemName', true);" data-ajax-failure="$('#modal-recreate-table').find('.d1').text('There was an error while creating table');handleModalPostFailure" role="tooltip" data-microtip-position="top" aria-label="Re-create table to calculate @ViewBag.ItemName" data-ajax="true" data-ajax-update=".data-container" data-ajax-confirm="Are you sure? Recreating will create new field values using latest configuration and will also create missing employees. Any values having same key will be copied to new table">
+            <i class="fa fa-exclamation-circle "></i> Re-Create table
+        </a>
+
+
+        @*<a class="btn-recreate-table btn btn-warning" asp-action="UpdatePayAdjustmentFields" asp-route-addId="@(Model.ItemId)" asp-route-payrolId="@(Model.PayrolPeriodId)" data-ajax-method="POST" data-ajax-update=".data-container" data-ajax-success="sendNotification('success', 'Table to calculate pay adjustment @ViewBag.ItemName was just re-created')" data-ajax-confirm="Are you sure? Recreating will create new field values using latest configuration and will also create missing employees. Any values having same key will be copied to new table" data-ajax-begin="convertToLoadingTable('.data-container-table')" data-ajax-failure="handleModalPostFailure" data-ajax="true">Re-Create table</a>*@
+
+        <button class="btn-save btn btn-success" method="post" data-ajax="false" onclick="SaveForm()"><i class="ion-refresh spin"></i>  Save All</button>
+        <button class="btn-save btn btn-success" method="post" data-ajax="false" onclick="SaveForm(true)"><i class="ion ion-file-check"></i>  Save & Continue</button>
+    </div>
+}
+
+<input type="hidden" asp-for="ItemId" />
+<input type="hidden" asp-for="ItemName" />
+<input type="hidden" asp-for="PayrolPeriodId" />
+
+
+<div class="data-container">
+    @if (Model.ItemId == 0)
+    {
+        <partial name="_OverviewPayAdjustments" model="Model" />
+    }
+    else
+    {
+        <partial name="_Listing" model="Model" />
+    }
+</div>
+
+@*<div class="text-center">
+        <a class="btn-load-more btn btn-warning" asp-action="PayAdjustment" asp-route-addId="@(Model.ItemId)" asp-route-payrolId="@(Model.PayrolPeriodId)" data-ajax-method="POST" data-ajax-update=".data-container-table tbody tr:last" data-ajax-failure="handleModalPostFailure" data-ajax="false" data-page="2">Load more</a>
+    </div>*@
+@*</form>*@
+
+<div class="modal micromodal-slide" id="modal-recreate-table" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-recreate-table-title" style="width: 100%;">
+            <header class="modal__header">
+                <h2 class="modal__title text-center" id="modal-1-title">
+                    Recreating Table
+                </h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+            </header>
+            <main class="modal__content" id="modal-1-content">
+                @*<p class="text-center">
+                        Are you sure? Recreating will create new field values using latest configuration and will also create missing employees. Any values having same key will be copied to new table
+                        <div class="loader loader-blue btn-loading" data-page="2" style="line-height: 1px;display:block">
+                            <div class="ball-beat"><div></div><div></div><div></div></div>
+                        </div>
+                        <a class="btn-recreate-table btn btn-danger mt-2 text-white" asp-action="UpdatePayAdjustmentFields" asp-route-addId="@(item.Id)" asp-route-payrolId="@(Model.PayrolPeriodId)" data-ajax-begin="showModal('modal-recreate-table')" data-ajax-method="POST" data-ajax-success="sendNotification('success', 'Table to calculate pay adjustment @ViewBag.ItemName was just re-created');location.reload()" role="tooltip" data-microtip-position="top" aria-label="Create table to calculate @item.Name" data-ajax="true">
+                            <span><i class="fa fa-exclamation-circle "></i> <b> Yes, I'm sure</b></span>
+                        </a>
+                    </p>*@
+
+
+                <div class="text-center d1">
+                    <div class="loader loader-blue btn-loading mb-4" data-page="2" style="line-height: 1px;display:block">
+                        <div class="ball-beat"><div></div><div></div><div></div></div>
+                    </div>
+
+                    <span class="d1-span">Please wait while we re-create table for all employees</span>
+                </div>
+                <div class="text-center d2" style="display:none">
+                    <span class="btn btn-success btn-lg mb-3"><b><i class="fa fa-check-circle"></i> Ready!</b></span>
+                    <br />
+                    <span class="d2-span"></span>
+                </div>
+            </main>
+            <footer class="modal__footer text-center">
+                <small>This window will close automatically</small>
+            </footer>
+        </div>
+    </div>
+</div>
+
+
+@section scripts {
+    <script>
+        $(function () {
+            $('.calculated, .manual-entry').change(function (e) {
+                console.log('welcomesad ');
+            });
+
+            var canFetch = true;
+            var isBusy = false;
+            $(window).on("scroll", function () {
+                if (isBusy)
+                    return;
+                var page = $('.btn-loading').data('page');
+                var lastTab = $('#tblCalculationTable tbody tr:last').find('input[tabindex]:last').attr('tabindex');
+                var url = '@Url.Action("PayAdjustment", new{ addId= Model.ItemId,
+                          payrolId= Model.PayrolPeriodId })';
+                url = url.replace('&amp;', '&');
+                url += "&page=" + page;
+                url += "&tab=" + lastTab;
+                var docHeight = $(document).height();
+                var winScrolled = $(window).height() + $(window).scrollTop(); // Sum never quite reaches
+                if ((docHeight - winScrolled) < 1) {
+                    console.log('scrolled to bottom of page');
+
+                    if (canFetch == false) return;
+                    $('.btn-loading').show();
+                    isBusy = true;
+                    $.post(url, function (data) {
+                        $('#tblCalculationTable tbody').append(data);
+                        console.log('data updated');
+                    }).done(function (e) {
+                        }).always(function (data) {
+                            if ($.isEmptyObject(data) || data == undefined || data == null || data.trim() == "") {
+                            canFetch = false;
+                            $('.btn-loading').hide();
+                            $('.btn-loading').after('End of page.');
+                        } else {
+                            var newPage = (parseInt(page) + 1);
+                            console.log('newpage: ' + newPage);
+                            $('.btn-loading').data('page', newPage);
+                        }
+                        $('.btn-loading').hide();
+                        isBusy = false;
+                    });
+                }
+            })
+        });
+
+        function createTableSuccess(payAdj, closeModal) {
+            $('#modal-recreate-table').find('.d2 .d2-span').html('Table to calculate pay adjustment <b>' + payAdj +'</b> was just re-created')
+            $('#modal-recreate-table').find('.d1').fadeOut(100);
+            $('#modal-recreate-table').find('.d2').fadeIn(800);
+
+            if (!closeModal)
+                setTimeout(function () { location.reload(); }, 1500);
+            else {
+                setTimeout(function () { hideModal('modal-recreate-table'); }, 1500);
+            }
+        }
+
+        function SaveForm(gotonext) {
+            var hasDirtyRows = $('#tblCalculationTable tbody tr.dirty').length > 0;
+            if (!hasDirtyRows && gotonext === undefined) return;
+            if (!hasDirtyRows && gotonext === true) {
+                $('#ItemId option:selected').next().attr('selected', 'selected').trigger('change');
+                sendNotification('success', 'Table to calculate @ViewBag.ItemName was just saved, going to next');
+                return;
+            }
+
+            var btn = $('.btn-save');
+            var url = '@Url.Action("SavePayAdjustments")';
+            var postData = $('#tblCalculationTable tbody tr.dirty').find('input').serializeArray();
+
+            var indx = -1;
+            $.each(postData, function (i, e) {
+                console.log("e.name): " + e.name);
+                if (e.name == "PayrolPayAdjustments[i].Id") {
+                    indx++;
+                }
+                e.name = e.name.replace('[i]', '[' + indx + ']');
+            })
+            convertToLoadingTable('.data-container-table');
+            $.post(url, postData, function (d) {
+            }).done(function (data) {
+                if (gotonext) {
+                    $('#ItemId option:selected').next().attr('selected', 'selected').trigger('change');
+                    sendNotification('success', 'Table to calculate @ViewBag.ItemName was just saved, going to next');
+                }
+                else {
+                    sendNotification('success', 'Table to calculate @ViewBag.ItemName was just saved');
+                    $('.data-container').html(data);
+                }
+            }).fail(function () {
+                sendNotification('error', 'Error occured while saving, please check pay adjustment configuration');
+            });
+        }
+
+
+
+        function GetFormatValue(fieldValue) {
+            var evalMethod = $(fieldValue).data('evalmethod');
+            var update = $(fieldValue).data('updateinputclass');
+            var idf = $(fieldValue).data('identifier');
+            console.log('data-evalmethod: ' + evalMethod);
+            console.log('data-updateinputclass: ' + update);
+            console.log('data-identifier: ' + idf);
+
+
+
+            var formula = evalMethod;
+            var prefix = "";
+            var formatValue = "";
+
+            do {
+                console.log('inside loop -> formula: -> ' + formula);
+                if (!formula.startsWith("{")) {
+                    if (formula.indexOf("{") >= 0)
+                        prefix = formula.substring(0, formula.indexOf("{"))
+                    else
+                        prefix = formula;
+                    formatValue += prefix;
+                }
+
+                if (formula.indexOf("{") < 0)
+                    formula = formula.replace(prefix, "");
+                else {
+                    var cutoff = (formula.indexOf("{") > 0) ? formula.indexOf("{") - 1 : 0;
+                    var firstInsider = formula
+                        .substr(formula.indexOf("{"), formula.indexOf("}") - cutoff).replace("}", "").replace("{", "");
+                    var idfNow = firstInsider.replace("field.", "");
+
+                    if (idfNow === idf)
+                        formatValue += $(fieldValue).val();
+                    else {
+                        formatValue += $(fieldValue).parent().parent().find('input[data-identifier="' + idfNow + '"]').val() || 0;
+
+                      // if (formatValue === undefined)
+
+                    }
+
+                    if (formula.indexOf(prefix + "{" + firstInsider + "}") < 0)
+                        throw new Error("Formula evaluation has failed. please regenerate table or change config");
+                    formula = formula.replace(prefix + "{" + firstInsider + "}", "");
+                }
+                prefix = "";
+            }
+            while (formula !== "");
+
+
+            console.log('final - eval: ' + formatValue);
+            console.log('final - evaluated: ' + eval(formatValue));
+            try {
+                eval(formatValue)
+            } catch (e) {
+                formatValue = 0;
+            }
+            return formatValue;
+        }
+
+
+        $(document).on('change keyup', '.manual-entry', function (e) {
+            $(this).parents('tr').addClass('dirty');
+
+            var formatValue = GetFormatValue($(this));
+            var update = $(this).data('updateinputclass');
+
+            try {
+                console.log($(this).parents('tr'));
+                var target = $(this).parent().parent().find('input[data-identifier="' + update + '"]');
+                if (target.length > 0) {
+                    target.val(eval(formatValue));
+
+                    console.log('target found ::');
+                    console.log('has class .calculated = ' + $(target).hasClass("calculated"));
+                    if ($(target).hasClass("calculated"))
+                        $(target).trigger('change');
+                }
+            } catch (e) {
+                console.log('Unable to parse eval, failed with errors');
+                console.log(e);
+            }
+        });
+
+
+
+
+        $(document).on('change', '.calculated', function (e) {
+            $(this).parents('tr').addClass('dirty');
+            var formatValue = GetFormatValue($(this));
+            var update = $(this).data('updateinputclass');
+
+            console.log($(this).parents('tr'));
+            $(this).parent().parent().find('input[data-identifier="' + update + '"]').val(eval(formatValue));
+        });
+
+        
+        // if overview is loading -- then update view
+        var isLoading = '@ViewBag.IsLoading' === "True" ? true: false;
+        console.log('isLoading.. ' + isLoading);
+        url = GetAppRootPath() + "/payroll/OverviewPayAdjustments?payrolId=" + '@Model.PayrolPeriodId'
+        if (isLoading === true) {
+            console.log('updating overview view...');
+            $.post(url, function () {
+            }).done(function (data) {
+                $('.data-container').html(data);
+            }).fail(function () {
+                sendNotification('error', 'Failed to load payrol adjustment overview');
+            });
+        }
+
+    </script>
+
+
+    <script>
+        function replace(data) {
+            var updateDiv = $(data).find('.data-container-table');
+
+            $(html).find('.data-container-table').replace(updateDiv);
+        }
+
+        function reload(all) {
+            var url = "";
+            if (all)
+                url = GetAppRootPath() + "/payroll/payadjustment?payrolId=" + $('#PayrolPeriodId :selected').val();
+            else
+                url = GetAppRootPath() + "/payroll/payadjustment?addId=" + $('#ItemId :selected').val() + "&payrolId=" + $('#PayrolPeriodId :selected').val();
+            console.log(url);
+
+            convertToLoadingTable('.data-container-table');
+            location.href = url;
+        }
+    </script>
+}

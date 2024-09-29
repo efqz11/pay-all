@@ -1,0 +1,70 @@
+﻿@model List<DayOffEmployee>
+
+@{
+
+    Layout = "_LayoutEditor";
+    ViewBag.Header = "Kick Off";
+    ViewBag.BackAction = Url.Action("AddOrRemoveEmployees", new { id = ViewBag.Id });
+    ViewBag.BackActionUpdateDiv = "#main-content";
+    ViewBag.NoLink = 1;
+}
+
+
+
+@section progressSteps {
+    <ol class="progress-bar-tabs progress-bar-style-default">
+        <li data-step="1" class="progress-bar-item complete"><div class="progress-bar-item-content">Policy</div></li>
+        <li data-step="2" class="progress-bar-item complete"><div class="progress-bar-item-content">Conditions</div></li>
+        <li data-step="3" class="progress-bar-item complete"><div class="progress-bar-item-content">Accrual</div></li>
+        <li data-step="4" class="progress-bar-item complete"><div class="progress-bar-item-content active">Settings</div></li>
+        <li data-step="5" class="progress-bar-item complete"><div class="progress-bar-item-content active">Enrollment</div></li>
+        <li data-step="6" class="progress-bar-item complete"><div class="progress-bar-item-content">Kickoff</div></li>
+    </ol>
+}
+
+<form asp-action="KickOffConfirm" asp-controller="DayOff" asp-route-id="@ViewBag.Id" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" data-ajax-success="" id="" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input type="hidden" value="@ViewBag.Id" name="Id" />
+    <input type="hidden" value="@ViewBag.Name" name="Name" />
+
+    <h4 class="pb-4 fs-unmask">Set starting values for employees</h4>
+
+    <table class="table" id="enrllEmTable">
+        <tbody>
+            @foreach (var item in Model)
+            {
+                var i = Model.IndexOf(item);
+                <tr>
+                    <td><partial name="_EmployeeSummary" model="item.Employee" /></td>
+                    <td width="250px">
+                        <div class="input-group mb-3">
+                            <input name="MaxBalance" name="model[@i].TotalHours" class="form-control form-control-lg" tabindex="@i" value="@(item.TotalHours)">
+                            <div class="input-group-append">
+                                <span class="input-group-text" id="basic-addon2">hours</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="display:none">
+                        <input type="hidden" name="model[@i].Id" value="@item.Id" />
+                        <input type="hidden" name="model[@i].EmployeeId" value="@item.EmployeeId" />
+                        <input type="hidden" class="_active" name="model[@i].IsActive" value="@(item.IsActive? "True" : "False")" />
+                        <a href="#" onclick="remEmp(event,'@item.Id')">
+                            <i class="fa fa-minus-circle text-danger" title="Remove employee from enrollment"></i>
+                        </a>
+                        @*<a asp-action="EnrollEmployee" asp-route-dayOffId="@ViewBag.Id" asp-route-empId="@item.Id" asp-route-rem="-1" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" data-ajax-success="ssNoti('@item.GetSystemName(User) removed from time off policy')" data-ajax-confirm="Are you sure?" id="" data-ajax-failure="handleModalPostFailure">
+                                <i class="fa fa-minus-circle text-danger"></i>
+                            </a>*@
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+
+    <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+        <button class="btn btn-lg btn-outline-primary  mr-2" type="button" onclick="$('.modal__btn-back').click()">Back</button>
+        <button class="btn btn-lg btn-primary " type="submit">Submit</button>
+    </div>
+</form>
+
+

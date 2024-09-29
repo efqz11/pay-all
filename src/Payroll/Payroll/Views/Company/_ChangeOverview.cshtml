@@ -1,0 +1,257 @@
+﻿@model CompanyAccount
+@inject Payroll.Database.PayrollDbContext dbContext
+@{ 
+    var cmp = (Company)ViewBag.PayrolCompany;
+}
+<style>
+    .tablexdd span {
+        padding-left: 5px;
+        vertical-align: super;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-8">
+        <h2 class="">Change Company</h2>
+        <p>Make changes to company info here</p>
+    </div>
+    <div class="col-md-4 text-right">
+    </div>
+</div>
+
+<div class="clearfix"></div>
+
+<partial name="_ShowAlertMessage" />
+
+<table class="table tablexdd">
+    <tbody>
+        <tr>
+            <td class="border-0">
+                <div class="list-group-item border-0 border-bottom">
+                    <div class="text-left" style=" vertical-align: middle;display:flex">
+                        <div class="image-container">
+                            <a asp-controller="Company" asp-action="Detail" asp-route-id="@Model.Id">
+                                <img src="@Url.Content(Model.LogoUrl ?? DefaultPictures.default_company)" height="50" class="" />
+                            </a>
+                        </div>
+                        <a asp-controller="Company" asp-action="Detail" asp-route-id="@Model.Id">
+                            <div class="" style="    line-height: 1.5;">
+                                <h5 class="mb-1">@Model.Name</h5>
+                                <partial name="_DisplayRequestStatus" model="@Model.Status" />
+                                <small class="text-muted" style="position: relative;top: -5px;">@(Model.ManagingDirector)</small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+
+            </td>
+            <td class="border-0" colspan="2">
+                @if (User.IsInRole(Roles.PayAll.admin))
+                {
+                    <a class="btn btn-primary btn-add-new-empl" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddOrUpdate" asp-route-id="">
+                        <i class="fad fa-plus-circle"></i> Add New Company
+                    </a>
+                }
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <h5 class="mt-3">
+                    Progress
+                    <i class="ml-2 fad @(Model.ProgressPercent == 100 ? "fa-check-circle" : "") text-success"></i>
+                </h5>
+                <p>Complete all the steps to submit for Verification</p>
+            </td>
+            <td class="align-middle" colspan="2">
+                @if (Model.ProgressPercent == 100 && (Model.Status == CompanyStatus.Draft || Model.Status == CompanyStatus.Rejected))
+                {
+
+                    <a class="btn btn-warning" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="showModal()" asp-action="SendForVerification" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax-success="shideModal('Company was sent for verification successfully')" data-ajax-failure="ehideModal('Error has occured while sending for verification');handleModalPostFailure">
+                        <i class="fad fa-paper-plane"></i> Send for Verification
+                    </a>
+                }
+                else if (Model.Status == CompanyStatus.Pending)
+                {
+                    <h5 class="mb-0 text-warning"><i class="fad fa-badge"></i> In Verification</h5>
+                }
+                else
+                {
+                    <div class="steps">
+                        <h6 class="mb-0 text-right">@Model.ProgressPercent%</h6>
+                        <ul class="steps-container"></ul>
+                        <div class="step-bar" style="width: @Model.ProgressPercent%;"></div>
+                    </div>
+                }
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <h5 class="mt-3">1. Master Data</h5>
+                <p>Basic information, Managing Director, Address and Contact @*and Social Accounts*@</p>
+            </td>
+            @if (Model.ProgressBySteps != null && Model.ProgressBySteps[1])
+            {
+                <td>
+                    <i class="fad fa-2x fa-check-circle text-success"></i>
+                </td>
+                <td>
+                    <a class="btn btn-primary table-tr-toggler" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddOrUpdate" asp-route-id="@Model.Id" style="">
+                        <i class="fa fa-arrow-right"></i>
+                    </a>
+                </td>
+            }
+            else
+            {
+                <td class="align-middle">
+                    <a class="btn btn-primary" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddOrUpdate" asp-route-id="@Model.Id">
+                        <i class="fal fa-edit"></i> Edit
+                    </a>
+                </td>
+            }
+        </tr>
+        <tr>
+            <td>
+                <h5 class="mt-3">2. Configuration</h5>
+                <p>Configure Pay period and working days</p>
+            </td>
+            @if (Model.ProgressBySteps != null && Model.ProgressBySteps[2])
+            {
+                <td>
+                    <i class="fad fa-2x fa-check-circle text-success"></i>
+                    <span>@Model.PayrolPeriodStartDate &mdash; @Model.PayrolPeriodEndDate (@Model.WeekStartDay.ToString().Substring(0, 3))</span>
+                </td>
+                <td>
+                    <a class="btn btn-primary table-tr-toggler" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="SetupPayrolPeriod" asp-route-id="@Model.Id" style="">
+                        <i class="fa fa-arrow-right"></i>
+                    </a>
+                </td>
+            }
+            else
+            {
+                <td>
+                    <a class="btn btn-primary" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="SetupPayrolPeriod" asp-route-id="@Model.Id">
+                        <i class="fad fa-edit"></i> Edit
+                    </a>
+                </td>
+            }
+        </tr>
+
+        <tr>
+            <td>
+                <h5 class="mt-3">3. Company Logo</h5>
+                <p>Set a logo for your company</p>
+            </td>
+
+            @if (Model.ProgressBySteps != null && Model.ProgressBySteps[3])
+            {
+                <td>
+                    <i class="fad fa-2x fa-check-circle text-success"></i>
+                    <div class="image-container ml-2" style="display: inline-block;vertical-align: super;">
+                        <img src="@Url.Content(Model.LogoUrl ?? DefaultPictures.default_company)" height="35" class="" />
+                    </div>
+                </td>
+                <td>
+                    <a class="btn btn-primary table-tr-toggler" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="UploadImage" asp-route-id="@Model.Id" style="">
+                        <i class="fa fa-arrow-right"></i>
+                    </a>
+                </td>
+            }
+            else
+            {
+                <td>
+                    <a class="btn btn-primary" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="UploadImage" asp-route-id="@Model.Id">
+                        <i class="fad fa-edit"></i> Edit
+                    </a>
+                </td>
+            }
+
+        </tr>
+        <tr>
+            <td>
+                <h5 class="mt-3">4. Work Times</h5>
+                <p>Setup company work and break times</p>
+            </td>
+
+            @if (Model.ProgressBySteps != null && Model.ProgressBySteps[4])
+            {
+                <td class="">
+                    <i class="fa-2x fad fa-check-circle text-success"></i>
+                    <span>@cmp.WorkTimes.Count() @(Html.DisplayFor(m => cmp.WorkType))</span>
+                </td>
+                <td>
+                    <a class="btn btn-primary table-tr-toggler" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="ChangeWorkType" asp-route-id="@Model.Id" style="">
+                        <i class="fa fa-arrow-right"></i>
+                    </a>
+                </td>
+            }
+            else
+            {
+                <td>
+                    <a class="btn btn-primary" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="ChangeWorkType" asp-route-id="@Model.Id">
+                        <i class="fad fa-edit"></i> Edit
+                    </a>
+                </td>
+            }
+        </tr>
+        <tr>
+            <td>
+                <h5 class="mt-3">5. Custom Formats</h5>
+                <p>Setup number and date formats to your linking</p>
+            </td>
+            @if (Model.ProgressBySteps != null && Model.ProgressBySteps[5])
+            {
+                <td>
+                    <i class="fad fa-2x fa-check-circle text-success"></i>
+                </td>
+                <td>
+                    <a class="btn btn-primary table-tr-toggler" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="UpdateFormatSettings" asp-route-id="@Model.Id" style="">
+                        <i class="fa fa-arrow-right"></i>
+                    </a>
+                </td>
+            }
+            else
+            {
+                <td>
+                    <a class="btn btn-primary" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="UpdateFormatSettings" asp-route-id="@Model.Id">
+                        <i class="fad fa-edit"></i> Edit
+                    </a>
+                </td>
+            }
+        </tr>
+
+        <tr>
+            <td>
+                <h5 class="mt-3">6. Departments, Division & Locations</h5>
+                <p>Setup department, division and locations of the company</p>
+            </td>
+            @if (Model.ProgressBySteps != null && Model.ProgressBySteps.ContainsKey(6) && Model.ProgressBySteps[6])
+            {
+            <td>
+                <div class="row">
+                    <div class="col-md-2" style="position: relative;top: 10px;">
+                        <i class="fad fa-2x fa-check-circle text-success"></i>
+                    </div>
+                    <div class="col-md-10 text-left">
+                        @Html.Raw((cmp.Departments.Any() ? cmp.Departments.Count() + " Departments" : "") + (cmp.Divisions.Any() ? "<br> " + cmp.Divisions.Count() + " Divisions" : "") + (cmp.Locations.Any() ? "<br>" + cmp.Locations.Count() + " Locations" : ""))
+                    </div>
+                </div>
+            </td>
+                <td>
+                    <a class="btn btn-primary table-tr-toggler" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="UpdateDeptDivisionLocations" asp-route-id="@Model.Id" style="display:none">
+                        <i class="fa fa-arrow-right"></i>
+                    </a>
+                </td>
+            }
+            else
+            {
+                <td>
+                    <a class="btn btn-primary" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="UpdateDeptDivisionLocations" asp-route-id="@Model.Id">
+                        <i class="fad fa-edit"></i> Edit
+                    </a>
+                </td>
+            }
+        </tr>
+    </tbody>
+</table>

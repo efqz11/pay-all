@@ -1,0 +1,161 @@
+﻿@model RosterVm
+
+@{
+    var workIndx = 0;
+}
+@{
+    Layout = "_LayoutCard";
+    ViewBag.CardHeader = "Task Coverage Matrix";
+    ViewBag.RosterVm = Model;
+    DayOfWeek weekStartDay = (DayOfWeek)Model.CompanyWorkStartDay;
+}
+
+
+<div class="row mb-2">
+    <div class="col-md-4">
+        <span>Work force Matrix by Tasks</span>
+        @*<div class="form-group" style=";">
+            <input type="text" class="form-control-sm form-control float-left mt-1 txt-search-weekly " placeholder="Search by employee name or department..." />
+        </div>*@
+    </div>
+    <div class="col-md-8">
+        <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+
+            <div class="btn-group mr-2" role="group" aria-label="First group">
+                <a asp-action="Process" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-id="@Model.ScheduleId" asp-route-t="6" data-ajax="true" data-ajax-update="#card-placeholder" data-ajax-method="GET" class="btn-sm btn btn-outline-secondary"><i class="fa fa-arrow-left"></i></a>
+            </div>
+
+            @*<div class="btn-group mr-2" role="group" aria-label="Second group">
+                <a asp-action="Schedules" data-ajax-method="GET" data-ajax="true" data-ajax-update="#weekly-schedule-table-container" data-ajax-begin="convertToLoadingTable('.table-schedule')" data-ajax-failure="HandleModalPostFailure" class="btn-sm btn btn-outline-warning"><i class="ion ion-levels"></i></a>
+            </div>*@
+            <div class="btn-group" role="group" aria-label="Third group">
+                @*<a class="btn btn-sm btn-outline-primary" asp-action="AddOrUpdateSchedule" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="ion ion-plus"></i> Add Schedule</a>*@
+                @*<button type="button" class="btn btn-sm btn-primary"></button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="weekly-schedule-table-container">
+    <table class="table table-schedule" id="weekly-table11">
+        <tbody>
+
+            <tr id="">
+                <th class="text-left sticky-col first-col" style="z-index: 1">
+
+                    <h6 class="">Shifts / Days</h6>
+
+
+                </th>
+                @for (var start = Model.StartDate; start <= Model.EndDate; start = start.AddDays(1))
+                {
+
+                    <td class="@(start.Date == DateTime.Now.Date ? "active" : "") @(start.DayOfWeek == weekStartDay ? "prova" : "") text-center" data-ribbon=" @(start.DayOfWeek == weekStartDay ? "★" : "")">
+                        <div class="text-left font-weight-bold" style=" vertical-align: middle;display:inline-flex">
+                            @*<img src="/img/default-image.png" height="40" class="mt-1 pr-2">*@
+
+                            @*@if (start.DayOfWeek == weekStartDay)
+                        {
+                            <div class="badge badge-danger">Week</div>
+                        }*@
+                            <h3 class="mt-1 pr-1">@start.Day</h3>
+                            <div class="name-display pl-1" style="font-size: 11px;padding-top: 4px;">
+                                <span class="">@start.ToString("ddd").ToUpper()</span>
+                                <br>
+                                <small style="position: relative;top: -4px;">@start.ToString("MMM").ToString()</small>
+                            </div>
+                        </div>
+                    </td>
+
+                    @*<td class="@(start.Date == DateTime.Now.Date ? "active" : "")">
+                    <div class="row">
+                        @if (start.DayOfWeek == weekStartDay)
+                        {
+                            <div class="badge">Week</div>
+                        }
+                        <div class="col pl-2 text-right">
+                            <h2>@start.Day</h2>
+                        </div>
+                        <div class="col text-left pl-0">
+                            <small>@start.ToString("ddd").ToUpper()</small>
+                            <div class="clearfix"></div>
+                            <small class="text-muted">@start.ToString("MMM").ToString()</small>
+                        </div>
+                    </div>
+                </td>*@
+                }
+            </tr>
+
+            @foreach (var item in Model.WeekEmployeeTask)
+            {
+                <tr>
+                    <th class="text-left cell-attndance font-weight-bold sticky-col first-col" style=" vertical-align: middle;display:flex ">
+                        <div class="item item-@item.Works.ColorCombination">
+
+                            <span>
+                                @item.Works.Name
+                            </span>
+                            @*@item.Attendances.First(x => x.Date == start.Date).CompanyWorkType*@
+                            <br />
+                            @*@item.WorkTime.Duration*@
+                        </div>
+
+                    </th>
+                    @*@item.Attendances.Count*@
+                    @for (var start = Model.StartDate; start <= Model.EndDate; start = start.AddDays(1))
+                    {
+                        <td class="text-center cell-attndance">
+                            @if (item.WorkItems.Any(x => x.Date.Date == start.Date))
+                            {
+                                <h6>@item.WorkItems.Count(x => x.Date.Date == start.Date)</h6>
+
+                                @*<div class="hide emp-Data">
+                                @foreach (var attn in item.Attendances.Where(x => x.Date.Date == start.Date))
+                                {
+                                    <pan>@attn.Employee.NameDisplay</pan>
+                                }
+                            </div>*@
+                            }
+                        </td>
+                    }
+                </tr>
+            }
+
+
+            <tr>
+                <th class="text-left cell font-weight-bold sticky-col first-col" style=" vertical-align: middle;display:flex ">
+                    <div class="item item">
+
+                        TOTAL
+                    </div>
+
+                </th>
+                @*@item.Attendances.Count*@
+                @for (var start = Model.StartDate; start <= Model.EndDate; start = start.AddDays(1))
+                {
+                    <td class="text-center cell-attndance">
+                        @if (Model.WeekEmployeeTask.Any(x => x.WorkItems.Any(a=> a.Date.Date == start.Date)))
+                        {
+                            <h6>@Model.WeekEmployeeTask.Sum(x => x.WorkItems.Count(a => a.Date.Date == start.Date))</h6>
+
+                            @*<div class="hide emp-Data">
+                            @foreach (var attn in item.Attendances.Where(x => x.Date.Date == start.Date))
+                            {
+                                <pan>@attn.Employee.NameDisplay</pan>
+                            }
+                        </div>*@
+                        }
+                    </td>
+                }
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+
+
+<script>
+                                //$('#loader-placeHolder').html(getLoaderHtml());
+                                //$('#st-rostering').click();
+</script>

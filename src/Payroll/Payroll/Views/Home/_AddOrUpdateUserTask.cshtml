@@ -1,0 +1,133 @@
+﻿@model ScheduleCreateVm
+
+<form asp-action="AddOrUpdateUserTask" asp-controller="Home" data-ajax="true" data-ajax-method="POST" data-ajax-update="#home-sidebar" data-ajax-success="shideModal('Task was just @(Model.Id == 0 ? "created" : "updated")');updateActiveTab()" id="userForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @(Model == null || Model.Id <= 0 ? "Create New Task" : "Change Task")
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+        <div class="form-group">
+            @*<label asp-for="Name" class="control-label"></label>*@
+            <input asp-for="Name" class="form-control" placeholder="Name of task" />
+        </div>
+        <div class="form-group">
+            <textarea asp-for="Details" class="form-control" placeholder="Summary of task"></textarea>
+        </div>
+
+
+        @*<div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" asp-for="HasTime" value="false" class="custom-control-input" tabindex="5" onchange="$('#hasTime').toggle()">
+                    <span class="custom-control-label" for="chbxTerms">
+                        Is this task for specific time
+                    </span>
+                </label>
+            </div>*@
+
+        <div id="hasTime">
+            <div class="row">
+                <div class="form-group col">
+                    <label asp-for="ShiftDurationStart" class="control-label">
+                        Day
+                    </label>
+                    <input type="text" asp-for="ShiftDurationStart" value="@Model.ShiftDurationStart.ToString("dd-MMM-yyyy")" class="form-control has-datepicker" />
+                    <span asp-validation-for="ShiftDurationStart" class="text-danger"></span>
+                </div>
+
+                <div class="form-group col">
+
+                    <div class="form-group">
+                        <label asp-for="ShiftDurationStart" class="control-label">
+                            &nbsp;
+                        </label>
+                        <label class="custom-control custom-checkbox">
+                            <input type="checkbox" asp-for="IsAllDay" value="True" class="custom-control-input" tabindex="5" onchange="$('#not-all-day').toggle(); onCheckChange(this)" />
+                            <span class="custom-control-label" for="chbxTerms">
+                                All-day
+                            </span>
+                        </label>
+                    </div>
+
+                    @*<label asp-for="ShiftDurationEnd" class="control-label">End Time</label>
+                        <input type="text" asp-for="ShiftDurationEnd" class="form-control has-timepicker" />
+                        <span asp-validation-for="ShiftDurationEnd" class="text-danger"></span>*@
+                </div>
+
+            </div>
+            <div id="not-all-day" style="display:block">
+                <div class="row">
+                    <div class="form-group col">
+                        <input type="text" asp-for="TimeStart" value="@Model.TimeStart.ToString("hh\\:mm")" class="form-control has-timepicker" />
+                        <span asp-validation-for="TimeStart" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group col">
+                        @*<label asp-for="ShiftDurationEnd" class="control-label">End Date</label>*@
+                        <input type="text" asp-for="TimeEnd" value="@Model.TimeEnd.ToString("hh\\:mm")" class="form-control has-timepicker" />
+                        <span asp-validation-for="TimeEnd" class="text-danger"></span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        @*<div class="form-group">
+                <label asp-for="Attachments" class="control-label">
+                    Add Attachment...
+                </label>
+                <input type="file" asp-for="Attachments" class="" />
+                <span asp-validation-for="Attachments" class="text-danger"></span>
+            </div>*@
+
+        @*<div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" asp-for="IsEffectiveImmediately" value="false" class="custom-control-input" tabindex="5" onchange="$('#advancedCreate').toggle()">
+                    <span class="custom-control-label" for="chbxTerms">
+                        Remind me
+                    </span>
+                </label>
+            </div>*@
+
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+
+        @if (Model != null && Model.Id > 0)
+        {
+            <a class="modal__btn modal__btn-danger float-right" asp-action="RemoveWork" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@Model.Name was just removed');hideModal()" data-ajax-confirm="Are you sure you want to remove this @Model.Name" data-ajax-begin="convertToLoadingTable('#tblMasterPayAdjustments')">Remove</a>
+        }
+    </footer>
+</form>
+
+
+<script>
+    $(document).find('.color-chooser').each(function () { $(this).val($(this).attr('value')); });
+    $('.color-chooser').change(function (e) {
+        $(this).removeClass('sch-red sch-blue sch-green');
+
+        var val = $(this).find(":selected").val();
+        console.log(val);
+        $(this).addClass('sch-' + val);
+        $(this).val(val);
+    })
+
+    $(".has-datepicker").flatpickr({
+        dateFormat: "j-M-Y"
+    });
+
+    $(".has-timepicker").flatpickr({
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+    });
+
+</script>
