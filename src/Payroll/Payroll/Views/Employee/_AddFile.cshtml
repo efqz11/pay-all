@@ -1,0 +1,92 @@
+﻿@model FileData
+
+<form asp-action="AddFile" asp-controller="Employee" data-ajax="true" data-ajax-method="POST" data-ajax-update="#folders" data-ajax-success="" id="addFileForm" data-ajax-failure="handleModalPostFailure" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <input asp-for="EmployeeId" type="hidden" />
+    <input asp-for="CompanyId" type="hidden" />
+
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @(Model == null || Model.Id <= 0 ? "New File" : "Update File")
+        </h2>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <label asp-for="Name" class="control-label"></label>
+            <input asp-for="Name" as class="form-control" />
+            <span class="text-danger" asp-validation-for="Name"></span>
+        </div>
+        <div class="form-group">
+            <label for="file" class="control-label"></label>
+            <input type="file" name="file" id="file" class="form-control-file" />
+            <span class="file" asp-validation-for="Name"></span>
+        </div>
+
+        <div class="form-group">
+            <div class="steps">
+                <h6 class="mb-0 text-right step-text">0%</h6>
+                <ul class="steps-container"></ul>
+                <div class="step-bar" style="width: 0%;"></div>
+            </div>
+            <span id="upload-status"></span>
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button type="button" onclick="UploadImage(this)" class="modal__btn modal__btn-primary">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>
+
+
+<script>
+    function UploadImage () {
+        var formData = new FormData();
+
+        var files = document.getElementById("file").files;
+        for (var i = 0; i != files.length; i++) {
+            formData.append("file", files[i]);
+        }
+
+        var id = $('#addFileForm #EmployeeId').val().trim()
+        formData.append("EmployeeId", id);
+        formData.append("CompanyId", $('#addFileForm #CompanyId').val().trim());
+
+        var name = $('#addFileForm #Name').val().trim()
+        formData.append("Name", name);
+        formData.append("Id", 0);
+
+        var token = $('#addFileForm input[name="__RequestVerificationToken"]').val().trim()
+        formData.append("__RequestVerificationToken", token);
+        
+
+        $.ajax(
+            {
+                url:  "@(Url.Action("AddFile"))",
+                data: formData,
+                processData: false,
+                contentType: false,
+                type: "POST",
+                xhr: function () {
+                    var xhr = new window.XMLHttpRequest();
+                    xhr.upload.addEventListener("progress", function (evt) {
+                        if (evt.lengthComputable) {
+                            var progress = Math.round((evt.loaded / evt.total) * 100);
+                            console.log('progress', progress);
+                            $(".step-bar").css("width", progress + "%"); //.attr("aria-valuenow", progress);
+                            $(".step-text").html(progress + "%");
+                        }
+                    }, false);
+                    return xhr;
+                },
+                success: function (data) {
+                    $("#progress").hide();
+                    $("#upload-status").show();
+                    sendNotification('success', 'File was just saved'); hideModal();
+                    hideModal();
+                    $("#cmpFiles-content").html(data);
+                },
+                error: handleModalPostFailure
+            }
+        );
+    }
+</script>

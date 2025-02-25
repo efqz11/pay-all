@@ -1,0 +1,55 @@
+
+@model List<JobActionHistory>
+
+        <table class="table">
+            <thead>
+                <tr colspan="">
+                    <th width="10px"></th>
+                    <th>Action</th>
+                    <th>On Date</th>
+                    <th>Job</th>
+                    @* <th>Detail</th> *@
+                    <th>Summary</th>
+                    @*<th></th>*@
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td></td>
+                        <td><button type="button" class="btn btn-sm btn-default" title="@item.ActionType.GetDisplayName()">@item.ActionType</button></td>
+                        @* <td></td> *@
+                        <td>@item.OnDate.ToSystemFormat(User)</td>
+                        
+                        <td>
+                                <a asp-action="Detail" asp-route-id="@item.JobId" asp-controller="Job">@item.JobIdString</a>
+                        </td>
+                        @* <td>
+                            @if (item.RelatedRequest != null)
+                            {
+                                <a asp-action="Detail" asp-route-id="@item.Id" asp-controller="Employee">@item.PreviousEmployee.GetSystemName(User)</a>
+                            }
+                            else
+                            {
+                                <span>None</span>
+                            }
+                        </td> *@
+                        
+                        <td>
+                            @if (item.RelatedRequest != null)
+                            {
+                                <a asp-action="ViewRequest" asp-route-id="@item.RelatedRequestId" asp-controller="Request">@item.RelatedRequestReference</a>
+                            }
+                            @item.Remarks
+                        </td>
+                        @* <td>@item.Remarks</td> *@
+                        @*<td>
+                                <a class="btn-link" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddEmployment" asp-route-eid="@item.Id" asp-route-id="@Model.Id">
+                                    <i class="fad fa-edit"></i>
+                                </a>
+                            </td>*@
+                    </tr>
+                }
+            </tbody>
+        </table>

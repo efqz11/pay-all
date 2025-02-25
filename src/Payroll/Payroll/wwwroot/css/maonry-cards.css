@@ -1,0 +1,398 @@
+/***************
+* post card styles
+****************/
+/**** MIXIN */
+/* Calculate fluid ratio based on two dimensions (width/height) */
+/***************
+* base card style
+****************/
+.card {
+  display: inline-block;
+  color: #5a5a5a;
+  text-align: justify;
+  font-size: 1.4em;
+  line-height: 1.15;
+  vertical-align: top;
+  flex-grow: 0;
+  flex-basis: calc(100% / 4 - 1rem);
+  /*width: calc(100% / 4 - 1rem);*/
+  height: auto;
+  margin: 0.5rem; }
+  .card > .card__wrap {
+    position: relative;
+    width: auto;
+    height: auto;
+    background-color: #fff; }
+    .card > .card__wrap > .card__bookmark {
+      position: absolute;
+      z-index: 3;
+      top: 0.6rem;
+      left: 0.6rem;
+      width: 1.6rem;
+      height: 1.6rem;
+      cursor: pointer;
+      text-shadow: 0.5px 0.5px 0px #969696; }
+      .card > .card__wrap > .card__bookmark > i::before {
+        /*content: "favorite_border";*/
+        font-size: 1.1em;
+        color: #fff;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1em;
+        height: 1em;
+        z-index: 2; }
+      .card > .card__wrap > .card__bookmark > input {
+        display: none; }
+        .card > .card__wrap > .card__bookmark > input:checked + i::before {
+          /*content: "favorite";*/
+          color: #ea7172; }
+    .card > .card__wrap > .card__thumbnail {
+      position: relative;
+      width: 100%;
+      padding-bottom: 62%;
+      filter: grayscale(60%);
+      /* This element will have fluid ratio from 4:1 at 800px to 2:1 at 300px. */
+      padding-top: 10%;
+      height: 120px;
+      background-size: cover;
+      -moz-background-size: cover;
+      /* Firefox 3.6 */
+      background-position: center;
+      /* Internet Explorer 7/8 */
+      /*background-position: center;
+      background-size: cover;
+      background-repeat: no-repeat;*/
+      background-color: #fff; }
+      .card > .card__wrap > .card__thumbnail > a {
+        position: absolute;
+        z-index: 2;
+        width: 100%;
+        height: 100%; }
+    .card > .card__wrap > .card__content {
+      background-color: #fff;
+      padding: 1.5em;
+      border-top: solid 1px #eee; }
+      .card > .card__wrap > .card__content > .card__header > .card__meta {
+        margin-bottom: 0.2em; }
+        .card > .card__wrap > .card__content > .card__header > .card__meta > .card__date {
+          color: #bcbcbc; }
+      .card > .card__wrap > .card__content > .card__header > a.card__title {
+        display: block;
+        text-align: left;
+        font-weight: 600;
+        font-size: 1.3em;
+        color: #5a5a5a;
+        letter-spacing: 0.05em; }
+      .card > .card__wrap > .card__content > .card__excerpt {
+        padding-top: 1.5em; }
+      .card > .card__wrap > .card__content > .card__footer {
+        position: relative;
+        padding-top: 1.5em; }
+        .card > .card__wrap > .card__content > .card__footer span, .card > .card__wrap > .card__content > .card__footer a {
+          font-size: 1.1em;
+          margin-right: 0.5em;
+          vertical-align: middle;
+          line-height: 20px; }
+        .card > .card__wrap > .card__content > .card__footer i.material-icons {
+          margin-right: 0.5rem;
+          font-size: 20px;
+          vertical-align: bottom; }
+        .card > .card__wrap > .card__content > .card__footer > .card__favorite-counts {
+          color: #f19d9e; }
+        .card > .card__wrap > .card__content > .card__footer > .card__comment-counts {
+          color: #6cadeb; }
+        .card > .card__wrap > .card__content > .card__footer > a.card__more {
+          color: #bcbcbc;
+          position: absolute;
+          right: 0;
+          margin-right: 0; }
+
+/***************
+* 1 row span, 1 column span, fixed height
+****************/
+.container.tile.ver1 > .card, .container.tile.ver2 > .card {
+  flex-grow: 0;
+  flex-basis: calc(100% / 4 - 1rem);
+  width: calc(100% / 4 - 1rem);
+  height: 290.8px; }
+  .container.tile.ver1 > .card > .card__wrap, .container.tile.ver2 > .card > .card__wrap {
+    width: auto;
+    height: 100%; }
+    .container.tile.ver1 > .card > .card__wrap > .card__thumbnail, .container.tile.ver2 > .card > .card__wrap > .card__thumbnail {
+      padding-bottom: 0;
+      height: 184.9488px; }
+    .container.tile.ver1 > .card > .card__wrap > .card__content > .card__header > .card__meta > .card__date, .container.tile.ver2 > .card > .card__wrap > .card__content > .card__header > .card__meta > .card__date {
+      display: block; }
+    .container.tile.ver1 > .card > .card__wrap > .card__content > .card__header > a.card__title, .container.tile.ver2 > .card > .card__wrap > .card__content > .card__header > a.card__title {
+      display: block; }
+    .container.tile.ver1 > .card > .card__wrap > .card__content > .card__excerpt, .container.tile.ver2 > .card > .card__wrap > .card__content > .card__excerpt, .container.tile.ver1 > .card > .card__wrap > .card__content > .card__footer, .container.tile.ver2 > .card > .card__wrap > .card__content > .card__footer {
+      display: none; }
+
+/***************
+* 2 row span, 1 column span, fixed height
+****************/
+.container.tile.ver1 > .card:first-child, .container.tile.ver2 > .card:first-child {
+  flex-basis: calc(100% / 4 * 2 - 1rem);
+  width: calc(100% / 4 * 2 - 1rem); }
+  .container.tile.ver1 > .card:first-child > .card__wrap, .container.tile.ver2 > .card:first-child > .card__wrap {
+    position: relative;
+    width: auto; }
+    .container.tile.ver1 > .card:first-child > .card__wrap > .card__thumbnail, .container.tile.ver2 > .card:first-child > .card__wrap > .card__thumbnail {
+      width: 100%;
+      height: 290.8px;
+      padding-bottom: 0; }
+    .container.tile.ver1 > .card:first-child > .card__wrap > .card__content, .container.tile.ver2 > .card:first-child > .card__wrap > .card__content {
+      position: absolute;
+      bottom: 5%;
+      right: 0;
+      width: 26rem;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: calc(1.5em / 3);
+      border: 0; }
+      .container.tile.ver1 > .card:first-child > .card__wrap > .card__content > .card__header, .container.tile.ver2 > .card:first-child > .card__wrap > .card__content > .card__header {
+        padding: calc(1.5em * 2 / 3);
+        border: solid 1px #eee; }
+        .container.tile.ver1 > .card:first-child > .card__wrap > .card__content > .card__header > .card__meta > .card__date, .container.tile.ver2 > .card:first-child > .card__wrap > .card__content > .card__header > .card__meta > .card__date {
+          display: none; }
+        .container.tile.ver1 > .card:first-child > .card__wrap > .card__content > .card__header > a.card__title, .container.tile.ver2 > .card:first-child > .card__wrap > .card__content > .card__header > a.card__title {
+          color: white; }
+      .container.tile.ver1 > .card:first-child > .card__wrap > .card__content > .card__excerpt, .container.tile.ver2 > .card:first-child > .card__wrap > .card__content > .card__excerpt {
+        display: none; }
+      .container.tile.ver1 > .card:first-child > .card__wrap > .card__content > .card__footer, .container.tile.ver2 > .card:first-child > .card__wrap > .card__content > .card__footer {
+        display: none; }
+
+/***************
+* 2 row span, 1 column span, fixed height
+****************/
+.container.tile.ver2 > .card:nth-child(5n) {
+  display: inline-block;
+  width: calc(100% / 4 * 2 - 1rem);
+  flex-basis: calc(100% / 4 * 2 - 1rem); }
+  .container.tile.ver2 > .card:nth-child(5n) > .card__wrap {
+    width: 100%;
+    height: 290.8px;
+    display: flex;
+    flex-direction: row; }
+    .container.tile.ver2 > .card:nth-child(5n) > .card__wrap > .card__thumbnail {
+      flex-grow: 0;
+      height: 100%;
+      width: calc(330px);
+      padding-bottom: 0; }
+    .container.tile.ver2 > .card:nth-child(5n) > .card__wrap > .card__content {
+      flex-grow: 1;
+      border-left: solid 1px #eee;
+      width: calc(100% / 4 * 2 - 1rem - 330px);
+      border-top: 0; }
+      .container.tile.ver2 > .card:nth-child(5n) > .card__wrap > .card__content > .card__excerpt {
+        display: block; }
+      .container.tile.ver2 > .card:nth-child(5n) > .card__wrap > .card__content > .card__footer {
+        display: block; }
+
+/***************
+* 2 row span, 1.5 column span, text overlay img
+****************/
+.container.tile.ver3 > .card:first-child {
+  flex-basis: calc(100% / 4 * 2 - 1rem);
+  width: calc(100% / 4 * 2 - 1rem);
+  height: 436.2px; }
+  .container.tile.ver3 > .card:first-child > .card__wrap {
+    position: relative;
+    width: auto; }
+    .container.tile.ver3 > .card:first-child > .card__wrap > .card__thumbnail {
+      position: relative;
+      width: 100%;
+      height: 436.2px;
+      padding-bottom: 0;
+      filter: none; }
+      .container.tile.ver3 > .card:first-child > .card__wrap > .card__thumbnail::before {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-color: rgba(8, 14, 20, 0.3); }
+    .container.tile.ver3 > .card:first-child > .card__wrap > .card__content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 1.5em;
+      border: 0;
+      background-color: transparent; }
+      .container.tile.ver3 > .card:first-child > .card__wrap > .card__content > .card__header {
+        border-left: solid 1.5px white;
+        padding-left: 1.5em; }
+        .container.tile.ver3 > .card:first-child > .card__wrap > .card__content > .card__header > .card__meta > .card__date {
+          display: block;
+          color: white; }
+        .container.tile.ver3 > .card:first-child > .card__wrap > .card__content > .card__header > a.card__title {
+          color: white;
+          font-weight: 300;
+          font-size: 2.3em; }
+      .container.tile.ver3 > .card:first-child > .card__wrap > .card__content > .card__excerpt {
+        color: white;
+        display: block;
+        padding-left: 1.5em; }
+
+/***************
+* 1 row span, 0.75 column span, text overlay img
+****************/
+.container.tile.ver3 > .card {
+  flex-basis: calc(100% / 4 - 1rem);
+  width: calc(100% / 4 - 1rem);
+  height: calc(290.8px * 1.5/2); }
+  .container.tile.ver3 > .card > .card__wrap {
+    position: relative;
+    width: auto; }
+    .container.tile.ver3 > .card > .card__wrap > .card__thumbnail {
+      width: 100%;
+      height: calc(290.8px * 1.5/2 - 1px);
+      padding-bottom: 0;
+      filter: none; }
+      .container.tile.ver3 > .card > .card__wrap > .card__thumbnail::before {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-image: linear-gradient(to bottom, rgba(8, 14, 20, 0) 0%, #080e14 100%); }
+    .container.tile.ver3 > .card > .card__wrap > .card__content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 1.5em;
+      border: 0;
+      background-color: transparent; }
+      .container.tile.ver3 > .card > .card__wrap > .card__content > .card__header {
+        border-left: solid 1.5px white;
+        padding-left: 1.5em; }
+        .container.tile.ver3 > .card > .card__wrap > .card__content > .card__header > .card__meta > .card__date {
+          display: none; }
+        .container.tile.ver3 > .card > .card__wrap > .card__content > .card__header > a.card__title {
+          color: white;
+          font-weight: 300;
+          font-size: 1.8em; }
+      .container.tile.ver3 > .card > .card__wrap > .card__content > .card__excerpt {
+        display: none; }
+      .container.tile.ver3 > .card > .card__wrap > .card__content > .card__footer {
+        display: none; }
+
+/***************
+* 1 row span, 1.5 column span, text overlay img
+****************/
+.container.tile.ver3 > .card:nth-child(2), .container.tile.ver3 > .card:nth-child(5), .container.tile.ver3 > .card:nth-child(6) {
+  flex-basis: calc(100% / 4 - 1rem);
+  width: calc(100% / 4 - 1rem);
+  height: 436.2px; }
+  .container.tile.ver3 > .card:nth-child(2) > .card__wrap, .container.tile.ver3 > .card:nth-child(5) > .card__wrap, .container.tile.ver3 > .card:nth-child(6) > .card__wrap {
+    position: relative;
+    width: auto; }
+    .container.tile.ver3 > .card:nth-child(2) > .card__wrap > .card__thumbnail, .container.tile.ver3 > .card:nth-child(5) > .card__wrap > .card__thumbnail, .container.tile.ver3 > .card:nth-child(6) > .card__wrap > .card__thumbnail {
+      width: 100%;
+      height: 436.2px;
+      padding-bottom: 0;
+      filter: none; }
+      .container.tile.ver3 > .card:nth-child(2) > .card__wrap > .card__thumbnail::before, .container.tile.ver3 > .card:nth-child(5) > .card__wrap > .card__thumbnail::before, .container.tile.ver3 > .card:nth-child(6) > .card__wrap > .card__thumbnail::before {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-image: linear-gradient(to bottom, rgba(8, 14, 20, 0) 0%, #080e14 100%); }
+    .container.tile.ver3 > .card:nth-child(2) > .card__wrap > .card__content, .container.tile.ver3 > .card:nth-child(5) > .card__wrap > .card__content, .container.tile.ver3 > .card:nth-child(6) > .card__wrap > .card__content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 1.5em;
+      border: 0;
+      background-color: transparent; }
+      .container.tile.ver3 > .card:nth-child(2) > .card__wrap > .card__content > .card__header, .container.tile.ver3 > .card:nth-child(5) > .card__wrap > .card__content > .card__header, .container.tile.ver3 > .card:nth-child(6) > .card__wrap > .card__content > .card__header {
+        border-left: solid 1.5px white;
+        padding-left: 1.5em; }
+        .container.tile.ver3 > .card:nth-child(2) > .card__wrap > .card__content > .card__header > .card__meta > .card__date, .container.tile.ver3 > .card:nth-child(5) > .card__wrap > .card__content > .card__header > .card__meta > .card__date, .container.tile.ver3 > .card:nth-child(6) > .card__wrap > .card__content > .card__header > .card__meta > .card__date {
+          color: white; }
+        .container.tile.ver3 > .card:nth-child(2) > .card__wrap > .card__content > .card__header > a.card__title, .container.tile.ver3 > .card:nth-child(5) > .card__wrap > .card__content > .card__header > a.card__title, .container.tile.ver3 > .card:nth-child(6) > .card__wrap > .card__content > .card__header > a.card__title {
+          color: white;
+          font-weight: 300;
+          font-size: 1.8em; }
+
+/***************
+* masonry layout
+****************/
+/***************
+* tile layout ver1 (large first post, small others)
+****************/
+.container.tile.ver1 {
+  flex-direction: row; }
+
+.container.tile.ver2 {
+  flex-direction: row; }
+
+.container.tile.ver3 {
+  max-height: calc(290.8px * 1.5 + 1rem);
+  overflow-y: hidden; }
+
+/***************
+* media queries if you need
+****************/
+/***************
+* necessary styles for jQuery.ellipsis
+****************/
+.ellip {
+  display: block;
+  height: 100%; }
+
+.ellip-line {
+  display: inline-block;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-wrap: normal;
+  vertical-align: bottom; }
+
+.ellip,
+.ellip-line {
+  position: relative;
+  overflow: hidden;
+  max-width: 100%; }
+
+/***************
+* container without column gap among cards
+****************/
+.container.without_column_gap, .container.tile.ver3 {
+  padding: 0 !important; }
+  .container.without_column_gap > .card, .container.tile.ver3 > .card {
+    margin: 0 !important;
+    flex-grow: 1 !important;
+    border: solid 0.5px transparent; }
+
+/***************
+* junk code
+****************/
+.containerxxx {
+  background-color: #e7e7e7;
+  font-size: 62.5%;
+  overflow-y: scroll;
+  max-height: 1000px;
+  max-width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  padding: 0.5rem; }
+  .containerxxx * {
+    box-sizing: border-box; }
+  .containerxxx a {
+    text-decoration: none; }
+  .containerxxx .no {
+    display: none; }
+
+/*# sourceMappingURL=maonry-cards.css.map */

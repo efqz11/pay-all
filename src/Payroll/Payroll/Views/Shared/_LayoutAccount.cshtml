@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @*<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">*@
+    <title>@ViewData["Title"] - Payroll</title>
+
+    <script src="~/js/fa-pro.js"></script>
+    <environment include="Development">
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    </environment>
+    <environment exclude="Development">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css"
+              asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
+              asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute"
+              crossorigin="anonymous"
+              integrity="sha256-eSi1q2PG6J7g7ib17yAaWMcrr5GrtohYChqibrV7PBE=" />
+    </environment>
+    <link rel="stylesheet" href="~/css/site.css" />
+    @*<link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" />*@
+    <link href="~/css/my-login.css" rel="stylesheet" />
+</head>
+<body class="my-login-page">
+    <section class="h-100">
+        <div class="container h-100">
+            <div class="row justify-content-md-center h-100">
+                <div class="card-wrapper">
+                    <div class="brand">
+                        <img src="~/img/logo.jpg" alt="logo">
+                    </div>
+                    <div class="card fat">
+                        <div class="card-body">
+                            @RenderBody()
+                        </div>
+                    </div>
+                    <div class="footer">
+                        Copyright &copy; 2019 &mdash; PayRoll
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="~/js/my-login.js"></script>
+    <script src="~/js/cookies.js"></script>
+
+    <script>
+        // moved to my-login.js
+         // '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>'
+        ////$(function () {
+        //    $('[data-toggle="popover"]').popover({
+        //        html: true,
+        //        trigger: 'manual',
+        //        animation: true,
+        //        template: '<div class="popover"><div class="popover-content"><div class="popover-content-wrapper"><div class="popover-body"></div></div></div></div>',
+        //        // container: $(this).attr('id'),
+        //        // placement: 'top',
+        //        //content: function () {
+        //        //  $return = '<div class="hover-hovercard"></div>';
+        //        // }
+        //    }).on("mouseenter", function () {
+        //        var _this = this;
+        //        $(this).popover("show");
+        //        $(".popover").on("mouseleave", function () {
+        //            $(_this).popover('hide');
+        //        });
+        //    }).on("mouseleave", function () {
+        //        var _this = this;
+        //        setTimeout(function () {
+        //            if (!$(".popover:hover").length) {
+        //                $(_this).popover("hide");
+        //            }
+        //        }, 300);
+        //    });
+        //});
+    </script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

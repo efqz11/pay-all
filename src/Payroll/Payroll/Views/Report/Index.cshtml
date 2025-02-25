@@ -1,0 +1,162 @@
+﻿@model List<Report>
+@{
+    ViewData["Title"] = "Report - ";
+}
+<style>
+    .table tr td:last-child {
+        width: 120px
+    }
+</style>
+
+<link href="~/css/tabs.css" rel="stylesheet" />
+
+
+<div>
+    <div class="layout-main-landing">
+        <div class="row">
+            <div class="layout-main-landing-header col-sm-12">
+                <div class="border-bottom pb-3 relative mb-3">
+                    <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                        @*<img class="zp-icon-image large content-block-with-icon__icon hidden-xs flex-self-start" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-map-288f54db.svg" alt="">*@
+                        <div class="content-block-with-icon__content">
+                            <h1 class="page-title margin-top-none margin-bottom-none">
+                                @FeatureMenus.GetFeatureMenuItemWithName(FeatureMenus.MenuItem.Report)
+                            </h1>
+                        </div>
+                    </div><div class="layout-landing-header-details"><p class="layout-landing-header-pricing margin-bottom-none"></p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-md-10">
+        <div class="tab-wrapper bnb">
+            <ul class="tabs">
+                <li class="tab-link active" data-tab="1"> <i class="fal fa-clock"></i> Recent</li>
+                <li class="tab-link" data-tab="2"> <i class="fal fa-plus"></i> Create New</li>
+                @*@foreach (var item in Model.Select(a => a.Category).Distinct()
+                   .Select((a, i) => new { i, Category = a }).Distinct().ToList())
+                {
+                    <li class="tab-link" data-tab="@(item.i + 2)">@item.Category</li>
+                }*@
+                @*<li class="tab-link" data-tab="2"><i class="fal fa-user-circle"></i> Employee Info</li>
+                    <li class="tab-link" data-tab="3"><i class="fal fa-ball-pile"></i> Time-Off</li>
+                    <li class="tab-link" data-tab="4"><i class="fal fa-info-circle"></i> Data Review</li>
+                    <li class="tab-link" data-tab="5"><i class="fal fa-comment-alt-dollar"></i> Payroll</li>*@
+            </ul>
+        </div>
+        <div class="content-wrapper bnb p-0 pt-3">
+
+            <div id="tab-1" class="tab-content">
+
+            </div>
+            <div id="tab-2" class="tab-content active">
+                @foreach (var item in Model.Where(t => !t.Url.IsMissing()).Select(a => a.Category).Distinct()
+                  .Select((a, i) => new { i, Category = a }).Distinct().ToList())
+                {
+
+                    <div class="mt-2 mb-3">
+                        <div class="accordion-wrapper accordion-unstyled" role="tablist" aria-multiselectable="true">
+                            <div class="accordion-item">
+                                <div class="accordion-heading" role="button" data-parent="#undefined" data-toggle="collapse" data-target="#suggested-policies-accordion-body" aria-controls="suggested-policies-accordion-body" aria-expanded="true" onclick="$(this).next().toggleCLass('collapse')">
+                                    <i class="fa fa-chevron-down" aria-hidden="true"></i> @item.Category
+                                </div>
+                                <div id="suggested-policies-accordion-body" class="panel-collapse in" aria-expanded="true">
+                                    <div class="accordion-body">
+                                        <div class="card-column-group">
+
+                                            @foreach (var report in Model.Where(t => !t.Url.IsMissing() && t.Category == item.Category))
+                                            {
+                                                <a class="gusto-button-link card card-default card-button" type="button" href="@Url.Content(report.Url)">
+                                                    <div class="">
+                                                        <div class="card-header-icon">
+                                                            <i class="@report.Icon fa-2x mb-3"></i>
+                                                        </div>
+                                                        <h4 class="card-title">@report.Name</h4>
+                                                    </div>
+                                                    <div class="card-content-main">
+                                                        <p>This is a sample description</p>
+                                                    </div>
+                                                    <div class="mt-2">
+                                                        @*<div class="card-actions">
+                                                    <a data-ajax="true" data-ajax-update="#main-content" data-ajax-method="post" asp-action="AddPayComponent" asp-controller="Company" asp-route-id="@ViewBag.Id" asp-route-n="@item.title" class="btn btn-md btn-primary">Add</a>
+                                                </div>*@
+                                                    </div>
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                }
+
+
+
+                @if (Model.Any(t => t.Url.IsMissing()))
+                {
+                    <div class="mt-2 mb-3">
+                        <div class="accordion-wrapper accordion-unstyled" role="tablist" aria-multiselectable="true">
+                            <div class="accordion-item">
+                                <div class="accordion-heading" role="button" data-parent="#undefined" data-toggle="collapse" data-target="#suggested-policies-accordion-body" aria-controls="suggested-policies-accordion-body" aria-expanded="true" onclick="$(this).next().toggleCLass('collapse')">
+                                    <i class="fa fa-chevron-down" aria-hidden="true"></i> Under Development
+                                </div>
+                                <div id="suggested-policies-accordion-body" class="panel-collapse in" aria-expanded="true">
+                                    <div class="accordion-body">
+                                        <div class="card-column-group">
+
+                                            @foreach (var report in Model.Where(t => t.Url.IsMissing()))
+                                            {
+                                                <a class="gusto-button-link card card-default card-button" type="button" href="@Url.Content(report.Url)">
+                                                    <div class="">
+                                                        <div class="card-header-icon">
+                                                            <i class="@report.Icon fa-2x mb-3"></i>
+                                                        </div>
+                                                        <h4 class="card-title">@report.Name</h4>
+                                                    </div>
+                                                    <div class="card-content-main">
+                                                        <p>This is a sample description</p>
+                                                        <span>@report.Category</span>
+                                                    </div>
+                                                    <div class="mt-2">
+                                                        @*<div class="card-actions">
+                                                    <a data-ajax="true" data-ajax-update="#main-content" data-ajax-method="post" asp-action="AddPayComponent" asp-controller="Company" asp-route-id="@ViewBag.Id" asp-route-n="@item.title" class="btn btn-md btn-primary">Add</a>
+                                                </div>*@
+                                                    </div>
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        </div>
+    <div class="col-md-3">
+        <div id="employee-content">
+
+        </div>
+    </div>
+</div>
+
+<div class="text-center">
+</div>
+<div class="clearfix"></div>
+
+
+@section scripts {
+    <script>
+
+        InitializeTabs();
+
+    </script>
+
+}

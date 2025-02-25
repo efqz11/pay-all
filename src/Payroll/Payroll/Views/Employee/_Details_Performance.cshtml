@@ -1,0 +1,320 @@
+﻿@model Employee
+@{
+    Layout = "_LayoutCard";
+    ViewBag.CardHeader = "Performance";
+}
+@{
+    var durationText = (string)ViewBag.DurationText;
+    var startDate = (DateTime)ViewBag.Start;
+    var endDate = (DateTime)ViewBag.End;
+    var card = (KpiAnalysis)ViewBag.EmployeeCard;
+    var ppemp = (PayrollPeriodEmployee)ViewBag.PayrolPeriodEmployee;
+    var ppempGen = (PayrollPeriodEmployee)ViewBag.PayrolPeriodEmployeeGen;
+    var salaryChart = (List<Tuple<string, decimal, decimal>>)ViewBag.SalaryHistory;
+
+    bool isGenerated = ppempGen != null;
+    if (isGenerated)
+    {
+        ppemp = ppempGen;
+    }
+
+    ViewBag.Employee = Model;
+}
+
+<style>
+
+    .table-performance tbody tr:first-child td {
+        border-top: none !important;
+    }
+
+    .table-performance tbody tr:not(.separator) td {
+        border-top: 1px solid #f9fcff;
+    }
+
+    #chartdiv {
+        width: 100%;
+        height: 450px;
+    }
+</style>
+
+
+
+<a class="hide" id="hidd_gn" data-ajax="true" data-ajax-update="#employee-content" asp-action="General" asp-route-id="@Model.Id"></a>
+
+<div class="row">
+    <div class="col-md-7">
+        <h5 class="head1">Hi, I'm @Model.Name</h5>
+        <span>My perfromance history @(!string.IsNullOrEmpty(durationText) ? " for during " + @durationText : "")</span>
+    </div>
+    <div class="col-md-5">
+
+        <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+            <input type="text" id="datefilter" value="@durationText" />
+            <select class="form-control form-control-sm" id="ppeId" asp-items="@ViewBag.PayrolPeriodEmpId">
+                <option value="0">Active Period</option>
+            </select>
+            @*<div class="btn-group mr-2" role="group" aria-label="First group">
+                    <a class="btn btn-outline-info btn-sm">1 year</a>
+                    <a class="btn btn-outline-info btn-sm">6 months</a>
+                    <a class="btn btn-outline-info btn-sm">3 months</a>
+                </div>*@
+
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-5">
+        <partial name="~/Views/Home/_EmployeeCard.cshtml" model="@card" />
+    </div>
+    <div class="col-md-7">
+        <div id="salaryChart" style="height:300px"></div>
+
+        <table class="table table-performance border-0">
+            <tbody>
+                <tr>
+                    <td colspan="2">
+                        @if (!isGenerated)
+                        {
+                            <h6 class="mb-1"><a role="tooltip" data-microtip-position="top" aria-label="View Master Sheet" asp-controller="Payroll" asp-action="View" asp-route-id="@ppemp.PayrollPeriod.Id"><b>@ppemp.PayrollPeriod.Name</b></a></h6>
+                            <small class="text-secondary">@ppemp.PayrollPeriod.StartDate.ToLocalFormat(false) &mdash; @ppemp.PayrollPeriod.EndDate.ToLocalFormat(false)</small>
+                        }
+                        else
+                        {
+                            <h6 class="mb-1"><a role="tooltip" data-microtip-position="top" aria-label="View Master Sheet" href="#"><b>Expected Period</b></a></h6>
+                            <small class="text-secondary">@ppemp.PayrollPeriod.StartDate.ToLocalFormat(false) &mdash; @ppemp.PayrollPeriod.EndDate.ToLocalFormat(false)</small>
+                        }
+                    </td>
+                    <td colspan="2" class="text-right">
+                        @if (card != null)
+                        {
+                            <span class="pro @card.CssClass" style="top: 0px">@card.Grade</span>
+                            <strong>
+                                @card.PercentStr
+                            </strong>
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="text-success"><i class="fa fa-hand-holding-usd "></i> Take Home</span>
+                    </td>
+                    <td class="text-left text-success" colspan="2">
+                        <strong>
+                            MVR @ppemp.NetSalary.ToString("N2")
+                            <partial name="_DisplayRequestStatus" model="@ppemp.PayrollPeriod.Status" />
+
+                            @*@if (ppemp.PayrollPeriod.CurrentStatus.status == "Completed")
+                            {
+                                <i class="fa fa-check-cirlce"></i>
+                            }
+                            @if (isGenerated)
+                            {
+                                <i class="fa fa-info-circle text-warning" title="Expected Salary for this period"></i>
+                            }*@
+                        </strong>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td><span class="text-danger font-weight-bold">Late Minutes</span></td>
+                    <td>
+                        @if (ppemp.LateMins > 0)
+                        {
+                            <span><i class='fa fa-circle fa-sm text-danger' title=''></i> @ppemp.LateMins<span class="text-muted"></span></span>
+                        }
+                    </td>
+                    <td>
+                        <div id="chartdiv_late_@ppemp.Id" class="chartdiv"></div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><span class="text-info font-weight-bold">Worked Hours</span></td>
+                    <td>
+                        <span>
+                            <span><i class='fa fa-business-time text-info' title=''></i> @ppemp.WorkedHours.ToString("N2") </span>
+                        </span>
+                    </td>
+                    <td>
+                        <div id="chartdiv_workhours_@ppemp.Id" class="chartdiv"></div>
+                    </td>
+                    <td class="p-0">
+                        <div id="chartdiv_workhours_pie_@ppemp.Id" class="chartdivSmall"></div>
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td><span class="text-warning font-weight-bold">Overtime Hours</span></td>
+                    <td>
+                        <span>
+                            <span><i class='fa fa-hourglass-half text-warning' title=''></i> @ppemp.OvertimeHours.ToString("N2") </span>
+                        </span>
+                    </td>
+                    <td>
+                        <div id="chartdiv_overtime_@ppemp.Id" class="chartdiv"></div>
+                    </td>
+                    <td></td>
+                </tr>
+
+                <tr>
+                    <td><span class="text-dark font-weight-bold">Absent Days</span></td>
+                    <td>
+                        <span>
+                            <span><i class='fa fa-circle text-dark' title=''></i> @ppemp.AbsentDays </span>
+                        </span>
+                    </td>
+                    <td>
+                        <div id="chartdiv_absent_@ppemp.Id" class="chartdiv"></div>
+                    </td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+<script>
+    $(function () {
+        var data = null;
+        var url = GetAppRootPath() + '/performance/GetChartForActivePeriod?empId=' + '@Model.Id';
+        @if(!isGenerated)
+        {
+            <text>
+        url = GetAppRootPath() + '/performance/GetChartForSinglePeriod?ppempId=' + '@ppemp.Id';
+            </text>
+        }
+
+        $.get(url).done(function (d) {
+            data = d.data;
+            console.log('data RAW', d);
+            DrawPerformanceValues(d.data, '@ppemp.Id');
+        });
+    });
+</script>
+
+<script>
+    
+    var salaryChart = [];
+    @if (salaryChart != null) {
+        foreach (var item in salaryChart)
+        {
+            <text>
+        salaryChart.push({period: '@item.Item1', gross: '@item.Item2', net: '@item.Item3'});
+            </text>
+        }
+    }
+
+
+    console.log('salary chart', salaryChart);
+
+    am4core.ready(function () {
+
+        // Themes begin
+        am4core.useTheme(am4themes_animated);
+        // Themes end
+
+        // Create chart instance
+        var chart = am4core.create("salaryChart", am4charts.XYChart);
+
+        // Add data
+        chart.data = salaryChart;
+
+        chart.legend = new am4charts.Legend();
+        chart.legend.position = "right";
+
+        // Create axes
+        var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+        categoryAxis.dataFields.category = "period";
+        categoryAxis.renderer.grid.template.opacity = 0;
+
+        var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+        valueAxis.min = 0;
+        valueAxis.renderer.grid.template.opacity = 0;
+        valueAxis.renderer.ticks.template.strokeOpacity = 0.5;
+        valueAxis.renderer.ticks.template.stroke = am4core.color("#495C43");
+        valueAxis.renderer.ticks.template.length = 10;
+        valueAxis.renderer.line.strokeOpacity = 0.5;
+        valueAxis.renderer.baseGrid.disabled = true;
+        valueAxis.renderer.minGridDistance = 40;
+
+        // Create series
+        function createSeries(field, name) {
+            var series = chart.series.push(new am4charts.ColumnSeries());
+            series.dataFields.valueX = field;
+            series.dataFields.categoryY = "period";
+            series.stacked = true;
+            series.name = name;
+
+            var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+            labelBullet.locationX = 0.5;
+            labelBullet.label.text = "{valueX}";
+            labelBullet.label.fill = am4core.color("#fff");
+        }
+
+        createSeries("gross", "Gross Pay");
+        createSeries("net", "Net Pay");
+    }); // end am4core.ready()
+</script>
+
+<script>
+    $('#ppeId').change(function (e) {
+        var newUrl = GetAppRootPath() + '/Employee/Performance/' + @Model.Id + '?ppId=' + $(this).val();
+        console.log('newUrl', newUrl);
+        $('a.performance_table').attr('href', newUrl);
+        $('a.performance_table').click();
+    });
+
+    $('#datefilter').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear'
+        },
+        opens: 'left',
+
+        ranges: {
+            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+            'Last 3 Months': [moment().subtract(3, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+            'Last 6 Months': [moment().subtract(6, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+            'Last Year': [moment().subtract(12, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+        }
+    });
+
+
+
+    var start = '@startDate.ToString("MM/dd/yyyy")';
+    var end = '@endDate.ToString("MM/dd/yyyy")';
+    //console.log(start, end, 'start-end');
+    //console.log(start !== "" && end !== "");
+    if (start !== "" && end !== "") {
+        $('#datefilter').data('daterangepicker').setStartDate(start);
+        $('#datefilter').data('daterangepicker').setEndDate(end);
+    }
+
+
+    $('#datefilter').on('apply.daterangepicker', function (ev, picker) {
+        console.log(picker);
+        var days = picker.endDate.diff(picker.startDate, 'days');
+        console.log($(this));
+        if (days <= 0)
+            $(this).val(picker.startDate.format('ddd, MMM DD, YYYY'));
+        else
+            $(this).val(picker.startDate.format('MMM DD') + ' - ' + picker.endDate.format('DD, YYYY') + " (" + days + " days)");
+
+        // 1/10/2020 12:34:32 PM
+        var url = $('#hidd_gn').attr('href');
+        url += "?start=" + picker.startDate.format('MM/DD/YYYY HH:mm:ss');
+        url += "&end=" + picker.endDate.format('MM/DD/YYYY HH:mm:ss');
+
+        $('#hidd_gn').attr('href', url);
+        $('#hidd_gn').click();
+    });
+
+    $('#datefilter').on('cancel.daterangepicker', function (ev, picker) {
+        $(this).val('');
+    });
+
+
+</script>

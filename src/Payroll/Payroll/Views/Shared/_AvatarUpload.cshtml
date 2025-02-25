@@ -1,0 +1,147 @@
+﻿@{
+    string name = ViewData["name"].ToString() ?? "imageUpload";
+    string src = ViewData["src"].ToString() ?? "/img/default-image.png";
+    string type = ViewData["type"]?.ToString() ?? "1";
+}
+
+@if (type != "1") // inline
+{
+    <div class="avatar-upload mb-4" style="margin:0;max-width:none">
+        <div class="avatar-edit" style=" position: absolute; left: 120px;top: 20px;">
+            <input type='file' id="imageUpload" name="@name" accept=".png, .jpg, .jpeg" />
+            @*<input type="filxe" style="display:none" name="@name" id="@name" />*@
+            <label for="imageUpload" style=" border-radius: 5px; width: auto !important; padding: 10px; height: auto !important;">
+                <i class="fal fa-edit"></i> Upload
+            </label>
+        </div>
+
+        <div class="avatar-preview" @src style=" width: 100px; height: 100px;">
+            <div id="imagePreview" style="@($"background-image: url('{Url.Content(src)}');")">
+                <div id="avatar-loader" class="loader loader-blue btn-loading" data-page="2" style="line-height: 12;display:none">
+                    <div class="ball-beat"><div></div><div></div><div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+
+    <div class="avatar-upload" style="margin: none;">
+        <div class="avatar-edit">
+            <input type='file' id="imageUpload" name="@name" accept=".png, .jpg, .jpeg" />
+            @*<input type="filxe" style="display:none" name="@name" id="@name" />*@
+            <label for="imageUpload">
+                <i class="fal fa-edit"></i>
+            </label>
+        </div>
+        <div class="avatar-preview" @src>
+            <div id="imagePreview" style="@($"background-image: url('{Url.Content(src)}');")">
+                <div id="avatar-loader" class="loader loader-blue btn-loading" data-page="2" style="line-height: 12;display:none">
+                    <div class="ball-beat"><div></div><div></div><div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+<div class="croppie-upload" style="display:none">
+    <div id="pic-bg"></div>
+    <div class="cropped-hidden"></div>
+    <input type="hidden" id="imagebase64" name="imagebase64">
+</div>
+
+
+    <script>
+    @*var name = '@name';
+    function readURL(input) {
+        console.log(input);
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $("#imagePreview").css(
+                    "background-image",
+                    "url(" + e.target.result + ")"
+                );
+                $("#imagePreview").hide();
+                $("#imagePreview").fadeIn(650);
+            };
+            reader.readAsDataURL(input.files[0]);
+
+        }
+    }
+
+    $("#imageUpload").change(function () {
+        readURL(this);
+    });*@
+
+    function saveBase64Image() {
+        //$('.croppie-upload').hide();
+        //$('.avatar-upload').show();
+
+        $cropArea.croppie('result', { type: 'base64', format: 'jpeg' })
+            .then(function (data) {
+                //console.log('base64 udpated');
+                //console.log(data);
+                $('#imagebase64').val(data);
+
+
+                // call to actual form upload event
+                UploadImage();
+            });
+
+    }
+
+    function readFile(input) {
+        var def = $.Deferred();
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $cropArea.croppie('bind', {
+                    url: e.target.result
+                });
+                def.resolve(e.target.result);
+                };
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            console.log("Sorry - you're browser doesn't support the FileReader API");
+        }
+
+        return def.promise();
+    }
+
+    var $cropArea = $("#pic-bg");
+
+    $cropArea.croppie({
+        enableExif: true,
+        showZoomer: true,
+        enforceBoundary: true,
+        viewport: {
+            width: 200,
+            height: 200,
+            type: 'square'
+        },
+        boundary: {
+            width: 300,
+            height: 300
+        }
+    });
+
+    $("#imageUpload").on('change', function () {
+        $('.croppie-upload').show();
+        $('.modal__container .avatar-upload').hide();
+
+        readFile(this).then(function () {
+            $cropArea.croppie('result', {
+                type: 'canvas',
+                size: 'viewport'
+            }).then(function (resp) {
+                console.log(resp);
+                // $('#imagebase64').val(resp);
+                $(".cropped-hidden").val(resp);
+            });
+        });
+    });
+
+    </script>

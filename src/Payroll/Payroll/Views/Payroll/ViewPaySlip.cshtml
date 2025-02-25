@@ -1,0 +1,85 @@
+﻿@model PayrollPeriodEmployee
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css"
+      asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
+      asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute"
+      crossorigin="anonymous"
+      integrity="sha256-eSi1q2PG6J7g7ib17yAaWMcrr5GrtohYChqibrV7PBE=" />
+@{
+    var showAll = ViewData["ShowAll"] != null ? (bool)ViewData["ShowAll"] : false;
+    Layout = null;
+}
+
+<style>
+    div.row > div {
+       display: inline-block;
+    }
+</style>
+
+<div class="container">
+
+    @if (showAll)
+    {
+        <div class="header row">
+            <div class="col-md-2">
+                <div class="image">
+                    <img src="@Url.Content(Model.PayrollPeriod.Company.LogoUrl ?? DefaultPictures.default_company)" class="rounded" height="50" />
+                </div>
+            </div>
+            <div class="col-md-10 text-left">
+                <h3>@Model.PayrollPeriod.Company.Name</h3>
+                <p>@Html.Raw(Model.PayrollPeriod.Company.Address.Escape())</p>
+            </div>
+        </div>
+
+        <p>Payslip for @Model.PayrollPeriod.Name (@Model.PayrollPeriod.StartDate.GetDuration(Model.PayrollPeriod.EndDate, User))</p>
+        <span>@Model.Name</span>
+    }
+
+    <div class="row">
+        <div class="col-5">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <td colspan="2">Additions</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.VariationKeyValues.Where(v => v.Type == VariationType.ConstantAddition || v.Type == VariationType.VariableAddition).OrderBy(a => a.MultiOrder))
+                    {
+                        <tr>
+                            <td>@item.Key</td>
+                            <td>@item.Value.ToSystemFormat(User)</td>
+                        </tr>
+                    }
+                    <tr>
+                        <td>Total Gross Pay</td>
+                        <td>@Model.VariationKeyValues.Where(v => v.Type == VariationType.ConstantAddition || v.Type == VariationType.VariableAddition).Sum(a => a.Value).ToSystemFormat(User)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-6">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <td colspan="2">Deductions</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.VariationKeyValues.Where(v => v.Type == VariationType.VariableDeduction || v.Type == VariationType.VariableDeduction).OrderBy(a => a.MultiOrder))
+                    {
+                        <tr>
+                            <td>@item.Key</td>
+                            <td>@item.Value.ToSystemFormat(User)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="text-right">
+        <h4 class="mb-1">MVR @Model.NetSalary.ToSystemFormat(User)</h4>
+        <small> Total Payroll</small>
+    </div>
+</div>

@@ -1,0 +1,72 @@
+﻿@model CompanyAccount
+@{
+    var dateTest = (DateTime)ViewBag.DateFormatTest;
+    var dec = (double)ViewBag.CurrencyFormatTest;
+    var nameFormat = (Employee)ViewBag.NameFormatTest;
+}
+
+
+<ol class="progress-bar-tabs progress-bar-style-default">
+    <li data-step="1" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Format settings</div></li>
+</ol>
+
+
+
+<div class="row pt-3">
+    <div class="col-sm-12 col-md-7 content">
+        <form asp-action="UpdateFormatSettings" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" id="form" data-ajax-success="sendNotification('success', 'Company format settings were just saved')" data-ajax-failure="handleModalPostFailure">
+            @Html.AntiForgeryToken()
+            <input asp-for="Id" type="hidden" value="@Model.Id" />
+            <main class="modal__content" id="modal-1-content">
+                <div class="step" data-step="1">
+                    <h4 class="pb-4 fs-unmask">Tell us about your default format?</h4>
+                    <div class="form-group">
+                        Sample Date Time : @dateTest.ToLongDateString() @dateTest.ToLongTimeString()
+                    </div>
+                    <div class="row mb-4">
+                        <div class="form-group col">
+                            <label asp-for="DateFormat" class="control-label">Date Format</label>
+                            <select asp-for="DateFormat" as class="form-control form-control-lg" asp-items="@ViewBag.DateFormat">
+                                <option value="0">Choose</option>
+                            </select>
+                            <span asp-validation-for="DateFormat" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col">
+                            <label asp-for="TimeFormat" class="control-label">Time Format</label>
+                            <select asp-for="TimeFormat" as class="form-control form-control-lg" asp-items="@ViewBag.TimeFormat">
+                                <option value="0">Choose</option>
+                            </select>
+                            <span asp-validation-for="TimeFormat" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="NameFormat" class="text-large text-weight-bold">Default Name Format</label>
+                        <p class="text-weight-normal">
+                            For example: consider employee with name '@nameFormat.Initial @nameFormat.FirstName @nameFormat.MiddleName @nameFormat.LastName', how would you like this name to appear everywhere.
+                        </p>
+                        <select asp-for="NameFormat" as class="form-control form-control-lg" asp-items="@ViewBag.NameFormat">
+                            <option value="0">Choose</option>
+                        </select>
+                        <span class="text-danger" asp-validation-for="NameFormat"></span>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label asp-for="CurrencyFormat" class="control-label">Currency / Decimal Format</label>
+                        <p class="text-weight-normal">
+                            For example: consider sample amount '@dec', how would you like this field to appear everywhere.
+                        </p>
+                        <select asp-for="CurrencyFormat" as class="form-control form-control-lg" asp-items="@ViewBag.CurrencyFormat">
+                            <option value="0">Choose</option>
+                        </select>
+                        <span class="text-danger" asp-validation-for="CurrencyFormat"></span>
+                    </div>
+                </div>
+            </main>
+            <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+                <button class="btn btn-lg btn-outline-primary btn-back mr-2" type="button">Back</button>
+                <button class="btn btn-lg btn-primary btn-next btn-save-master" type="button">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+

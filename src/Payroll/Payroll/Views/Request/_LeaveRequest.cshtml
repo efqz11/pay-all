@@ -1,0 +1,198 @@
+﻿@model Request
+@{ 
+    var dayOffEmpls = (List<DayOffEmployee>)ViewBag.DayOffs;
+    //var upcomingAttendance = (List<Attendance>)ViewBag.UpcomingAttendanceRecords;
+    var dayOffs = dayOffEmpls.Select(x => x.DayOff).Distinct().ToList();
+}
+
+    <form asp-action="ProcessRequest" asp-controller="Request" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" data-ajax-begin="" data-ajax-success="" id="addUpdateConnectionForm" data-ajax-failure="handleModalPostFailure">
+        @Html.AntiForgeryToken()
+        <input asp-for="Id" type="hidden" value="@Model.Id"/>
+        <input asp-for="AttendanceId" type="hidden" />
+        <input asp-for="EmployeeId" type="hidden" />
+        <input asp-for="RequestType" type="hidden" />
+        <input asp-for="Status" type="hidden" />
+        <header class="modal__header">
+            <h2 class="modal__title" id="modal-1-title">
+
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewRequest" asp-controller="Request" asp-route-id="@Model.Id">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+
+                @(Model == null || Model.Id <= 0 ? "New Leave Request" : "Update Leave Request")
+            </h2>
+            <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        </header>
+        <main class="modal__content" id="modal-1-content">
+            <div class="form-group">
+                <label asp-for="DayOffId" class="control-label">Choose type of Leave</label>
+                <select asp-for="DayOffId" class="form-control" asp-items="@(new SelectList(dayOffEmpls, "DayOffId", "DayOff.Name"))" onchange="$('.desc,.transfgerEMpl').hide(); $('.desc_' + $(this).val()).show(); console.log('.desc_' + $(this).val()); if($('.desc_' + $(this).val()).data('transfer') == 'True') $('.transfgerEMpl').show()">
+                    <option value="0">Choose</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                @foreach (var item in dayOffEmpls)
+                {
+                <span class="desc desc_@item.DayOffId" style="display:none"  data-transfer="@(item.DayOff.RequireSubstitiute && item.DayOff.RequireSubstitiuteOptional)">
+                    @if (!string.IsNullOrWhiteSpace(item.DayOff.Description))
+                    {
+                        @item.DayOff.Description.LimitTo(100)
+                        <br />
+                    }
+                    <strong class="text-warning"><i class="fad fa-info-circle"></i> @(dayOffEmpls.FirstOrDefault(x => x.DayOffId == item.DayOffId)?.TotalRemainingHours ?? 0) hour(s) left</strong>
+                    @if (item.DayOff.MustRequestBefore)
+                    {
+                        <br />
+                        <i class="fad fa-clock"></i> @("Must Request " + Html.DisplayTextFor(x => item.DayOff.MustRequestBeforeAlert))
+                    }
+                    @if (item.DayOff.ExcludeForPublicHoliday)
+                    {
+                        <br />
+                        <i class="fad fa-calendar-times"></i> @("Exclude public holiday & weekends")
+                    }
+                    @if (item.DayOff.RequireSubstitiute)
+                    {
+                        <br />
+                        <i class="fad fa-user"></i> @("Require Substitute") @(item.DayOff.RequireSubstitiuteOptional ? " (optional)" : "")
+                    }
+                    @if (item.DayOff.RequiredDocuments)
+                    {
+                        <br />
+                        <i class="fad fa-file-alt"></i> @(item.DayOff.RequiredDocumentList)
+                        @if (item.DayOff.RequiredDocumentForConseqetiveDays)
+                        {
+                            @(" +" + item.DayOff.ConsquetiveDaysRequire.ToString() + " days(s)")
+                        }
+                    }
+                </span>
+                }
+            </div>
+
+            <hr />
+
+            <div class="form-group">
+                <label asp-for="NewCheckOutTime" class="control-label">Days which you wish to record absence</label>
+                @*<p class=""><span class="src btn-outline-dark btn-sm btn" data-target="today">Today</span> · <span class="src btn-outline-primary btn-sm btn" data-target="tomorrow">Tomorrow</span> · <span class="src btn-outline-danger btn-sm btn" data-target="rejected">Set Range</span></p>
+                <input type="hidden" asp-for="Start" />
+                <input type="hidden" asp-for="End" />*@
+
+                <span asp-validation-for="Reason" class="text-danger"></span>
+                <div class="row">
+                    <div class="col-md-5">
+                        <input type="text" asp-for="Start" class="form-control has-datepicker " value="@Model.Start?.ToString("dd-MMM-yyyy")" autocomplete="off" />
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <i class="fa fa-arrow-right mt-2 "></i>
+                    </div>
+                    <div class="col-md-5">
+                        <input type="text" asp-for="End" class="form-control has-datepicker" value="@Model.End?.ToString("dd-MMM-yyyy")" autocomplete="off" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group transfgerEMpl" style="display:none" >
+                <label asp-for="TransferredEmployeeId" class="control-label">Substituting Employee</label>
+                <select class="form-group" data-width="100%" asp-for="TransferredEmployeeId" data-initvalue='[{ "id": @Model.TransferredEmployeeId, "text": "@Model.TransferredEmployeeName" }]'></select>
+            </div>
+        </main>
+        <footer class="modal__footer">
+            <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+            @*<button type="submit" class="modal__btn modal__btn-warning" onclick="$('#Status').val('Submitted')">Send for Approval</button>*@
+            <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+            @*@if (Model != null && Model.Id > 0)
+            {
+                <a class="modal__btn modal__btn-danger float-right" asp-action="Remove" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@Model.RequestType.ToString() request from was cancelled');hideModal();$('div.item-@Model.Id').hide()">Remove</a>
+            }*@
+        </footer>
+    </form>
+
+
+<script>
+    $(function () {
+        loadEmpddSearch("#TransferredEmployeeId");
+
+
+        $('#DayOffId').change();
+        $('input[name="datefilter"]').daterangepicker({
+            autoUpdateInput: false,
+            locale: {
+                cancelLabel: 'Clear'
+            }
+        });
+
+        var start = '@Model.Start?.ToString("MM/dd/yyyy")';
+        var end = '@Model.End?.ToString("MM/dd/yyyy")';
+        console.log(start, end, 'start-end');
+        console.log(start !== "" && end !== "");
+        if (start !== "" && end !== "") {
+            $('input[name="datefilter"]').data('daterangepicker').setStartDate(start);
+            $('input[name="datefilter"]').data('daterangepicker').setEndDate(end);
+        }
+
+
+        $('input[name="datefilter"]').on('apply.daterangepicker', function (ev, picker) {
+            console.log(picker);
+            var days = picker.endDate.diff(picker.startDate, 'days') + 1;
+            if (days <= 0)
+                $(this).val(picker.startDate.format('ddd, MMM DD, YYYY'));
+            else
+                $(this).val(picker.startDate.format('MMM DD') + ' - ' + picker.endDate.format('DD, YYYY') + " (" + days + " days)");
+
+            // 1/10/2020 12:34:32 PM
+            $('#Start').val(picker.startDate.format('MM/DD/YYYY HH:mm:ss'));
+            $('#End').val(picker.endDate.format('MM/DD/YYYY HH:mm:ss'));
+        });
+
+        $('input[name="datefilter"]').on('cancel.daterangepicker', function (ev, picker) {
+            $(this).val('');
+        });
+
+
+
+        $('.src').click(function (e) {
+            var target = $(this).data('target');
+            var today = moment();
+            var tmrw = moment().add(1, 'days');
+            console.log(today, tmrw);
+            if (target == "today") {
+                setDate(today, today);
+            }
+            else if (target == "tomorrow") {
+                setDate(tmrw, tmrw);
+            }
+            else {
+                $('input[name="datefilter"]').focus();
+            }
+
+
+            $('.src').removeClass('active');
+            $(this).addClass('active');
+        });
+
+    });
+
+    function setDate(start, end) {
+        var days = end.diff(start, 'days');
+        if (days <= 0)
+            $('input[name="datefilter"]').val(start.format('ddd, MMM DD, YYYY'));
+        else
+            $('input[name="datefilter"]').val(start.format('MMM DD') + ' - ' + end.format('DD, YYYY') + " (" + days + " days)");
+
+        // 1/10/2020 12:34:32 PM
+        $('#Start').val(start.format('MM/DD/YYYY HH:mm:ss'));
+        $('#End').val(end.format('MM/DD/YYYY HH:mm:ss'));
+    }
+
+    $(".has-datepicker").flatpickr({
+        dateFormat: "j-M-Y"
+    });
+    
+    $(".has-timepicker").flatpickr({
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+    });
+
+</script>

@@ -1,0 +1,66 @@
+﻿@model CompanyAccount
+
+
+@if (Model.KpiConfig == null)
+{
+    <div class="text-lead">
+        No KPI variables found
+    </div>
+    <p>
+        <a class="btn btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateKpiConfig" asp-controller="Company" asp-route-id="@Model.Id">
+            New Variable
+        </a>
+    </p>
+}
+else
+{
+    if (Model.IsKpiConfigured)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="font-size: 14px;">
+            <strong><i class="fa fa-check-circle"></i> Great! KPIs are ready for calculation.</strong> After your next payroll run along with performance KPI data will be updated.
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert" style="font-size: 14px;">
+            KPI weightage <b>does not sum up to 100%.</b> You should check in on some of those variables below.
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+    <p>
+        <a class="btn btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateKpiConfig" asp-controller="Company" asp-route-id="@Model.Id">
+            New Variable
+        </a>
+    </p>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Variable</th>
+                <th>Best &mdash; Worst (range)</th>
+                <th>Weightage</th>
+                <th>Order</th>
+            </tr>
+        </thead>
+        @foreach (var item in Model.KpiConfig.OrderBy(a => a.DisplayOrder))
+        {
+            <tr>
+                <td w>
+                    <a class="" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateKpiConfig" asp-controller="Company" asp-route-id="@Model.Id" asp-route-kpi="@item.Kpi">
+                        @item.Kpi
+                    </a>
+                    <br /><small><i>displayed as <b>@item.DisplayName</b></i></small>
+                </td>
+                <td><span class="text-success">@item.Best</span> ~ <span class="text-danger">@item.Worst</span></td>
+                <td>@item.Weight</td>
+                <td>@item.DisplayOrder</td>
+            </tr>
+
+        }
+    </table>
+
+}

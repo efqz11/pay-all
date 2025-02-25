@@ -1,0 +1,24 @@
+﻿@model int
+
+<div class="row">
+    <div class="col-md-8">
+        <h2 class="">@FeatureMenus.GetFeatureMenuItem(FeatureMenus.MenuItem.Jobs) Jobs</h2>
+        <p>Total @ViewBag.Count Jobs(s)</p>
+    </div>
+    <div class="col-md-4 text-right">
+        <div class=" mt-1">
+            <a class="btn btn-sm btn-primary" asp-action="NewJob"><i class="ion-android-add-circle"></i> New Job</a>
+        </div>
+        <nav class="nav justify-content-end">
+            <a asp-action="Index" class="nav-item nav-link @(Model == 1 ? "active" :"")"><i class="fad fa-list-alt"></i> List</a>
+            <a asp-action="Directory" class="nav-item nav-link @(Model == 2 ? "active" :"")"><i class="fad fa-id-card-alt"></i> Directory</a>
+            <a asp-action="Structure" class="nav-item nav-link @(Model == 3 ? "active" :"")"><i class="fad fa-sitemap"></i> Hiearchy</a>
+        </nav>
+
+        @*<div class="btn-group" role="group" aria-label="First group">
+            <a asp-action="Index" class="btn btn-outline-primary border-right-0 @(Model == 1 ? "active" :"")"><i class="fad fa-list-alt"></i></a>
+            <a a asp-action="Directory" class=" btn btn-outline-primary border-left-0 border-right-0 @(Model == 2 ? "active" :"")"><i class="fad fa-id-card-alt"></i></a>
+            <a asp-action="Structure" class=" btn btn-outline-primary border-left-0 @(Model == 3 ? "active" :"")"><i class="fad fa-sitemap"></i></a>
+        </div>*@
+    </div>
+</div>

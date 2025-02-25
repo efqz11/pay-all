@@ -1,0 +1,660 @@
+﻿/***************
+* post card styles
+****************/
+$row_num: 4;
+$bg_color: #fff;
+$text_color: #5a5a5a;
+$meta_text_color: #bcbcbc;
+$favorite_icon: #fff;
+$favorite_icon_checked: rgba(234, 113, 114, 1);
+$comment_icon: #6cadeb;
+$golden_ratio: 1.618;
+$font-size: 1.4em;
+$card_inner_padding: 1.5em;
+$thumbnail_grayscale: 60%;
+$column_gap: 1rem;
+$card_height: 290.8px;
+$card_width_row_1: (100% / #{$row_num} - #{$column_gap});
+$card_width_row_2: (100% / #{$row_num} * 2 - #{$column_gap});
+$card_width_row_3: (100% / #{$row_num} * 3 - #{$column_gap});
+$container_max_height: 1000px;
+$container_max_width: 1300px;
+
+/**** MIXIN */
+/* Calculate fluid ratio based on two dimensions (width/height) */
+@mixin fluid-ratio($large-size, $small-size) {
+    $width-large: nth($large-size, 1);
+    $width-small: nth($small-size, 1);
+    $height-large: nth($large-size, 2);
+    $height-small: nth($small-size, 2);
+    $slope: ($height-large - $height-small) / ($width-large - $width-small);
+    $height: $height-small - $width-small * $slope;
+
+    padding-top: $slope * 100%;
+    height: $height;
+    background-size: cover;
+    -moz-background-size: cover; /* Firefox 3.6 */
+    background-position: center; /* Internet Explorer 7/8 */
+}
+
+
+/***************
+* base card style
+****************/
+.card {
+    $card_height: auto;
+    display: inline-block;
+    color: $text_color;
+    text-align: justify;
+    font-size: $font-size;
+    line-height: 1.15;
+    vertical-align: top;
+    flex-grow: 0;
+    flex-basis: calc(#{$card_width_row_1});
+    /*width: calc(#{$card_width_row_1});*/
+    height: auto;
+    margin: $column_gap / 2;
+
+    & > .card__wrap {
+        position: relative;
+        width: auto;
+        height: $card_height;
+        background-color: $bg_color;
+
+        & > .card__bookmark {
+            position: absolute;
+            z-index: 3;
+            top: 0.6rem;
+            left: 0.6rem;
+            width: 1.6rem;
+            height: 1.6rem;
+            cursor: pointer;
+            text-shadow: .5px .5px 0px rgba(150, 150, 150, 1);
+
+            & > i::before {
+                /*content: "favorite_border";*/
+                font-size: 1.1em;
+                color: $favorite_icon;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 1em;
+                height: 1em;
+                z-index: 2;
+            }
+
+            & > input {
+                display: none;
+
+                &:checked + i::before {
+                    /*content: "favorite";*/
+                    color: $favorite_icon_checked;
+                }
+            }
+        }
+
+        & > .card__thumbnail {
+            position: relative;
+            width: 100%;
+            padding-bottom: round(100% / $golden_ratio);
+            filter: grayscale($thumbnail_grayscale);
+            /* This element will have fluid ratio from 4:1 at 800px to 2:1 at 300px. */
+            @include fluid-ratio(800px 200px, 300px 150px);
+
+            /*background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;*/
+            background-color: $bg_color;
+
+            & > a {
+                position: absolute;
+                z-index: 2;
+                width: 100%;
+                height: 100%;
+            }
+        }
+
+        & > .card__content {
+            background-color: $bg_color;
+            padding: $card_inner_padding;
+            border-top: solid 1px #eee;
+
+            & > .card__header {
+
+                & > .card__meta {
+                    margin-bottom: 0.2em;
+
+                    & > .card__date {
+                        color: $meta_text_color;
+                    }
+                }
+
+                & > a.card__title {
+                    display: block;
+                    text-align: left;
+                    font-weight: 600;
+                    font-size: 1.3em;
+                    color: $text_color;
+                    letter-spacing: 0.05em;
+                }
+            }
+
+            & > .card__excerpt {
+                padding-top: $card_inner_padding;
+            }
+
+            & > .card__footer {
+                position: relative;
+                padding-top: $card_inner_padding;
+
+                & span,
+                & a {
+                    font-size: 1.1em;
+                    margin-right: 0.5em;
+                    vertical-align: middle;
+                    line-height: 20px;
+                }
+
+                & i.material-icons {
+                    margin-right: 0.5rem;
+                    font-size: 20px;
+                    vertical-align: bottom;
+                }
+
+                & > .card__favorite-counts {
+                    color: lighten($favorite_icon_checked, 10%);
+                }
+
+                & > .card__comment-counts {
+                    color: $comment_icon;
+                }
+
+                & > a.card__more {
+                    color: $meta_text_color;
+                    position: absolute;
+                    right: 0;
+                    margin-right: 0;
+                }
+            }
+        }
+    }
+}
+
+/***************
+* 1 row span, 1 column span, fixed height
+****************/
+%card-tile-basis {
+    flex-grow: 0;
+    flex-basis: calc(#{$card_width_row_1});
+    width: calc(#{$card_width_row_1});
+    height: $card_height;
+
+    & > .card__wrap {
+        width: auto;
+        height: 100%;
+
+        & > .card__thumbnail {
+            padding-bottom: 0;
+            height: $card_height * 0.636;
+        }
+
+        & > .card__content {
+            & > .card__header {
+                & > .card__meta {
+                    & > .card__date {
+                        display: block;
+                    }
+                }
+
+                & > a.card__title {
+                    display: block;
+                }
+            }
+
+            & > .card__excerpt,
+            & > .card__footer {
+                display: none;
+            }
+        }
+    }
+}
+
+/***************
+* 2 row span, 1 column span, fixed height
+****************/
+%card-tile-2row-v1 {
+    flex-basis: calc(#{$card_width_row_2});
+    width: calc(#{$card_width_row_2});
+
+    & > .card__wrap {
+        position: relative;
+        width: auto;
+
+        & > .card__thumbnail {
+            width: 100%;
+            height: $card_height;
+            padding-bottom: 0;
+        }
+
+        & > .card__content {
+            position: absolute;
+            bottom: 5%;
+            right: 0;
+            width: 26rem;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: calc(#{$card_inner_padding} / 3);
+            border: 0;
+
+            & > .card__header {
+                padding: calc(#{$card_inner_padding} * 2 / 3);
+                border: solid 1px #eee;
+
+                & > .card__meta {
+                    & > .card__date {
+                        display: none;
+                    }
+                }
+
+                & > a.card__title {
+                    color: white;
+                }
+            }
+
+            & > .card__excerpt {
+                display: none;
+            }
+
+            & > .card__footer {
+                display: none;
+            }
+        }
+    }
+}
+
+/***************
+* 2 row span, 1 column span, fixed height
+****************/
+%card-tile-2row-v2 {
+    $thumbnail_width: 330px;
+    $content_width: #{$card_width_row_2} - #{$thumbnail_width};
+    display: inline-block;
+    width: calc(#{$card_width_row_2});
+    flex-basis: calc(#{$card_width_row_2});
+
+    & > .card__wrap {
+        width: 100%;
+        height: $card_height;
+        display: flex;
+        flex-direction: row;
+
+        & > .card__thumbnail {
+            flex-grow: 0;
+            height: 100%;
+            width: calc(#{$thumbnail_width});
+            padding-bottom: 0;
+        }
+
+        & > .card__content {
+            flex-grow: 1;
+            border-left: solid 1px #eee;
+            width: calc(#{$content_width});
+            border-top: 0;
+
+            & > .card__excerpt {
+                display: block;
+            }
+
+            & > .card__footer {
+                display: block;
+            }
+        }
+    }
+}
+
+/***************
+* 2 row span, 1.5 column span, text overlay img
+****************/
+%card-tile-2row-v3 {
+    flex-basis: calc(#{$card_width_row_2});
+    width: calc(#{$card_width_row_2});
+    height: $card_height * 1.5;
+
+    & > .card__wrap {
+        position: relative;
+        width: auto;
+
+        & > .card__thumbnail {
+            position: relative;
+            width: 100%;
+            height: $card_height * 1.5;
+            padding-bottom: 0;
+            filter: none;
+
+            &::before {
+                content: '';
+                display: block;
+                width: 100%;
+                height: 100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+                background-color: rgba(8, 14, 20, 0.3);
+            }
+        }
+
+        & > .card__content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: $card_inner_padding;
+            border: 0;
+            background-color: transparent;
+
+            & > .card__header {
+                border-left: solid 1.5px white;
+                padding-left: $card_inner_padding;
+
+                & > .card__meta {
+                    & > .card__date {
+                        display: block;
+                        color: white;
+                    }
+                }
+
+                & > a.card__title {
+                    color: white;
+                    font-weight: 300;
+                    font-size: 2.3em;
+                }
+            }
+
+            & > .card__excerpt {
+                color: white;
+                display: block;
+                padding-left: $card_inner_padding;
+            }
+        }
+    }
+}
+
+/***************
+* 1 row span, 0.75 column span, text overlay img
+****************/
+%card-tile-basis-v2 {
+    flex-basis: calc(#{$card_width_row_1});
+    width: calc(#{$card_width_row_1});
+    $h: #{$card_height} * 1.5 / 2;
+    height: calc(#{$h});
+
+    & > .card__wrap {
+        position: relative;
+        width: auto;
+
+        & > .card__thumbnail {
+            width: 100%;
+            height: calc(#{$h} - 1px);
+            padding-bottom: 0;
+            filter: none;
+
+            &::before {
+                content: '';
+                display: block;
+                width: 100%;
+                height: 100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+                background-image: linear-gradient(to bottom, rgba(8, 14, 20, 0) 0%, #080e14 100%);
+            }
+        }
+
+        & > .card__content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: $card_inner_padding;
+            border: 0;
+            background-color: transparent;
+
+            & > .card__header {
+                border-left: solid 1.5px white;
+                padding-left: $card_inner_padding;
+
+                & > .card__meta {
+                    & > .card__date {
+                        display: none;
+                    }
+                }
+
+                & > a.card__title {
+                    color: white;
+                    font-weight: 300;
+                    font-size: 1.8em;
+                }
+            }
+
+            & > .card__excerpt {
+                display: none;
+            }
+
+            & > .card__footer {
+                display: none;
+            }
+        }
+    }
+}
+
+/***************
+* 1 row span, 1.5 column span, text overlay img
+****************/
+%card-tile-basis-v3 {
+    flex-basis: calc(#{$card_width_row_1});
+    width: calc(#{$card_width_row_1});
+    height: $card_height * 1.5;
+
+    & > .card__wrap {
+        position: relative;
+        width: auto;
+
+        & > .card__thumbnail {
+            width: 100%;
+            height: $card_height * 1.5;
+            padding-bottom: 0;
+            filter: none;
+
+            &::before {
+                content: '';
+                display: block;
+                width: 100%;
+                height: 100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+                background-image: linear-gradient(to bottom, rgba(8, 14, 20, 0) 0%, #080e14 100%);
+            }
+        }
+
+        & > .card__content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: $card_inner_padding;
+            border: 0;
+            background-color: transparent;
+
+            & > .card__header {
+                border-left: solid 1.5px white;
+                padding-left: $card_inner_padding;
+
+                & > .card__meta {
+                    & > .card__date {
+                        color: white;
+                    }
+                }
+
+                & > a.card__title {
+                    color: white;
+                    font-weight: 300;
+                    font-size: 1.8em;
+                }
+            }
+        }
+    }
+}
+
+/***************
+* masonry layout
+****************/
+.container.masonry {
+    // no need to write anything for masonry.
+}
+
+/***************
+* tile layout ver1 (large first post, small others)
+****************/
+.container.tile.ver1 {
+    flex-direction: row;
+
+    & > .card {
+        @extend %card-tile-basis;
+
+        &:first-child {
+            @extend %card-tile-2row-v1;
+        }
+    }
+}
+
+.container.tile.ver2 {
+    flex-direction: row;
+
+    & > .card {
+        @extend %card-tile-basis;
+
+        &:nth-child(5n) {
+            @extend %card-tile-2row-v2;
+        }
+
+        &:first-child {
+            @extend %card-tile-2row-v1;
+        }
+    }
+}
+
+.container.tile.ver3 {
+    @extend .container.without_column_gap;
+    max-height: calc(#{$card_height} * 1.5 + #{$column_gap});
+    overflow-y: hidden;
+
+    & > .card {
+        @extend %card-tile-basis-v2;
+
+        &:first-child {
+            @extend %card-tile-2row-v3;
+        }
+
+        &:nth-child(2) {
+            @extend %card-tile-basis-v3;
+        }
+
+        &:nth-child(5) {
+            @extend %card-tile-basis-v3;
+        }
+
+        &:nth-child(6) {
+            @extend %card-tile-basis-v3;
+        }
+    }
+}
+
+/***************
+* media queries if you need
+****************/
+@media only screen and (min-width: 481px) {
+    .container {
+    }
+}
+
+@media only screen and (min-width: 768px) {
+    .container {
+    }
+}
+
+@media only screen and (min-width: 1024px) {
+    .container {
+    }
+}
+
+@media only screen and (min-width: 1240px) {
+    .container {
+    }
+}
+
+/***************
+* necessary styles for jQuery.ellipsis
+****************/
+.ellip {
+    display: block;
+    height: 100%;
+}
+
+.ellip-line {
+    display: inline-block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-wrap: normal;
+    vertical-align: bottom;
+}
+
+.ellip,
+.ellip-line {
+    position: relative;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+/***************
+* container without column gap among cards
+****************/
+.container.without_column_gap {
+    padding: 0 !important;
+
+    & > .card {
+        margin: 0 !important;
+        flex-grow: 1 !important;
+        border: solid 0.5px transparent;
+    }
+}
+
+/***************
+* junk code
+****************/
+
+.containerxxx {
+    background-color: #e7e7e7;
+    font-size: 62.5%;
+    overflow-y: scroll;
+    max-height: $container_max_height;
+    max-width: 100%; //  $container_max_width;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    padding: $column_gap / 2;
+
+    & * {
+        box-sizing: border-box;
+    }
+
+    & a {
+        text-decoration: none;
+    }
+
+    & .no {
+        display: none;
+    }
+}
+
+

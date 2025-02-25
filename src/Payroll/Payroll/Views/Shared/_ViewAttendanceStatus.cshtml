@@ -1,0 +1,11 @@
+﻿@model Attendance
+
+@Html.Raw(Model.StatusString)
+@if (Model.CurrentStatus == AttendanceStatus.Early || Model.CurrentStatus == AttendanceStatus.Late)
+{
+    <span class='text-muted'>@Model.CurrentStatus (@(Model.CurrentStatus == AttendanceStatus.Early ? ((int)Model.TotalEarlyMins + " mins early") : ((int)Model.TotalLateMins + " mins late")))</span>
+}
+else
+{
+    <span class='text-muted'>@Model.CurrentStatus.GetDisplayName()</span>
+}

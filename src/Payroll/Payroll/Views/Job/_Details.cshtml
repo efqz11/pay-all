@@ -1,0 +1,62 @@
+﻿@model Job
+
+
+<table class="table table-sm table-borderless table-responsive table-details">
+    <tbody>
+        <tr>
+            <td class="text-muted">Status</td>
+            <td><partial name="_DisplayRequestStatus" model="@Model.JobStatus" /></td>
+        </tr>
+        @if (Model.Location != null)
+        {
+            <tr>
+                <td>Location</td>
+                <td>@Model.Location.Name</td>
+            </tr>
+        }
+        <tr>
+            <td>Department</td>
+            <td>@Model.Department.Name</td>
+        </tr>
+        <tr>
+            <td>Title</td>
+            <td>@Model.JobTitle</td>
+        </tr>
+        <tr>
+            <td>ID</td>
+            <td><a asp-action="Detail" asp-route-id="@Model.Id" asp-controller="Job">@Model.JobID</a></td>
+        </tr>
+        <tr>
+            <td>Classification</td>
+            <td>@Model.Level.Name</td>
+        </tr>
+        <tr>
+            <td>Reporting Job</td>
+            <td>
+                @if (Model.ReportingJob != null)
+                {
+                    <a asp-action="Detail" asp-route-id="@Model.ReportingJob.Id" asp-controller="Job">@Model.ReportingJob.JobID  &middot; @Model.ReportingJob.JobTitle</a>
+                }
+                else
+                {
+                    <span>NA</span>
+                }
+            </td>
+        </tr>
+
+        <tr>
+            <td style=" vertical-align: top;">Directly Under @(Model.ReportingJobs.Count()) job(s)</td>
+
+            @if (Model.ReportingJobs != null && Model.ReportingJobs.Any())
+            {
+                <td rowspan="@Model.ReportingJobs.Count())">
+                @foreach (var item in Model.ReportingJobs)
+                {
+                    <p class="mb-1"><a asp-action="Detail" asp-route-id="@item.Id" asp-controller="Job">@item.JobID  &middot; @item.JobTitle</a></p>
+                }
+                </td>
+            }
+        </tr>
+
+    </tbody>
+</table>

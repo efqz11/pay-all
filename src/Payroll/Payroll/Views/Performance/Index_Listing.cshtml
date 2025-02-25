@@ -1,0 +1,51 @@
+﻿@model List<PayrollPeriodEmployee>
+@inject Payroll.Database.PayrollDbContext dbContext
+
+        <table class="table" id="performanceMainTable">
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="text-left font-weight-bold sticky-col first-col" style=" vertical-align: middle;display:flex">
+                            <div class="image-container">
+                                <a asp-controller="Performance" asp-action="Employee" asp-route-id="@item.EmployeeId">
+                                    <img src="@Url.Content(item.Employee.Avatar ?? DefaultPictures.default_user)" height="35" class="mt-1 mr-2 rounded-circle" />
+                                </a>
+                            </div>
+                            <a asp-controller="Performance" asp-action="Employee" asp-route-id="@item.EmployeeId">
+                                <div class="name-display pt-1">
+                                    <span class="">@item.Employee.Name</span>
+                                    <br>
+                                    @*@(Model.Employees.FirstOrDefault(a => a.id == item.Employee.Id)?._PatternStartIndex) - @(Model.Employees.FirstOrDefault(a => a.id == item.Employee.Id)?._PatternEndIndex)*@
+                                    <small class="text-muted" style="position: relative;top: -4px;">@(item.Designation ?? "No Designation") &middot; @item.Employee.Department.Name</small>
+                                </div>
+                            </a>
+                        </td>
+                        <td class="">
+
+                            @if (item.WorkedHours > 0)
+                            {
+                                <span>
+                                    <span><i class='fa fa-business-time text-info' title=''></i> @item.WorkedHours.ToString("N2") hours </span>
+                                </span>
+                            }
+                            @if (item.LateMins > 0)
+                            {
+                                <br />
+                                <span><i class='fa fa-circle fa-sm text-danger' title=''></i> @item.LateMins mins Late <span class="text-muted">(@item.LateDays days)</span></span>
+                            }
+
+                        </td>
+
+                        <td>
+
+                            <small>Created @(((DateTime)dbContext.Entry(item).Property(AuditFileds.CreatedDate).CurrentValue).ToLocalFormat(true))</small>
+                        </td>
+                        <td>
+                       
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        

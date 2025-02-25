@@ -1,0 +1,244 @@
+﻿@model RosterVm
+@{
+    ViewData["Title"] = "Rostering";
+}
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link href="~/lib/RangePickerSlider/range_picker.css" rel="stylesheet" />
+<link href="~/css/card.css" rel="stylesheet" />
+<link href="~/css/schedule.css" rel="stylesheet" />
+
+<style>
+
+    .wrapper {
+        width: auto !important;
+        height: auto !important;
+        /*height: 180px;*/
+        line-height: 20px;
+    }
+
+
+    .card {
+        border-radius: 4px;
+        background-color: #fff;
+        /* box-shadow: -1px 0px 11px 2px #464646, 0 0 0 1px #ffffff; */
+        /* background-color: #f4f7fb; */
+        /* background: linear-gradient(180deg, rgba(238,243,249,1) 0%, rgba(244,247,251,1) 100%); */
+        box-shadow: 0 1px 2px 0px #e8e8e8, -1px 1px 6px 6px #cecece;
+        font-size: 1em;
+    }
+
+    .card-header .p-actions span.title {
+        font-size: 12pt;
+        font-weight: 400;
+        color: #5c5a59;
+    }
+
+    .card {
+        box-shadow: 0px 10px 20px -10px rgba(0,0,0,0.75);
+    }
+
+
+    .card-header, .card-body, .card-footer {
+        padding: 15px 20px;
+    }
+
+    .card-footer {
+        padding: 20px 20px;
+        padding-top: 10px;
+        border-top: none !important;
+        padding-top: 25px;
+        margin-bottom: 35px;
+    }
+
+    .card-title {
+        margin: 0;
+        font-size: 1.468571429em;
+        font-weight: 400;
+    }
+
+    .card-footer .btn {
+        margin-left: 10px;
+    }
+
+    .table .thead th {
+        font-weight: 500;
+    }
+
+
+    ul.rota-menu li a {
+        color: #c1c1c1;
+    }
+
+        ul.rota-menu li a:hover {
+            color: #1d2124 !important;
+            text-decoration: none !important;
+        }
+
+
+    ul.rota-menu li.active {
+        z-index: 2;
+        /* color: #007bff !important; */
+        background-color: #fff !important;
+        border-color: #007bff;
+        font-weight: 600;
+    }
+
+        ul.rota-menu li.active a {
+            color: #1f1e1e !important;
+        }
+</style>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="text-lg-left">
+            <h4 class="display">
+
+                <a class="text-muted" asp-action="All" asp-controller="Roster">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+                Rostering
+            </h4>
+            <p>
+                <partial name="_DisplayRequestStatus" model="@Model.Status" />
+            </p>
+        </div>
+        <br />
+
+        <div class="">
+            <ul class="list-group rota-menu" id="rota-menu" data-rota="@Model.SelectedMenu">
+                @if (Model.ParentScheduleId.HasValue)
+                {
+                    <li class="list-group-item border-0 p-0 pb-3 ">
+                        <a class="text-info" asp-action="Index" asp-controller="Roster" asp-route-id="@Model.ParentScheduleId.Value" style="">
+
+                            <i class="fa fa-chevron-up"></i> @Model.ParentScheduleName
+                        </a>
+                    </li>
+                }
+
+                @foreach (var item in Model.RoterCreateMenu.OrderBy(a => (int)a.GetRotaType()))
+                {
+                    <li class="list-group-item border-0 p-0 pb-3  @(item.GetRotaType() == Model.SelectedMenu?"active": "")">
+                        <a class="text-dark text-muted" asp-action="@item.Action" asp-controller="Roster" asp-route-t="@item.GetRotaType()" asp-route-id="@Model.ScheduleId" data-ajax="true" data-ajax-method="GET" data-ajax-update="#card-placeholder" data-ajax-begin="clearHome('#card-placeholder')" data-ajax-failure="handleModalPostFailure" id="_loadCardPlaceholder@((int)item.GetRotaType())" data-ajax-success="setActiveTab(this)" style="">
+                            @((int)item.GetRotaType()). @item.GetName()
+                        </a>
+                    </li>
+                }
+
+                @if (Model.NextChildScheduleId.HasValue)
+                {
+                    <li class="list-group-item border-0 p-0 pb-3 ">
+                        <a class="text-info" asp-action="Index" asp-controller="Roster" asp-route-id="@Model.NextChildScheduleId.Value" style="">
+
+                            <i class="fa fa fa-chevron-down"></i> @Model.NextChildScheduleName
+                        </a>
+                    </li>
+                }
+                else
+                {
+                    <li class="list-group-item border-0 p-0 pb-3 ">
+                        <a class="text-primary" asp-action="CreateNode" asp-controller="Roster" asp-route-id="@Model.ScheduleId" style="">
+
+                            <i class="fa fa-plus-circle"></i> Create for Next Period
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-md-9" id="card-placeholder">
+        @*<partial name="_Overview" model="Model" />*@
+    </div>
+
+</div>
+
+@section scripts {
+
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+    <script src="~/lib/RangePickerSlider/range_picker.js"></script>
+
+
+
+    <script>
+        var searchTerm = "";
+        $(document).on('keyup', '.txt-search-tasks', debounce(function () {
+            console.log('starting... ');
+            table_search($('.txt-search-tasks').val(), $('#tableTasks tbody tr'), '0');
+            searchTerm = $('.txt-search-tasks').val();
+        }, 500));
+
+
+        $('.txt-search-weekly').keyup(debounce(function () {
+            console.log('starting... ');
+            table_search($('.txt-search-weekly').val(), $('#weekly-table11 tbody tr'), '01234567');
+        }, 500));
+
+
+        function UpdateSeach() {
+            $('.txt-search-tasks').val(searchTerm)
+            $('.txt-search-tasks').trigger('keyup');
+            console.log('txt-search-tasks updated to ' + searchTerm)
+        }
+
+        $('.tab-link').click(function (e) {
+            console.log($(this));
+            var indx = parseInt($(this).data('tab'));
+            if (indx === 1)
+                $('#_loadSchedule').click();
+            else if (indx === 2)
+                $('#_loadTasks').click();
+            else if (indx === 3)
+                $('#_loadCalendar').click();
+        });
+
+
+        function setActiveTab(e) {
+            console.log('tab', e);
+            var newTab = $(e).parent();
+            $('ul#rota-menu').find('li').not(newTab).removeClass('active');
+            $(newTab).addClass('active');
+            $(newTab).find('a').addClass('active');
+        }
+
+        function setActiveTabByIndex(indx) {
+            var indx = parseInt(indx) - 1;
+            var newTab = $('ul#rota-menu').find('li').eq(indx);
+            $('ul#rota-menu').find('li').not(newTab).removeClass('active');
+            $(newTab).addClass('active');
+            $(newTab).find('a').addClass('active');
+        }
+
+        function clearHome(div) {
+
+            $(div).children().fadeOut();
+            var loader = getLoaderHtmlWithLineHeight(25);
+            $(div).empty();
+
+
+            $(div).append(loader).fadeIn();
+        }
+
+
+    </script>
+
+    <script>
+
+        InitializeTabs();
+
+    </script>
+
+    <script>
+        var indx = 1- parseInt('@((int)@Model.SelectedMenu)');
+        console.log('indx', indx)
+         if (indx <0 )
+            $('ul#rota-menu > li').eq(4).children().click();
+        else if (indx !== null) {
+            $('ul#rota-menu > li').eq(indx).children().click();
+        }
+    </script>
+
+}

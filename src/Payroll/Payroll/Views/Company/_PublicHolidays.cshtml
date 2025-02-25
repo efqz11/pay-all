@@ -1,0 +1,82 @@
+﻿@model List<CompanyPublicHoliday>
+
+@{ 
+    var year = (int)ViewBag.Year;
+}
+<div class="text-left pb-1">
+    @*<a class="btn btn-sm btn-danger" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="UpdateForEmployees" asp-controller="DayOff" asp-route-id="@Model.Id" dddd="This action will create for non existing records and update existing records. Area ">
+            Update for Employees
+        </a>*@
+    <div class="row mb-3">
+        <div class="col-md-9"><h5>@year Holiday Schedule</h5></div>
+        <div class="col-md-3">
+            <div class="btn-group mr-2 text-right" role="group" aria-label="First group" style="font-size: 1.2em;">
+                <a asp-action="GetPublicHoliday" asp-controller="Company" asp-route-cmpId="@ViewBag.CompanyId" asp-route-year="@(year-1)" data-ajax="true" data-ajax-update="#publicHoliday_table" class=""><i class="ion ion-arrow-left-c"></i></a>
+                <span class="pl-2 pr-2"><b>@ViewBag.Year</b></span>
+                <a asp-action="GetPublicHoliday" asp-route-cmpId="@ViewBag.CompanyId" asp-route-year="@(year + 1)" data-ajax="true" data-ajax-update="#publicHoliday_table" class=""><i class="ion ion-arrow-right-c"></i></a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+@if (Model!= null && Model.Any())
+{
+    <table class="table">
+        @foreach (var item in Model.Where(a=> a.Year == year.ToString()).OrderBy(a=> a.Date))
+        {
+            <tr class="i-ph-@item.Id">
+                <td> 
+                    <a class="" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdatePublicHoliday" asp-controller="Company" asp-route-id="@item.Id" asp-route-cmpId="@ViewBag.CompanyId">
+                        @item.Name
+                    </a>
+                    
+                    @if (!string.IsNullOrWhiteSpace(item.Description))
+                    {
+                        <br />
+                        <span>@item.Description.LimitTo(150)</span>
+                    }
+                    @*<time datetime="@item.Date.ToString("yyyy-MM-dd")" class="icon">
+                        <em>@item.Date.ToString("dddd")</em>
+                        <strong>@item.Date.ToString("MMMM")</strong>
+                        <span>@item.Date.ToString("dd")</span>
+                    </time>*@
+
+                    @*<div class="date-wrapper">
+                        <div class="top">
+                            <span class="month">@item.Date.ToString("MMMM")</span>
+
+                        </div>
+
+                        <h4 class="date mb-0">@item.Date.ToString("dd")</h4>
+                        <span class="dayWeek">@item.Date.ToString("dddd")</span>
+                    </div>*@
+                </td>
+                <td w>
+                    @item.Date.ToString("ddd, MMM dd, yyyy")
+                    @*<a class="" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdatePublicHoliday" asp-controller="Company" asp-route-id="@item.Id" asp-route-cmpId="@ViewBag.CompanyId">
+                        @item.Date.ToSystemFormat(User) &middot; @item.Name
+                    </a>*@
+                </td>
+                @*<td>
+                    <h6>@item.Date.ToLocalFormat()</h6>
+                </td>*@
+                @*<td>
+                    @if (item.IsManualEntry)
+                    {
+                        @("Manual Entry")
+                    }
+                    else if (item.IsImported)
+                    {
+                        @("Imported")
+                    }
+                </td>*@
+            </tr>
+        }
+    </table>
+}
+else
+{
+    <div class="text-lead">There are no public holidays</div>
+}

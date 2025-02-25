@@ -1,0 +1,48 @@
+﻿@{
+    var i = 0;
+    bool isFullWidth = (ViewBag.FullWidth != null) && (bool)ViewBag.FullWidth;
+}
+
+
+<div>
+    <div class="layout-main-landing">
+        <div class="row">
+            <div class="layout-main-landing-header col-sm-12">
+                <div class="relative">
+                    <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                        @*<img class="zp-icon-image large content-block-with-icon__icon hidden-xs flex-self-start" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-map-288f54db.svg" alt="">*@
+                        <div class="content-block-with-icon__content">
+                            <h1 class="page-title margin-top-none margin-bottom-none">
+                                @if (ViewBag.BackAction != null)
+                                {
+                                    <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update="@(ViewBag.BackActionUpdateDiv ?? "#change-form-wrapper")" href="@ViewBag.BackAction">
+                                        <i class="fad fa-long-arrow-left fa-2x"></i>
+                                    </a>
+                                }
+                                @ViewBag.Header
+                            </h1>
+                        </div>
+                    </div>
+
+                    @RenderSection("breadcrumbs", false)
+                    @*<div class="layout-landing-header-details"><p class="layout-landing-header-pricing margin-bottom-none"></p></div>*@
+                </div>
+            </div>
+        </div>
+        @if (ViewBag.ProgressStep != null)
+        {
+            <partial name="_ProgressSteps" model="ViewBag.ProgressStep" />
+        }
+        else
+        {
+            @RenderSection("progressSteps", false)
+        }
+        <div class="layout-main-landing-row row margin-bottom-20px">
+            <div class="col-sm-12 @(isFullWidth ? "col-md-12" : "col-md-8") content">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+</div>
+
+

@@ -1,0 +1,174 @@
+﻿@model Payroll.Models.Employee
+
+@{
+    ViewData["Title"] = "Create Employee";
+    Layout = "_LayoutEditor";
+    ViewBag.ProgressStep = 2;
+    ViewBag.Header = Model == null || Model.Id <= 0 ? "New Master Data" : "Change Master Data";
+    ViewBag.BackAction = Url.Action("Change", new { id = Model.Id });
+    ViewData["name"] = "LogoUrl";
+    ViewData["src"] = Model?.Avatar ?? Model?.Avatar ?? DefaultPictures.default_user;
+    ViewData["type"] = 2;
+}
+
+
+@*<header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            Micromodal
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <p>
+            Try hitting the <code>tab</code> key and notice how the focus stays within the modal itself. Also, <code>esc</code> to close modal.
+        </p>
+    </main>
+    <footer class="modal__footer">
+        <button class="modal__btn modal__btn-primary">Continue</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>*@
+
+<div class="form-group mb-4">
+    <div class="avatar-upload " style="margin:0;max-width:none">
+        <div class="avatar-edit" style=" position: absolute; left: 120px;top: 20px;">
+            <a class="btn btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="UploadImage" asp-controller="Employee" asp-route-id="@Model.Id">
+                Change / Update Photo
+            </a>
+        </div>
+
+        <div class="avatar-preview in-form" src style=" width: 100px; height: 100px;">
+            <div id="imagePreview" style="@($"background-image: url('{Url.Content(ViewData["src"].ToString())}');")">
+                <div id="avatar-loader" class="loader loader-blue btn-loading" data-page="2" style="line-height: 6;display:none">
+                    <div class="ball-beat"><div></div><div></div><div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<form asp-action="AddOrUpdate" data-ajax="true" data-ajax-method="POST" data-ajax-update="#change-form-wrapper" data-ajax-success="sendNotification('success', 'Employee basic information was saved');" id="employeeDetailsCreateForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    @if (Model != null && Model.Id > 0)
+    {
+        <input asp-for="Id" type="hidden" />
+        <input asp-for="FirstName" type="hidden" />
+    }
+
+    @*<header class="modal__header">
+            <h2 class="modal__title" id="modal-1-title">
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update="#change-form-wrapper" asp-action="Change" asp-controller="Employee" asp-route-id="@Model.Id">
+                    <i class="fad fa-arrow-alt-left fa-2x"></i>
+                </a>
+
+                @(Model == null || Model.Id <= 0 ? "New Master Data" : "Change Master Data")
+            </h2>
+        </header>
+
+        <partial name="_ProgressSteps" model="1" />*@
+
+    @*<main class="modal__content" id="modal-1-content">*@
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    @if (User.IsOnlyOfAllEmployeeRole())
+    {
+        <div class="alert alert-info">
+            Your changes will be immediately sent for supervisor for approval. Once this is approved, you may see those changes in your profile
+        </div>
+    }
+
+    @*<div class="row">
+            <div class="form-group col-md-2">
+                <label asp-for="Initial" class="control-label"></label>
+                <select asp-items="Html.GetEnumSelectList<Initial>()" asp-for="Initial" class="form-control"></select>
+                <span asp-validation-for="Initial" class="text-danger"></span>
+            </div>
+            <div class="form-group col-md-4">
+                <label asp-for="FirstName" class="control-label">First Name</label>
+                <input asp-for="FirstName" class="form-control" />
+                <span asp-validation-for="FirstName" class="text-danger"></span>
+            </div>
+            <div class="form-group col-md-3">
+                <label asp-for="MiddleName" class="control-label">Middle Name</label>
+                <input asp-for="MiddleName" class="form-control" />
+                <span asp-validation-for="MiddleName" class="text-danger"></span>
+            </div>
+            <div class="form-group col-md-3">
+                <label asp-for="LastName" class="control-label">Last Name</label>
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+        </div>*@
+
+
+
+    <div class="form-group mb-4">
+        <label asp-for="EmpID" class="control-label">Employee ID</label>
+        <p class="small">
+            Your employee’s unique ID.
+        </p>
+        <input asp-for="EmpID" class="form-control form-control-lg" />
+    </div>
+    <div class="row mb-4">
+        <div class="form-group col">
+            <label asp-for="DateOfBirth" class="control-label">Date of Birth</label>
+            <input type="text" name="DateOfBirth" value="@Model.DateOfBirth?.ToString("dd-MMM-yyyy")" class="form-control form-control-lg has-datepicker" />
+        </div>
+        <div class="form-group col">
+            <label asp-for="Gender" class="control-label"></label>
+            <select id="Gender" asp-for="Gender" class="form-control form-control-lg" asp-items="@Html.GetEnumSelectList<Gender>()"></select>
+            <span asp-validation-for="Gender" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="form-group mb-5">
+        <label asp-for="Nationality" class="control-label">Nationality</label>
+        <select asp-items="ViewBag.NationalityId" asp-for="NationalityId" as class="form-control form-control-lg"><option value="0" selected>Choose</option></select>
+        <span asp-validation-for="NationalityId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-5">
+        <label asp-for="IdentityType" class="control-label">Identity Type</label>
+        <p class="small">
+            Choose identitiy type that is suitable for the employee.
+        </p>
+        <select asp-for="IdentityType" class="form-control form-control-lg" asp-items="@Html.GetEnumSelectList<IdentityType>()"></select>
+        <span asp-validation-for="IdentityType" class="text-danger"></span>
+    </div>
+    <div class="form-group mb-4">
+        <label asp-for="IdentityNumber" class="control-label"></label>
+        <p class="small">
+            Enter the identity number or value for the above type (ex: Passport No. or ID)
+        </p>
+        <input asp-for="IdentityNumber" class="form-control form-control-lg" />
+        <span asp-validation-for="IdentityNumber" class="text-danger"></span>
+    </div>
+
+
+    <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+        <button class="btn btn-lg btn-outline-primary btn-back mr-2" type="button" onclick="$('.modal__btn-back').click()">Back</button>
+        <button class="btn btn-lg btn-primary btn-next" type="submit">Save & Continue</button>
+
+        <a class="btn btn-outline-primary right float-right" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="clearHome()" asp-action="AddOrUpdateAddressContact" asp-controller="Employee" asp-route-id="@Model.Id">Skip and Continue</a>
+    </div>
+
+    @*</main>
+        <footer class="modal__footer">
+            <button type="submit" class="btn btn-primary mr-2">Save</button>
+            <button type="button" class="btn btn-outline-primary" onclick="$('.modal__btn-back').click()">Back</button>
+
+            @if(Model != null && Model.Id > 0)
+            {
+                <a class="modal__btn modal__btn-danger float-right" asp-action="Remove" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@Model.Name was just removed');hideModal()" data-ajax-confirm="Are you sure you want to remove @Model.Name" data-ajax-begin="convertToLoadingTable('#tblMasterPayAdjustments')">Remove</a>
+            }
+
+        </footer>*@
+</form>
+
+
+
+    <script>
+        $(".has-datepicker").flatpickr({
+            dateFormat: "j-M-Y"
+        });
+    </script>
+

@@ -1,0 +1,1291 @@
+﻿@model HomeAdminVm
+@{
+    ViewData["Title"] = "Home Page";
+    int i = 0;
+    ViewBag.IsAdminView = true;
+}
+
+<link href="~/css/timeline.css" rel="stylesheet" />
+<link href="~/css/card.css" rel="stylesheet" />
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+<style>
+    .wrapper {
+        width: auto !important;
+    }
+
+        .wrapper a {
+            text-decoration: none !important;
+        }
+
+        .wrapper .inside:hover {
+            height: 100%;
+        }
+    #chartdiv {
+        width: 100%;
+        height: 500px;
+    }
+
+    .chartdiv {
+        width: 100%;
+        height: 250px;
+    }
+</style>
+<div class="row">
+    <div class="col-md-8">
+        <div class="text-left">
+            <h5 class="">Good Evening, @User.Identity.Name</h3>
+            <p>@DateTime.UtcNow.ToString("dddd MMMM dd yyyy")</p>
+        </div>
+
+
+        <div class="row">
+            <div class="col-md-3">
+                <div class="">
+                    <a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="Leave" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" title="Click to make changes" class="" style="" data-ajax-loading=".loader">
+                        <div class="text-left bg-light border-0 p-3" style="border-radius:5px">
+                            <b><i class="ion ion-flag"></i> Leave Requests</b>
+                            @if (Model.RequestNotificationsDictionry.ContainsKey(RequestType.Leave))
+                            {
+                                <h2 class="mb-1 pt-2" style="">@Model.RequestNotificationsDictionry[RequestType.Leave]</h2>
+                            }
+                            <small class="text-muted">To approve</small>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="">
+                    <a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="Overtime" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" title="Click to make changes" class="" style="" data-ajax-loading=".loader">
+                        <div class="text-left bg-light border-0 p-3" style="border-radius:5px">
+                            <b class=""><i class="ion ion-clock"></i>
+                            <span>OT Requests</span></b>
+                            @if (Model.RequestNotificationsDictionry.ContainsKey(RequestType.Overtime))
+                            {
+                                <h2 class="mb-1 pt-2" style="">@Model.RequestNotificationsDictionry[RequestType.Overtime]</h2>
+                            }
+                            <small class="text-muted">To approve</small>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="">
+                    <a asp-action="TimeTrackingApprovals" asp-controller="5001">
+                        <div class="text-left bg-light border-0 p-3" style="border-radius:5px">
+                            <b class=""><i class="fad fa-calendar-alt"></i>
+                            <span>Timesheets</span></b>
+                            <h2 class="mb-1 pt-2" style="">@Model.PendingTmeSheetCount</h2>
+                            <small class="text-muted">To publish</small>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            @* <div class="col-md-2">
+                <div class="wrapper">
+                    <a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="@RequestType.Attendance_Change" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" title="Click to make changes" class="" style="" data-ajax-loading=".loader">
+                        <div class="text-center bg-light border-0 p-3" style="border-radius:5px">
+                            <i class="ion ion-android-calendar fa-2x"></i>
+                            @if (Model.RequestNotificationsDictionry.ContainsKey(RequestType.Attendance_Change))
+                            {
+                                <div class="badge badge-danger" style="position:absolute">@Model.RequestNotificationsDictionry[RequestType.Attendance_Change]</div>
+                            }
+                            <br />
+                            <span>Attendance Change Applications</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="wrapper">
+                    <a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="@RequestType.Work_Change" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" title="Click to make changes" class="" style="" data-ajax-loading=".loader">
+                        <div class="text-center bg-light border-0 p-3" style="border-radius:5px">
+                            <i class="ion ion-ios-briefcase fa-2x"></i>
+                            @if (Model.RequestNotificationsDictionry.ContainsKey(RequestType.Work_Change))
+                            {
+                                <div class="badge badge-danger" style="position:absolute">@Model.RequestNotificationsDictionry[RequestType.Work_Change]</div>
+                            }
+                            <br />
+                            <span>Work Change Applications</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="wrapper">
+                    <a asp-action="WorkItemSubmissions" asp-controller="Home" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" title="Click to make changes" class="" style="" data-ajax-loading=".loader">
+                        <div class="text-center bg-light border-0 p-3" style="border-radius:5px">
+                            <i class="fa fa-tasks fa-2x"></i>
+                            @if (Model.RequestNotificationsDictionry.ContainsKey(RequestType.Work_Submission))
+                            {
+                                <div class="badge badge-danger" style="position:absolute">@Model.RequestNotificationsDictionry[RequestType.Work_Submission]</div>
+                            }
+                            <br />
+                            <span>Work Item Submissions</span>
+                        </div>
+                    </a>
+                </div>
+            </div> *@
+            <div class="col-md-3">
+                <div class="">
+                    <a asp-action="Index" asp-controller="Schedule">
+                        <div class="text-left bg-light border-0 p-3" style="border-radius:5px">
+                            <b class=""><i class="fad fa-calendar-alt"></i>
+                            <span>Pending Docs</span></b>
+                                <h2 class="mb-1 pt-2" style="">@(Model.RequestNotificationsDictionry.ContainsKey(RequestType.Document) ? Model.RequestNotificationsDictionry[RequestType.Document] : 0)</h2>
+                            <small class="text-muted">To ammend</small>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        
+        <div class="card mt-3">
+        <div id="chart-container" class="">FusionCharts will render here</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+            <h6 class="">Todays's Staff</h3>
+            
+        <div class="tab-wrapper bnb">
+            <ul class="tabs tabs-sm scroll">
+                <li class="tab-link active" data-tab="dayOff_leave"><i class=""></i> Scheduled</li>
+                <li class="tab-link" data-tab="dayOff_cond"><i class=""></i> On Shifts</li>
+                <li class="tab-link" data-tab="dayOff_accrural"><i class=""></i> Published</li>
+            </ul>
+        </div>
+        <div class="content-wrapper bnb p-0 pt-1" style="max-height: 700px;overflow-y: auto;">
+            <div id="tab-dayOff_leave" class="tab-content active">
+                <div class="list-group">
+                    <div class="pl-4">@Model.AttendanceTodayAndThisWeek.Count(x=> x.CurrentStatus == AttendanceStatus.Created && x.Date <= DateTime.UtcNow.AddDays(1)) employee(s)</div>
+                @foreach(var item in Model.AttendanceTodayAndThisWeek.Where(x=> x.CurrentStatus == AttendanceStatus.Created && x.Date <= DateTime.UtcNow.AddDays(1)))
+                {
+                    <div class=""><hr class="mb-0 mt-2 ml-3 mr-3" /></div>
+                    <div class="list-group-item border-0">
+                        <a data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()"  asp-controller="Schedule" asp-action="ViewAttendance" asp-route-id="@item.Id">
+                            <div class="text-left font-weight-bold sticky-col first-col" style=" vertical-align: middle;display:flex">
+                                <div class="image-container">
+                                    <img src="/img/default-image.png" height="25" class="mt-1 mr-2 rounded-circle">
+                                </div>
+                                <div class="name-display pt-1">
+                                    <span class="">@item.Employee.GetSystemName(User)</span>
+                                    <br>
+                                    <small class="text-dark" style="position: relative;top: -2px;">@item.Employee.Department.Name</small>
+                                </div>
+                            </div>
+                        </a>
+                        <small class="font text-right" style="position: absolute;right: 20px;bottom: 10px;">@item.TotalWorkedHours.GetHourMinString()</small>
+                        
+                        <span class="sch-sm sch-@item.ShiftColor text-white p-1 rounded" style="font-weight:400;font-size: 12px;">@item.Duration</span>
+                        <div>
+                        @if (item.WorkEndTime.Date >= DateTime.Now.Date)
+                        {
+                            if (item.WorkStartTime > DateTime.Now)
+                            {
+                                // work not started
+                                <small>work starting in about @(item.WorkStartTime.GetTimeDifference())</small>
+                            }
+                            else if (DateTime.Now > item.WorkStartTime && DateTime.Now <= item.WorkEndTime)
+                            {
+                                <small>work has started. work end time in @item.WorkEndTime.ToString("h tt").ToLower()</small>
+                            }
+                            else
+                            {
+                                <small>work has ended at @item.WorkEndTime.ToString("h tt").ToLower(). It's been about @(item.WorkEndTime.GetTimeDifference())</small>
+                            }
+                        }
+                        </div>
+                    </div>
+                }
+                </div>
+            </div>
+            <div id="tab-dayOff_cond" class="tab-content ">
+                <div class="list-group">
+                    <div class="pl-4">@Model.AttendanceTodayAndThisWeek.Count(x=> x.CurrentStatus != AttendanceStatus.Created && x.Date.Date < DateTime.Now.AddDays(1)) employee(s)</div>
+                @foreach(var item in Model.AttendanceTodayAndThisWeek.Where(x=> x.CurrentStatus != AttendanceStatus.Created && x.Date.Date < DateTime.Now.AddDays(1)))
+                {
+                    <div class=""><hr class="mb-0 mt-2 ml-3 mr-3" /></div>
+                    <div class="list-group-item border-0">
+                        <a data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()"  asp-controller="Schedule" asp-action="ViewAttendance" asp-route-id="@item.Id">
+                            <div class="text-left font-weight-bold sticky-col first-col" style=" vertical-align: middle;display:flex">
+                                <div class="image-container">
+                                    <img src="/img/default-image.png" height="25" class="mt-1 mr-2 rounded-circle">
+                                </div>
+                                <div class="name-display pt-1">
+                                    <span class="">@item.Employee.GetSystemName(User)</span>
+                                    <br>
+                                    <small class="text-dark" style="position: relative;top: -2px;">@item.Employee.Department.Name</small>
+                                </div>
+                            </div>
+                        </a>
+
+                            <small class="font text-right" style="position: absolute;right: 20px;bottom: 10px;">@item.TotalWorkedHours.GetHourMinString()</small> 
+
+                        <span class="sch-sm sch-@item.ShiftColor text-white p-1 rounded" style="font-weight:400;font-size: 12px;">@item.Duration</span>
+
+                        <small><partial name="_ViewAttendanceStatus" model="@item" /></small>
+                    </div>
+                }
+                </div>
+            </div>
+            <div id="tab-dayOff_accrural" class="tab-content ">
+                <div class="list-group">
+                    <div class="pl-4">@Model.AttendanceTodayAndThisWeek.Count(x=> x.IsPublished && x.Date > DateTime.UtcNow.Date) employee(s)</div>
+                @foreach(var item in Model.AttendanceTodayAndThisWeek.Where(x=> x.IsPublished && x.Date > DateTime.UtcNow.Date))
+                {
+                    <div class=""><hr class="mb-0 mt-2 ml-3 mr-3" /></div>
+                    <div class="list-group-item border-0">
+                        <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.EmployeeId">
+                            <div class="text-left font-weight-bold sticky-col first-col" style=" vertical-align: middle;display:flex">
+                                <div class="image-container">
+                                    <img src="/img/default-image.png" height="25" class="mt-1 mr-2 rounded-circle">
+                                </div>
+                                <div class="name-display pt-1">
+                                    <span class="">@item.Employee.GetSystemName(User)</span>
+                                    <br>
+                                    <small class="text-dark" style="position: relative;top: -2px;">@item.Employee.DepartmentId</small>
+                                </div>
+                            </div>
+                        </a>
+                        <small class="font text-right" style="position: absolute;right: 20px;bottom: 10px;">@item.TotalWorkedHours.GetHourMinString()</small>
+                        <span class="sch-sm sch-@item.ShiftColor text-white p-1 rounded" style="font-weight:400;font-size: 12px;">@item.Duration</span>
+                    </div>
+                }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+        <hr >
+        <div class="row">
+            <div class="col-md-4">
+                
+                    <div class="btn-toolbar float-right mb-2" role="toolbar" aria-label="Toolbar with button groups">
+                        <div class="btn-group mr-2" role="group" aria-label="First group">
+                            <a onclick="reloadAttendanceStatusPie('Daily')" class="active btn-sm btn btn-outline-secondary border-right-0">Today</a>
+                            <a onclick="reloadAttendanceStatusPie('Weekly')"  id="datefilter"  class="btn-sm btn btn-outline-secondary border-left-0 border-right-0">Week</a>
+                            <a onclick="reloadAttendanceStatusPie('Month')" class="btn-sm btn btn-outline-secondary border-left-0">Month</a>
+                        </div>
+                    </div>
+
+                    <div id="chart-att-status">FusionCharts will render here</div>
+                
+            </div>
+                    
+            <div class="col-md-4">
+                <div class="wrapper mt-0" style="transform:scale(1)">
+                    <div class="container">
+                        <div class="top">
+                            <div class="chart-container">
+                                <canvas id="pieChart" height="320"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="inside">
+                        <div class="icon"><i class="ion ion-ios-information-outline"></i></div>
+                        <div class="contents table table-sm">
+                            <table>
+                                <tr>
+                                    <td colspan="2" class="border-top-0">Employee by Department Summary</td>
+                                </tr>
+                                @foreach (var item in Model.DepartmentByEmployeePie.Data.Datasets.First().Data)
+                                {
+                                    <tr>
+                                        <td>@Model.DepartmentByEmployeePie.Data.Labels.ElementAt(i++)</td>
+                                        <td>@item</td>
+                                    </tr>
+                                }
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="wrapper mt-0" style="transform:scale(1)">
+                    <div class="container">
+                        <div class="top">
+                            <canvas id="pieChart_EmplStatus" height="320"></canvas>
+                        </div>
+                    </div>
+                    <div class="inside">
+                        <div class="icon"><i class="ion ion-ios-information-outline"></i></div>
+                        <div class="contents table table-sm">
+                            <table>
+                                @{ i = 0;}
+                                <tr>
+                                    <td colspan="2" class="border-top-0">Employee Status Summary</td>
+                                </tr>
+                                @foreach (var item in Model.JobTypeByEmployeePie.Data.Datasets.First().Data)
+                                {
+                                    <tr>
+                                        <td>@Model.JobTypeByEmployeePie.Data.Labels.ElementAt(i++)</td>
+                                        <td>@item</td>
+                                    </tr>
+                                }
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+@* 
+<div class="row">
+    <div class="col-md-2">
+        <div class="wrapper">
+            <div class="container">
+                <div class="top text-center pb-2">
+                    <h1 class="display-2">@Model.RequestNotificationsDictionry[RequestType.Leave]</h1>
+                    <a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="Leave" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" title="Click to make changes" class="" style="" data-ajax-loading=".loader">
+                    <span><i class="ion ion-flag"></i> Leave Requests</span></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-2">
+        <div class="">
+            <div class="container">
+                <div class="top text-center pb-2">
+                    <h1 class="display-3">@Model.RequestNotificationsDictionry[RequestType.Leave]</h1>
+                    <a asp-action="TimeTrackingApproval" asp-controller="Manage">
+                    <h5><i class="fa fa-calendar-alt"></i> Time sheets</span></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="wrapper">
+            <div class="container">
+                <div class="top text-center pb-2">
+                    <h1 class="display-2">@Model.RequestNotificationsDictionry[RequestType.Overtime]</h1>
+                    <a asp-action="TimeTrackingApproval" asp-controller="Manage">
+                    <h6><i class="fa fa-clock"></i> OT Requests</span></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> *@
+
+<div class="row">
+    <div class="col-md-2">
+    </div>
+    <div class="col-md-2">
+        <div class="wrapper">
+            <div class="container">
+                <div class="top text-center">
+                    <h1 class="display-2">@Model.EmployeeCount</h1>
+                    <p class="pb-3">
+                        <a asp-action="Index" asp-controller="Employes">Employees</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="wrapper">
+            <div class="container">
+                <div class="top text-center">
+                    <h1 class="display-2">@Model.WorkCount</h1>
+                    <p class="pb-3"><a asp-action="Index" asp-controller="Employes">Works</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @*<div class="col-md-3">
+
+        </div>*@
+
+    @*<div class="col-md-4">
+            @Model.EmployeeCount
+        </div>
+        <div class="col-md-4">
+            @Model.DepartmentCount
+        </div>*@
+</div>
+<hr />
+<div class="row">
+    <div class="col-md-2">
+        <div class="wrapper">
+            <a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="Leave" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" title="Click to make changes" class="" style="" data-ajax-loading=".loader">
+                <div class="text-center bg-light border-0 p-3" style="border-radius:5px">
+                    <i class="ion ion-flag fa-2x"></i>
+                    @if (Model.RequestNotificationsDictionry.ContainsKey(RequestType.Leave))
+                    {
+                        <div class="badge badge-danger" style="position:absolute">@Model.RequestNotificationsDictionry[RequestType.Leave]</div>
+                    }
+                    <br />
+                    <span>Leave Applications</span>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="wrapper">
+            <a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="Overtime" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" title="Click to make changes" class="" style="" data-ajax-loading=".loader">
+                <div class="text-center bg-light border-0 p-3" style="border-radius:5px">
+                    <i class="ion ion-clock fa-2x"></i>
+                    @if (Model.RequestNotificationsDictionry.ContainsKey(RequestType.Overtime))
+                    {
+                        <div class="badge badge-danger" style="position:absolute">@Model.RequestNotificationsDictionry[RequestType.Overtime]</div>
+                    }
+                    <br />
+                    <span>Overtime Applications</span>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="wrapper">
+            <a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="@RequestType.Attendance_Change" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" title="Click to make changes" class="" style="" data-ajax-loading=".loader">
+                <div class="text-center bg-light border-0 p-3" style="border-radius:5px">
+                    <i class="ion ion-android-calendar fa-2x"></i>
+                    @if (Model.RequestNotificationsDictionry.ContainsKey(RequestType.Attendance_Change))
+                    {
+                        <div class="badge badge-danger" style="position:absolute">@Model.RequestNotificationsDictionry[RequestType.Attendance_Change]</div>
+                    }
+                    <br />
+                    <span>Attendance Change Applications</span>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="wrapper">
+            <a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="@RequestType.Work_Change" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" title="Click to make changes" class="" style="" data-ajax-loading=".loader">
+                <div class="text-center bg-light border-0 p-3" style="border-radius:5px">
+                    <i class="ion ion-ios-briefcase fa-2x"></i>
+                    @if (Model.RequestNotificationsDictionry.ContainsKey(RequestType.Work_Change))
+                    {
+                        <div class="badge badge-danger" style="position:absolute">@Model.RequestNotificationsDictionry[RequestType.Work_Change]</div>
+                    }
+                    <br />
+                    <span>Work Change Applications</span>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="wrapper">
+            <a asp-action="WorkItemSubmissions" asp-controller="Home" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" title="Click to make changes" class="" style="" data-ajax-loading=".loader">
+                <div class="text-center bg-light border-0 p-3" style="border-radius:5px">
+                    <i class="fa fa-tasks fa-2x"></i>
+                    @if (Model.RequestNotificationsDictionry.ContainsKey(RequestType.Work_Submission))
+                    {
+                        <div class="badge badge-danger" style="position:absolute">@Model.RequestNotificationsDictionry[RequestType.Work_Submission]</div>
+                    }
+                    <br />
+                    <span>Work Item Submissions</span>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="wrapper">
+            <a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="@RequestType.Document" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" title="Click to make changes" class="" style="" data-ajax-loading=".loader">
+                <div class="text-center bg-light border-0 p-3" style="border-radius:5px">
+                    <i class="ion fa fa-file-archive fa-2x"></i>
+
+                    @if (Model.RequestNotificationsDictionry.ContainsKey(RequestType.Document))
+                    {
+                        <div class="badge badge-danger" style="position:absolute">@Model.RequestNotificationsDictionry[RequestType.Document]</div>
+                    }
+                    <br />
+                    <span>Document Request Applications</span>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+<hr />
+<div class="loader loader-blue btn-loading" data-page="2" style="line-height: 85px;display:none;white-space: pre">
+    <div class="ball-beat"><div></div><div></div><div></div></div>
+</div>
+
+<div id="home-admin-work-area">
+    <div class="row">
+        <div class="col-md-8">
+            <h5 class="head1 text-center">Schdules and Employees</h5>
+            <!-- HTML -->
+            <div id="chartdiv">
+                <div class="loader loader-blue btn-loading" data-page="2" style="line-height: 85px;display:block;white-space: pre">
+                    <div class="ball-beat"><div></div><div></div><div></div></div>
+                </div>
+            </div>
+            <hr />
+            <div class="row">
+                <div class="col">
+                    <h5 class="head1 text-center">Clock In Tasks</h5>
+                    <div class="chartwrapper">
+                        <div id="chartdiv_clockIn" class="chartdiv">
+                            <div class="loader loader-blue btn-loading" data-page="2" style="line-height: 85px;display:block;white-space: pre">
+                                <div class="ball-beat"><div></div><div></div><div></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <h5 class="head1 text-center">Submission Tasks</h5>
+                    <div class="chartwrapper">
+                        <div id="chartdiv_submission" class="chartdiv">
+                            <div class="loader loader-blue btn-loading" data-page="2" style="line-height: 85px;display:block;white-space: pre">
+                                <div class="ball-beat"><div></div><div></div><div></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+            <div id="absentLateEmpls">
+                <div class="loader loader-blue btn-loading" data-page="2" style="line-height: 85px;display:block;white-space: pre">
+                    <div class="ball-beat"><div></div><div></div><div></div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4" id="announcementArea">
+            <partial name="~/Views/NewsUpdate/_Announcements.cshtml" model="@Model.Announcements" />
+        </div>
+    </div>
+</div>
+
+@*<div class="search-box">
+    <form asp-action="Search" asp-controller="Home" data-ajax-update="#search-result" data-ajax="true" data-ajax-method="POST">
+        <input class="form-control form-control-lg" type="text" name="query" />
+    </form>
+</div>*@
+
+<div id="search-result"></div>
+
+@{ChartJSCore.Models.Chart chart = Model.DepartmentByEmployeePie; }
+@{ChartJSCore.Models.Chart chartJobType = Model.JobTypeByEmployeePie; }
+@*<p>@chart.CreateChartCode("XX")</p>*@
+@section scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-piechart-outlabels@0.1.4/dist/chartjs-plugin-piechart-outlabels.min.js"></script>
+
+
+    <!-- Resources -->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+
+    
+   <!-- FusionCharts -->
+    <script type="text/javascript" src="https://cdn.fusioncharts.com/fusioncharts/latest/fusioncharts.js"></script>
+    <!-- jQuery-FusionCharts -->
+    <script type="text/javascript" src="https://rawgit.com/fusioncharts/fusioncharts-jquery-plugin/develop/dist/fusioncharts.jqueryplugin.min.js"></script>
+    <!-- Fusion Theme -->
+    <script type="text/javascript" src="https://cdn.fusioncharts.com/fusioncharts/latest/themes/fusioncharts.theme.fusion.js"></script>
+
+    <script type="text/javascript" src="https://raw.githubusercontent.com/fusioncharts/fusioncharts-dist/develop/fusioncharts.timeseries.js"></script>
+
+    <script>
+            
+        @* var jsonify = res => res.json();
+        var dataFetch = fetch(
+        "https://s3.eu-central-1.amazonaws.com/fusion.store/ft/data/join-missing-data-data.json"
+        ).then(jsonify);
+        var schemaFetch = fetch(
+        "https://s3.eu-central-1.amazonaws.com/fusion.store/ft/schema/join-missing-data-schema.json"
+        ).then(jsonify);
+
+        Promise.all([dataFetch, schemaFetch]).then(res => {
+        const data = res[0];
+        const schema = res[1];
+        // First we are creating a DataStore
+        const fusionDataStore = new FusionCharts.DataStore();
+        // After that we are creating a DataTable by passing our data and schema as arguments
+        const fusionTable = fusionDataStore.createDataTable(data, schema); *@
+@* 
+        $("document").ready(function() {
+             new FusionCharts({
+                type: 'timeseries',
+                renderAt: 'chart-container',
+                width: "98%",
+                height: 650,
+                dataSource: {
+                    data: fusionTable,
+                    chart: {},
+                    caption: {
+                    text: "Pollution Report of Yatcha Street"
+                    },
+                    subcaption: {
+                    text: "An industrial town"
+                    },
+                    yaxis: [
+                    {
+                        plot: [
+                        {
+                            value: "Pollution",
+                            connectnulldata: true
+                        }
+                        ],
+                        title: "Pollution Concentration (in ppm)",
+                        min: "130"
+                    }
+                    ]
+                }
+            }).render();
+
+            $("#chart-container").insertFusionCharts({
+            type: "timeseries",
+            width: "600",
+            height: "400",
+            dataFormat: "json",
+            dataSource: {
+                data: fusionTable,
+                chart: {},
+                caption: {
+                text: "Pollution Report of Yatcha Street"
+                },
+                subcaption: {
+                text: "An industrial town"
+                },
+                yaxis: [
+                {
+                    plot: [
+                    {
+                        value: "Pollution",
+                        connectnulldata: true
+                    }
+                    ],
+                    title: "Pollution Concentration (in ppm)",
+                    min: "130"
+                }
+                ]
+            }
+            }); 
+        });
+        }); *@
+
+    </script>
+
+    <script>
+        $(".has-datepicker").flatpickr({
+            dateFormat: "j-M-Y"
+        });
+
+        var height = 300;
+        var ctx = document.getElementById("pieChart");
+        //ctx.height = height;
+        @if (Model.DepartmentByEmployeePie != null) {
+            @Html.Raw(chart.CreateChartCode("pieChart"));
+        }
+
+
+        @if (Model.JobTypeByEmployeePie != null) {
+            @Html.Raw(chartJobType.CreateChartCode("pieChart_EmplStatus"));
+        }
+        console.log(pieChart);
+
+        function clearHome(e) {
+            console.log($(this));
+            console.log(this);
+            console.log(e);
+            console.log('dasdasd');
+
+            $("#home-admin-work-area").children().fadeOut();
+            var thisWrapper = $(e).parents('.wrapper');
+            $(thisWrapper).addClass('active');
+            $('.wrapper').not(thisWrapper).removeClass('active');
+        }
+
+let data = [
+    [
+        "1/11/2011",
+        141.57,
+        3,
+        15.62
+    ],
+    [
+        "1/24/2011",
+        59.25,
+        5,
+        4.27
+    ],
+    [
+        "1/26/2011",
+        79.38,
+        3,
+        13.82
+    ],
+        [
+        "2/4/2011",
+        1.57,
+        401,
+        46.62
+    ],
+    [
+        "2/14/2011",
+        95.61,
+        50.51,
+        4.27
+    ],
+    [
+        "2/27/2011",
+        400.38,
+        4,
+        30.82
+    ],
+    [
+        "3/15/2011",
+        1.854,
+        90,
+        41.76
+    ],
+    [
+        "5/30/2014",
+        500.854,
+        30,
+        32.76
+    ],
+    [
+        "6/24/2014",
+        16.92,
+        2,
+        3.21
+    ],
+    [
+        "12/30/2014",
+        27.945,
+        3,
+        2.48
+    ]
+];
+let schema = [{
+    "name": "Order Date",
+    "type": "date",
+    "format": "%-m/%-d/%Y"
+}, {
+    "name": "Sales",
+    "type": "number"
+}, {
+    "name": "Quantity",
+    "type": "number"
+}, {
+    "name": "Shipping Cost",
+    "type": "number"
+}];
+
+
+let schema2 = [{
+    "name": "Country",
+    "type": "string"
+}, {
+    "name": "Time",
+    "type": "date",
+    "format": "%Y-%m-%d %H:%M"
+}, {
+    "name": "Total",
+    "type": "number"
+}];
+let data2 = [
+    [
+        "United States",
+        "1/4/2011",
+        16.448
+    ],
+    [
+        "United States",
+        "1/5/2011",
+        272.736
+    ],
+    [
+        "United States",
+        "1/5/2011",
+        11.784
+    ],
+    [
+        "India",
+        "12/31/2014",
+        364.59
+    ],
+    [
+        "India",
+        "12/31/2014",
+        72
+    ],
+    [
+        "India",
+        "12/31/2014",
+        39.42
+    ]
+];
+
+        function reloadAttendanceStatusPie(tf){
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            // chart-att-status
+            
+            $.get(GetAppRootPath() + '/home/GetAttendanceStatusGraph?tf='+tf, function (data) {
+                console.log(data);
+                var newData = [];
+                $(data).each(function (i,e){
+                    newData.push({
+                        "label": e.status,
+                        "value": e.total
+                    });
+                })
+                
+                console.log(newData); 
+                  $("#chart-att-status").insertFusionCharts({
+                    type: "doughnut3d",
+                    width: "100%",
+                    height: "100%",
+                    dataFormat: "json",
+                    dataSource: {
+                        chart: {
+                        caption: "Attendance by Status",
+                        subcaption: "MMbbl= One Million barrels",
+                        enablesmartlabels: "1",
+                        showlabels: "1",
+                        numbersuffix: " MMbbl",
+                        usedataplotcolorforlabels: "1",
+                        plottooltext: "$label, <b>$value</b> MMbbl",
+                        theme: "fusion"
+                        },
+                        data: newData
+                    }
+                });
+
+                //chart.data = d.chartdata;
+            }); 
+        }
+
+        $(function () {
+             InitializeTabs();
+            // FusionCharts.addDep(TimeSeries);
+
+ $.get(GetAppRootPath() + '/home/GetScheduleChartWithAbsentEmployee', function (data) {
+                console.log(data);
+                data2 = [];
+                $(data.chartdata).each(function (i,e){
+                    if(e.totalScheduledHours > 0)
+                    data2.push([
+                        "Scheduled",
+                        e.dateString,
+                        e.totalScheduledHours
+                    ]);
+                    if(e.actualWorkedHours > 0)
+                    data2.push([
+                        "Actual",
+                        e.dateString,
+                        e.actualWorkedHours
+                    ]);
+                })
+                
+                console.log(data2);
+                            
+            let fusionDataStore = new FusionCharts.DataStore();
+            let fusionTable = fusionDataStore.createDataTable(data2, schema2);
+
+            new FusionCharts({
+                type: 'timeseries',
+                renderAt: 'chart-container',
+                width: "98%",
+                height: 550,
+                dataSource: {
+                    data: fusionTable,
+                    chart: {},
+                    caption: {
+                    text: "Employees working hours scheduled Vs actual",
+                    position: "Text"
+                    },
+                    subcaption: {
+                    text: "Employees actual hours %d = Cost $"
+                    },
+                    yaxis: [
+                    {
+                        plot: [
+                        {
+                            value: "Total",
+                            connectnulldata: true
+                        }
+                        ],
+                        title: "Work Hours (in hrs)",
+                        min: "0"
+                    }
+                    ]
+                }
+            }).render();
+
+                reloadAttendanceStatusPie('Daily');
+                //chart.data = d.chartdata;
+            }); 
+
+
+@*
+yAxis: [{
+    "plot": {
+    "value": "Hours",
+    "type": "line",
+    "connectnulldata": true
+    }
+}],
+  Multi variant
+    new FusionCharts({
+      type: 'timeseries',
+      renderAt: 'chart-container',
+      width: "95%",
+      height: 850,
+      dataSource: {
+        data: fusionTable,
+        chart: {
+        },
+        caption: {
+          text: 'Global Online Sales of a SuperStore'
+        }
+      }
+    }).render(); *@
+
+
+
+            // reloadAbsentLateEmpls();
+            // var chartConfigs = getScheduledChart();
+            // $("#chart-container").insertFusionCharts(chartConfigs);
+        })
+    </script>
+
+    <script>
+@* 
+        var XXElement = document.getElementById("XX"); var XX = new Chart(XXElement, {
+            "type": "doughnut",
+            "data":
+            {
+                "datasets": [
+                    { "type": "pie", "backgroundColor": ["rgba(255, 99, 132, 0.2)", "rgba(54, 162, 235, 0.2)", "rgba(255, 206, 86, 0.2)", "rgba(75, 192, 192, 0.2)", "rgba(153, 102, 255, 0.2)", "rgba(255, 159, 64, 0.2)", "rgba(255, 99, 132, 0.2)"], "borderColor": ["rgba(255, 99, 132, 1)", "rgba(54, 162, 235, 1)", "rgba(255, 206, 86, 1)", "rgba(75, 192, 192, 1)", "rgba(153, 102, 255, 1)", "rgba(255, 159, 64, 1)", "rgba(255, 99, 132, 1)"], "borderWidth": 1, "data": [5.0, 7.0, 1.0, 5.0, 21.0, 6.0, 10.0], "label": "Employee by Department" }], "labels": ["Creative", "EXCO", "Finance", "HR & Admin", "News & Current Affairs", "On-Air", "Technical"]
+            },
+            "options": {
+                "responsive": true,
+                "maintainAspectRatio": false,
+                "title": { "display": true, "fontSize": 15, "text": "Employee by Department" },
+                "legend": {
+                    "display": false, "position": "bottom", "fullWidth": true,
+                    "labels": { "fontSize": 8 }
+                },
+                "outlabels": { "text": "%l %p", "color": "black" }
+            }
+        }); *@
+
+
+
+
+        /// Temp fix to routing issue
+        function GetAppRootPath() {
+            var url = window.location.href;
+            if (url.indexOf('hr') != -1)
+                return '/hr';
+            else return '';
+        }
+
+        function reload() {
+            convertToLoadingTable('.pay-components-table')
+            var url = GetAppRootPath() + "/comparison/index?source=" + $('#SourcePeriodId :selected').val() + "&compare=" + $('#ComaprePeriodId :selected').val() + "&empId=" + $('#empId :selected').val();
+            console.log(url);
+
+            location.href = url;
+        }
+    </script>
+
+    <script>
+        function reloadAbsentLateEmpls() {
+            var date = $('#lateAbsentDateFitler').val() || 0;
+            $.get(GetAppRootPath() + '/home/GetAttendanceByStatus?date=' + date, function (data) {
+                $('#absentLateEmpls').html(data);
+                initializeDatePicker();
+            });
+        }
+
+        function getScheduledChart(){
+            // Preparing the chart data
+            const chartData = [
+            {
+                label: "Venezuela",
+                value: "290"
+            },
+            {
+                label: "Saudi",
+                value: "260"
+            },
+            {
+                label: "Canada",
+                value: "180"
+            },
+            {
+                label: "Iran",
+                value: "140"
+            },
+            {
+                label: "Russia",
+                value: "115"
+            },
+            {
+                label: "UAE",
+                value: "100"
+            },
+            {
+                label: "US",
+                value: "30"
+            },
+            {
+                label: "China",
+                value: "30"
+            }
+            ];
+            
+            // Create a JSON object to store the chart configurations
+            return chartConfigs = {
+            type: "column2d", //Set the chart type
+            width: "700", //Set the chart width
+            height: "400", //Set the chart height
+            dataFormat: "json", //Set the type of data
+            chart: {
+                caption: "Countries With Most Oil Reserves [2017-18]", //Set the chart caption
+                subCaption: "In MMbbl = One Million barrels", //Set the chart subcaption
+                xAxisName: "Country", //Set the x-axis name
+                yAxisName: "Reserves (MMbbl)", //Set the y-axis name
+                numberSuffix: "K",
+                theme: "fusion" //Set the theme for your chart
+            },
+            // Chart Data - from step 2
+            data: chartData
+            };
+
+        }
+    </script>
+
+
+    <!-- Chart code -->
+    <script>
+        am4core.ready(function () {
+
+            // Themes begin
+            am4core.useTheme(am4themes_animated);
+            // Themes end
+
+            // {
+            //    "date": "2013-01-20",
+            //    "market1": 82,
+            //    "market2": 89,
+            //    "sales1": 9,
+            //    "sales2": 6
+            //}
+            // Add data
+@* 
+            $.get(GetAppRootPath() + '/home/GetScheduleChartWithAbsentEmployee', function (data) {
+                console.log(data);
+                //chart.data = d.chartdata;
+                drawScheduleEmployeeChart(data.chartdata);
+                drawclockInTaskChart(data.clockInTaskPerformace);
+                darwSubmissionTaskChart(data.submissionTaskPerformace);
+            }); *@
+
+
+
+            /**
+             * date: {date: "2020-01-25T00:00:00"}
+                dateString: "2020-01-25"
+                totalScheduledHours: 16
+                actualWorkedHours: 0
+                actualWorkedHoursPerSchedule: 0
+                totalAbsentEmployeeCount: 0
+                lateEmployeeCount: 0
+                totalLateHours: 0
+            */
+
+
+            
+        }); // end am4core.ready()\
+
+        function darwSubmissionTaskChart(data) {
+
+            var chart = am4core.create("chartdiv_submission", am4charts.PieChart);
+            chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
+
+            chart.data = data;
+            chart.radius = am4core.percent(70);
+            chart.innerRadius = am4core.percent(40);
+            //chart.radius = am4core.percent(60);
+            //chart.innerRadius = am4core.percent(40);
+            //chart.pullOutRadius = am4core.percent(10);
+            //chart.maxLabelWidth = 100;
+
+            chart.startAngle = 180;
+            chart.endAngle = 360;
+
+            var series = chart.series.push(new am4charts.PieSeries());
+            series.dataFields.value = "value";
+            series.dataFields.category = "key";
+
+            series.slices.template.cornerRadius = 10;
+            series.slices.template.innerCornerRadius = 7;
+            series.slices.template.draggable = true;
+            series.slices.template.inert = true;
+            series.alignLabels = false;
+
+            series.hiddenState.properties.startAngle = 90;
+            series.hiddenState.properties.endAngle = 90;
+
+            //chart.legend = new am4charts.Legend();
+            hidelogos();
+        }
+
+        function drawclockInTaskChart(data) {
+
+            var chart = am4core.create("chartdiv_clockIn", am4charts.PieChart);
+            chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
+
+            chart.data = data
+            chart.radius = am4core.percent(70);
+            chart.innerRadius = am4core.percent(40);
+            chart.startAngle = 180;
+            chart.endAngle = 360;
+
+            var series = chart.series.push(new am4charts.PieSeries());
+            series.dataFields.value = "value";
+            series.dataFields.category = "key";
+
+            series.slices.template.cornerRadius = 10;
+            series.slices.template.innerCornerRadius = 7;
+            series.slices.template.draggable = true;
+            series.slices.template.inert = true;
+            series.alignLabels = false;
+
+            series.hiddenState.properties.startAngle = 90;
+            series.hiddenState.properties.endAngle = 90;
+
+            //chart.legend = new am4charts.Legend();
+            hidelogos();
+        }
+
+        function drawScheduleEmployeeChart(data) {
+
+            // Create chart instance
+            var chart = am4core.create("chartdiv", am4charts.XYChart);
+            chart.data = data;
+
+            // Create axes
+            var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+            //dateAxis.renderer.grid.template.location = 0;
+            //dateAxis.renderer.minGridDistance = 30;
+
+            var valueAxis1 = chart.yAxes.push(new am4charts.ValueAxis());
+            valueAxis1.title.text = "Hours";
+
+            var valueAxis2 = chart.yAxes.push(new am4charts.ValueAxis());
+            valueAxis2.title.text = "Employees";
+            valueAxis2.renderer.opposite = true;
+            valueAxis2.renderer.grid.template.disabled = true;
+
+            // Create series
+            var series1 = chart.series.push(new am4charts.ColumnSeries());
+            series1.dataFields.valueY = "totalScheduledHours";
+            series1.dataFields.dateX = "dateString";
+            series1.yAxis = valueAxis1;
+            series1.name = "Scheduled Hours";
+            series1.tooltipText = "{name}\n[font-size: 20]{valueY} hrs[/]";
+            series1.fill = chart.colors.getIndex(0);
+            series1.strokeWidth = 0;
+            series1.clustered = false;
+            series1.columns.template.width = am4core.percent(40);
+
+            var series2 = chart.series.push(new am4charts.ColumnSeries());
+            series2.dataFields.valueY = "actualWorkedHours";
+            series2.dataFields.dateX = "dateString";
+            series2.yAxis = valueAxis1;
+            series2.name = "Actual Hours";
+            series2.tooltipText = "{name}\n[font-size: 20]{valueY} hrs[/]";
+            series2.fill = chart.colors.getIndex(0).lighten(0.5);
+            series2.strokeWidth = 0;
+            series2.clustered = false;
+            series2.toBack();
+
+            var series3 = chart.series.push(new am4charts.LineSeries());
+            series3.dataFields.valueY = "totalAbsentEmployeeCount";
+            series3.dataFields.dateX = "dateString";
+            series3.name = "Absent Employees";
+            series3.strokeWidth = 2;
+            series3.tensionX = 0.7;
+            series3.yAxis = valueAxis2;
+            series3.tooltipText = "{name}\n[font-size: 20]{valueY} empls[/]";
+
+            var bullet3 = series3.bullets.push(new am4charts.CircleBullet());
+            bullet3.circle.radius = 3;
+            bullet3.circle.strokeWidth = 2;
+            bullet3.circle.fill = am4core.color("#fff");
+
+            var series4 = chart.series.push(new am4charts.LineSeries());
+            series4.dataFields.valueY = "lateEmployeeCount";
+            series4.dataFields.dateX = "dateString";
+            series4.name = "Late Employees";
+            series4.strokeWidth = 2;
+            series4.tensionX = 0.7;
+            series4.yAxis = valueAxis2;
+            series4.tooltipText = "{name}\n[font-size: 20]{valueY} empls[/]";
+            series4.stroke = am4core.color("red");
+            series4.strokeDasharray = "3,3";
+
+            var series4 = chart.series.push(new am4charts.LineSeries());
+            series4.dataFields.valueY = "totalScheduledEmployees";
+            series4.dataFields.dateX = "dateString";
+            series4.name = "Schdeuled Employees";
+            series4.strokeWidth = 2;
+            series4.tensionX = 0.7;
+            series4.yAxis = valueAxis2;
+            series4.tooltipText = "{name}\n[font-size: 20]{valueY} empls[/]";
+            series4.stroke = chart.colors.getIndex(5).lighten(0.5);
+            series4.strokeDasharray = "3,3";
+
+            var bullet4 = series4.bullets.push(new am4charts.CircleBullet());
+            bullet4.circle.radius = 3;
+            bullet4.circle.strokeWidth = 2;
+            bullet4.circle.fill = am4core.color("#fff");
+
+            // Add cursor
+            chart.cursor = new am4charts.XYCursor();
+
+            // Add legend
+            chart.legend = new am4charts.Legend();
+            chart.legend.position = "top";
+
+            // Add scrollbar
+            chart.scrollbarX = new am4charts.XYChartScrollbar();
+            chart.scrollbarX.series.push(series1);
+            chart.scrollbarX.series.push(series3);
+            chart.scrollbarX.parent = chart.bottomAxesContainer;
+            hidelogos();
+
+        }
+    </script>
+
+
+    <script>
+
+        ///* Chart code */
+        //// Themes begin
+        //am4core.useTheme(am4themes_animated);
+        //// Themes end
+
+        //// Create chart instance
+        //let chart = am4core.create("chartdiv", am4charts.XYChart);
+
+        //// Add data
+        //chart.data = [{
+        //    "date": "2013-01-16",
+        //    "scheduled-hours | market1": 71,
+        //    "actual worked hours | market2": 75,
+        //    "actual worked hours per schedule | market2": 75,
+        //    "absent employee count | sales1": 5,
+        //    "late emplyee| market2": 75,
+        //    "late hours| market3": 75,
+        //}];
+
+
+
+    </script>
+}
+

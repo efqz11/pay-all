@@ -1,0 +1,242 @@
+﻿
+// Normal Tab System
+
+.wrapper {
+    max-width: 800px;
+    margin: auto;
+    margin-top: 80px;
+}
+
+.tab-wrapper {
+    text-align: center;
+    display: block;
+    margin: auto;
+    max-width: 500px;
+
+
+    .tabs {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+    }
+
+    .tab-link {
+        font-size: 15px;
+        font-weight: 500 !important;
+        margin: 0 0%;
+        list-style: none;
+        padding: 10px 40px;
+        color: #aaa;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all ease 0.5s;
+        border-bottom: solid 3px rgba(255, 255, 255, 0);
+        letter-spacing: 1px;
+    }
+
+    .tab-link:hover {
+        color: #999;
+        border-color: #999;
+    }
+
+    .tab-link.active {
+        color: #333;
+        border-color: #333;
+    }
+
+    .tab-link:nth-of-type(1).active {
+        color: #EE6534;
+        border-color: #EE6534;
+    }
+
+    .tab-link:nth-of-type(2).active {
+        color: #1790D2;
+        border-color: #1790D2;
+    }
+
+    .tab-link:nth-of-type(3).active {
+        color: #EEC63B;
+        border-color: #EEC63B;
+    }
+}
+
+
+.content-wrapper {
+    padding: 40px 80px;
+
+    .tab-content {
+        display: none;
+        text-align: inherit;
+        font-size: inherit;
+        color: inherit;
+
+
+        /*display: none;
+        text-align: center;
+        color: #888;
+        font-size: 14px;
+        opacity: 0;
+        transform: translateY(15px);
+        animation: fadeIn 0.5s ease 1 forwards;*/
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+}
+
+
+// airbnb like tabs
+
+.tab-wrapper.bnb {
+    text-align: left;
+    /* display: inline-block; */
+    margin: initial;
+    display: inline-block;
+    max-width: none !important;
+    width: 100%;
+    margin-bottom: 20px;
+
+    .tabs {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: left;
+        border-bottom: 2px solid #e6e6e663;
+    }
+
+    .tab-link {
+        font-size: 14px;
+        margin: -1px 0%;
+        list-style: none;
+        padding: 10px 11px;
+        color: #5a5a5a;
+        cursor: pointer;
+        font-weight: 400;
+        transition: all ease 0.5s;
+        border-bottom: 4px solid transparent;
+        letter-spacing: 0.2px;
+    }
+
+    .tab-link:hover {
+        color: rgba(0, 166, 153, 1);
+    }
+
+    .tab-link.active {
+        color: rgba(0, 166, 153, 1);
+        border-bottom-color: #00a699;
+    }
+
+    .tab-link:first-child {
+        padding-left: 0px !important;
+        margin-left: 0px !important;
+    }
+}
+
+
+.content-wrapper.bnb {
+    padding: 40px 80px;
+
+    .tab-content {
+        display: none;
+        text-align: inherit;
+        font-size: inherit;
+        color: inherit;
+        /* font-weight: 300; */
+    /* font-size: 14px; */
+    opacity: 0;
+    transform: translateY(15px);
+    animation: fadeIn 0.5s ease 1 forwards;
+}
+
+    .tab-content.active {
+        display: block;
+    }
+}
+
+
+@keyframes fadeIn {
+    100% {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+
+
+
+
+
+
+/// tablsss
+
+@media only screen and (min-width: 1024px) {
+    .progress-bar {
+        margin: 30px 0;
+    }
+
+    .progress-bar-tabs {
+        font-size: 14px;
+        line-height: 20px;
+        color: #6c6c72;
+        counter-reset: progress-bar-counter;
+        display: flex;
+        flex-flow: row nowrap;
+        list-style-type: none;
+        padding: 0;
+        margin: 0 0 15px;
+    }
+}
+
+@media only screen and (min-width: 1024px) {
+    .progress-bar-tabs {
+        margin: 30px 0;
+    }
+}
+
+.progress-bar-tabs {
+    border-radius: 0px;
+    overflow: hidden;
+    width: 100%;
+    background-color: transparent;
+    text-align: left;
+}
+
+.progress-bar-item.complete {
+    color: #525257;
+}
+
+.progress-bar-item.active:before {
+    background-color: #f45d48;
+}
+
+.progress-bar-item.complete:before {
+    color: #525257;
+}
+
+.progress-bar-item:before {
+    background-color: #f4f4f3;
+    border-radius: 20px;
+    content: "";
+    display: block;
+    height: 5px;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.progress-bar-item {
+    counter-increment: progress-bar-counter;
+    flex: 1 0 0;
+    position: relative;
+    margin-left: 5px;
+}
+
+.progress-bar-item-content:before {
+    content: counter(progress-bar-counter,decimal) ". ";
+}
+
+.progress-bar-item.active {
+    color: #1c1c1c;
+    font-weight: 500;
+}

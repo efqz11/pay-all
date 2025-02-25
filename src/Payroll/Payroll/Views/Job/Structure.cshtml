@@ -1,0 +1,121 @@
+﻿@{
+    ViewData["Title"] = "Organization Structure";
+}
+
+<link href="/css/jquery.orgchart-custom.css" rel="stylesheet" />
+
+<partial name="_Header" model="3" />
+<button id="btn_expand" class="btn btn-default">Expand all</button>
+<button id="btn_collapse" class="btn btn-default">Collapse all</button>
+<select asp-items="ViewBag.DepartmentIds" id="deptIds" class=" form-control w-auto d-inline">
+    <option value=" " selected>All Departments</option>
+</select>
+
+<div class="clearfix"></div>
+
+<div id="chart-container">
+
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.7/dist/html2canvas.min.js"></script>
+    <script type="text/javascript" src="https://dabeng.github.io/OrgChart/js/jquery.mockjax.min.js"></script>
+    <script type="text/javascript" src="https://dabeng.github.io/OrgChart/js/jquery.orgchart.js"></script>
+
+    <script>
+
+        $(function () {
+
+            var datasource = {
+                'name': 'Lao Lao',
+                'title': 'general manager',
+                'office': '白城',
+                'children': [
+                    { 'name': 'Bo Miao', 'title': 'department manager', 'office': '北京' },
+                    {
+                        'name': 'Su Miao', 'title': 'department manager', 'office': '北戴河',
+                        'children': [
+                            { 'name': 'Tie Hua', 'title': 'senior engineer', 'office': '北戴河' },
+                            { 'name': 'Hei Hei', 'title': 'senior engineer', 'office': '北戴河' }
+                        ]
+                    },
+                    { 'name': 'Yu Jie', 'title': 'department manager', 'office': '长春' },
+                    { 'name': 'Yu Li', 'title': 'department manager', 'office': '长春' },
+                    { 'name': 'Hong Miao', 'title': 'department manager', 'office': '长春' },
+                    { 'name': 'Yu Wei', 'title': 'department manager', 'office': '长春' },
+                    { 'name': 'Chun Miao', 'title': 'department manager', 'office': '长春' },
+                    { 'name': 'Yu Tie', 'title': 'department manager' }
+                ]
+            };
+
+            var nodeTemplate = function (data) {
+                console.log(data);
+                return `
+                    <div class="title ${data.empstate}" style="${(data.empstate == "Vacant" ? "color:red !important" : "")}">${data.name}</div>
+                    <div class="content">
+                        <p class=""><i class="fad fa-briefcase"></i> ${data.title}</p>
+                        ${data.department == undefined || data.department == "" ? `` : `<p class="department"><i class="fad fa-user-friends"></i> ${data.department}</p>`}
+                        ${data.location == undefined ? `` : `<p class="location"><i class="fad fa-map-marker-alt"></i> ${data.location}</p>`}
+                        ${data.division == undefined || data.division == "" ? `` : `<p class="division"><i class="fad fa-sitemap"></i> ${data.division}</p>`}
+                        ${data.empstate == "None" || data.empstate == undefined ? `` : `<p class="empstate"><i class="fad fa-dot-circle"></i> ${data.empstate}</p>`}
+                    </div>
+                    `;
+            };
+
+            var oc = $('#chart-container').orgchart({
+                'data': GetAppRootPath() + '/job/GetOrganChart', // datasource,
+                'nodeTemplate': nodeTemplate,
+                'exportButton': true,
+                'visibleLevel': 3,
+                'pan': true,
+                'zoom': true,
+                'depth': 2,
+                'nodeContent': 'title',
+                'nodeId': 'id',
+                //'createNode': function ($node, data) {
+                //    var secondMenuIcon = $('<i>', {
+                //        'class': 'oci oci-info-circle second-menu-icon',
+                //        click: function () {
+                //            $(this).siblings('.second-menu').toggle();
+                //        }
+                //    });
+                //    // console.log(data);
+                //    if (data.avatar !== undefined) {
+                //        var secondMenu = '<div class="second-menu"><img class="avatar" src="' + data.avatar + '"></div>';
+                //        $node.append(secondMenuIcon).append(secondMenu);
+                //    }
+                //}
+            });
+
+
+
+            $('#btn_expand').on('click', function () {
+                var $temp = oc.$chart
+                    .find('.hidden, .isCollapsedDescendant, .isChildrenCollapsed')
+                    .removeClass('hidden isCollapsedDescendant isChildrenCollapsed');
+                $temp[0].offsetWidth;
+                $temp.find('.slide-up').removeClass('slide-up');
+            });
+
+            $('#btn_collapse').on('click', function () {
+                oc.hideChildren(oc.$chart.find('.node:first'));
+            });
+
+            $("#deptIds").change(function () {
+                oc.init({
+                    'data': GetAppRootPath() + '/job/GetOrganChart?dept=' + this.value, // datasource,
+                    'nodeTemplate': nodeTemplate,
+                    'exportButton': true,
+                    'visibleLevel': 3,
+                    'verticalDepth': true,
+                    'pan': true,
+                    'zoom': true,
+                    'depth': 2,
+                    'nodeContent': 'title',
+                    'nodeId': 'id',
+                });
+            })
+        });
+
+    </script>
+}

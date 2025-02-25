@@ -1,0 +1,165 @@
+﻿@model Work
+
+<form asp-action="AddOrUpdateWork" asp-controller="Schedule" data-ajax="true" data-ajax-method="POST" data-ajax-update="#tasks-schedule" data-ajax-success="shideModal('Work was just updated');" id="userForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @(Model == null || Model.Id <= 0 ? "Create New Work" : "Change Work")
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+        <div class="form-group">
+            <label asp-for="Name" class="control-label">Name</label>
+            <input asp-for="Name" class="form-control" />
+        </div>
+
+
+        <div class="form-group">
+            <label asp-for="Type" class="control-label">Task Type</label>
+            <select type="text" asp-for="Type" asp-items="@Html.GetEnumSelectList<WorkType>()" class="form-control" onchange="changeWorkType()">
+                <option value="0">Choose Work Type</option>
+            </select>
+            <span asp-validation-for="EndTime" class="text-danger"></span>
+        </div>
+
+
+        @*<div class="form-group">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" asp-for="HasTime" value="false" class="custom-control-input" tabindex="5" onchange="$('#hasTime').toggle(); onCheckChange(this)">
+                <span class="custom-control-label" for="chbxTerms">
+                    Is this task for specific time
+                </span>
+            </label>
+        </div>*@
+
+        <div id="hasTime" style="display:none">
+            <div class="row">
+                <div class="form-group col">
+                    <label asp-for="StartTime" class="control-label">
+                        Start Time
+                    </label>
+                    <input type="text" asp-for="StartTime" class="form-control has-timepicker" />
+                    <span asp-validation-for="StartTime" class="text-danger"></span>
+                </div>
+
+                <div class="form-group col">
+                    <label asp-for="EndTime" class="control-label">End Time</label>
+                    <input type="text" asp-for="EndTime" class="form-control has-timepicker" />
+                    <span asp-validation-for="EndTime" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group col">
+                    <label asp-for="EndTime" class="control-label">Must request before checkin (in minutes)</label>
+                    <input asp-for="MinsBeforeCheckIn" as class="form-control" />
+                </div>
+
+                <div class="form-group col" style="display:none">
+                    <label asp-for="EndTime" class="control-label">&nbsp;</label>
+                </div>
+            </div>
+        </div>
+
+
+        @*<div class="form-group">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" asp-for="IsAdvancedCreate" value="false" class="custom-control-input" tabindex="5" onchange="$('#advancedCreate').toggle(); onCheckChange(this)">
+                <span class="custom-control-label" for="chbxTerms">
+                    Advanced Create
+                </span>
+            </label>
+        </div>*@
+
+        <div id="advancedCreate" style="display:none">
+            <div class="form-group">
+                <label asp-for="TotalRequiredCount" class="control-label"></label>
+                <input asp-for="TotalRequiredCount" class="form-control" />
+            </div>
+
+        </div>
+
+        <div class="row for-all">
+            <div class="form-group col">
+                <label asp-for="MoreCredit" class="control-label"></label>
+                <input asp-for="MoreCredit" class="form-control" />
+            </div>
+
+            <div class="form-group col" style="display:block">
+                <label asp-for="LessDeduct" class="control-label"></label>
+                <input asp-for="LessDeduct" class="form-control" />
+            </div>
+        </div>
+        @*<div class="form-group">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" asp-for="IsReapating" value="false" class="custom-control-input" tabindex="5" onchange="$('#repeating').toggle()">
+                <span class="custom-control-label" for="chbxTerms">
+                    Is this task repeating
+                </span>
+            </label>
+        </div>
+
+        <div id="repeating" class="row" style="display:none">
+            <div class="form-group col">
+                <label asp-for="Frequency" class="control-label"></label>
+                <select name="RecurringFrequency" asp-items="@(Html.GetEnumSelectList<RecurringFrequency>())" class="form-control"></select>
+            </div>
+
+            <div class="form-group col">
+                <label asp-for="DisplayOrder" class="control-label"></label>
+                <input asp-for="DisplayOrder" class="form-control" />
+            </div>
+        </div>*@
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+
+        @if (Model != null && Model.Id > 0)
+        {
+            <a class="modal__btn modal__btn-danger float-right" asp-action="RemoveWork" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@Model.Name was just removed');hideModal()" data-ajax-confirm="Are you sure you want to remove this @Model.Name" data-ajax-begin="convertToLoadingTable('#tblMasterPayAdjustments')">Remove</a>
+        }
+    </footer>
+</form>
+
+
+<script>
+    $(function () { $('#Type').change() });
+    function changeWorkType() {
+        var value = $('#Type').val();
+
+        $('#advancedCreate').hide();
+        $('#hasTime').hide();
+        switch (value) {
+            case "1":
+                $('#hasTime').show();
+                break;
+            case "2":
+                $('#advancedCreate').show();
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    $(document).find('.color-chooser').each(function () { $(this).val($(this).attr('value')); });
+    $('.color-chooser').change(function (e) {
+        $(this).removeClass('sch-red sch-blue sch-green');
+
+        var val = $(this).find(":selected").val();
+        console.log(val);
+        $(this).addClass('sch-' + val);
+        $(this).val(val);
+    })
+
+    $(".has-timepicker").flatpickr({
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+    });
+
+</script>

@@ -1,0 +1,121 @@
+﻿@model List<CompanyAccount>
+
+
+@*<p class="mb-2">@ViewBag.Count Employee(s) from @(ViewBag.DeptRouteId == 0 ? " all departments" : ViewBag.DeptName + " department")</p>*@
+
+<table class="table table-hover data-container-table" id="masterEmployeeAreaTable">
+    <thead>
+        <tr>
+            <th></th>
+            @*<th></th>*@
+            <th colspan="2">Name</th>
+            <th>Address</th>
+            <th>Status</th>
+            <th></th>
+            <th></th>
+            @*<th>DateOfJoined</th>*@
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+        <tr>
+            <td>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm  dropdown-toggle dropdown-toggle-split" id="dropdownMenuReference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
+                        <i class="ion ion-more"></i>
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
+                        <a class="dropdown-item" asp-action="Change" asp-route-id="@item.Id">
+                            <i class="fal fa-edit"></i> Edit
+                        </a>
+
+                        <a class="dropdown-item" asp-action="SetupCompany" asp-controller="Account" asp-route-id="@item.Id" data-id="3"><i class="fad fa-edit"></i> Setup Company</a>
+
+                        @*<a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="SetupPayrolPeriod" asp-route-id="@item.Id">
+                            <i class="ion-ios-compose-outline"></i> Setup period
+                        </a>
+                        <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="UploadImage" asp-route-id="@item.Id" data-ajax-failure="handleModalPostFailure">
+                            <i class="ion-ios-compose-outline"></i> Change Logo
+                        </a>*@
+
+                        <div class="dropdown-divider"></div>
+
+                        <a class="dropdown-item" asp-action="Detail" asp-route-id="@item.Id" data-id="3"><i class="fal fa-building"></i> View Profile</a>
+
+                        <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewAccessGrants" asp-route-id="@item.Id">
+                            <i class="fal fa-user-shield"></i> Who has Access? </a>
+
+                        <a class="dropdown-item text-danger" asp-action="Remove" asp-route-id="@item.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@item.Name was just removed');location.reload()" data-ajax-confirm="Are you sure you want to remove @item.Name" data-ajax-begin="convertToLoadingTable('#tblMasterPayAdjustments')">Remove</a>
+                    </div>
+                </div>
+            </td>
+            @*<td>
+
+                <a class="" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="SetupPayrolPeriod" asp-route-id="@item.Id">
+                    @if (item.IsConfigured)
+                    {
+                        <span aria-label="Payrol period is configured @item.PayrolPeriodStartDate ― @item.PayrolPeriodEndDate (@item.PayrolPeriodDays days)" role="tooltip" data-microtip-position="top">
+                            <i class="ion ion-checkmark-circled text-success fa-2x"></i>
+                        </span>
+                    }
+                    else
+                    {
+                        <span aria-label="Payrol period not configured" role="tooltip" data-microtip-position="top">
+                            <i class="ion ion-ios-help text-warning fa-2x"></i>
+                        </span>
+                    }
+                </a>
+                &nbsp;
+                <a asp-action="ChangeWorkType" asp-route-id="@item.Id" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" aria-label="@item.CompanyWorkType" role="tooltip" data-microtip-position="top">
+                    <i class="ion fa-2x @(item.CompanyWorkType == CompanyWorkType.FixedTime ? "ion-ios-clock" :"ion-ios-stopwatch")"></i>
+                </a>
+                &nbsp;
+                <a asp-action="ViewAccessGrants" asp-route-id="@item.Id" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" aria-label="Click to view all users have access" role="tooltip" data-microtip-position="top">
+                    <i class="fa @(item.AccessGrants.Count > 0 ? "text-warning" : "text-secondary") fa-shield-alt fa-2x"></i>
+                </a>
+
+                &nbsp;
+                <a asp-action="AddOrUpdateConnection" asp-route-id="@item.Id" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" aria-label="Server: @item.DataSource" role="tooltip" data-microtip-position="top">
+                    <i class="fa text-secondary @(item.ConnectionStatus == true ? "ion-android-cloud-done text-success" : "ion-android-cloud  text-daanger") fa-2x"></i>
+                </a>
+            </td>*@
+            <td class="text-right">
+                <a asp-action="UploadImage" asp-route-id="@item.Id" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()">
+                    <img src="@Url.Content(item.LogoUrl ?? DefaultPictures.default_company)" class="rounded rounded-circle" height="40" width="40" />
+                </a>
+            </td>
+            <td>
+                &nbsp;
+                <a asp-action="Detail" asp-route-id="@item.Id" data-ajax-begin="showModal()">
+                    @item.Name
+                </a>
+                <br />
+                &nbsp;
+                <small><a href="@item.Website">@item.Website</a></small>
+            </td>
+            <td>
+                <span>@Html.Raw(item.Address?.Replace("\n", "<br/>"))</span>
+            </td>
+            <td>
+                <partial name="_DisplayRequestStatus" model="@item.Status" />
+            </td>
+
+            @*<td>@item.Departments.Count Department(s) <br /><small>@item.ManagingDirector</small></td>*@
+
+            @*<td>
+                <a class="btn btn-sm btn-outline-danger float-right" asp-action="Remove" asp-route-id="@(item.Id)" data-ajax-method="POST" data-ajax-update="#masterEmployeeArea" data-ajax="true" data-ajax-failure="alert('unable to delete, possibly there are childrens')" data-ajax-success="sendNotification('success', '@item.Name was just removed')" data-ajax-confirm="Are you sure you want to remove @item.Name?"><i class="ion-trash-b"></i> Remove</a>
+            </td>*@
+            @*<td><small>@item.DateOfJoined?.ToString("dd-MMM-yyyy")</small></td>*@
+        </tr>
+        }
+    </tbody>
+</table>
+
+@*Loader*@
+<div class="text-center">
+
+    <div class="loader btn btn-primary btn-loading" data-page="2" style="line-height: 1px;display:none">
+        <div class="ball-beat"><div></div><div></div><div></div></div>
+    </div>
+</div>

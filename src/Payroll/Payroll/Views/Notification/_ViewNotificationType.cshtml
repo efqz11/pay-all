@@ -1,0 +1,77 @@
+﻿@model NotificationType
+
+@*<form asp-action="AddOrUpdatePayAllRoles" asp-controller="AppUser" data-ajax="true" data-ajax-method="POST" data-ajax-update="#detailView"  data-ajax-success="sendNotification('success', 'Roles have been updated');hideModal();" id="userForm" data-ajax-failure="handleModalPostFailure" >*@
+    @Html.AntiForgeryToken()
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            View Notification Type
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+        <table class="table table-sm table-borderless table-responsive table-details">
+            <tbody>
+                <tr>
+                    <td class="text-muted">Type</td>
+                    <td>@Model.Type</td>
+                </tr>
+                <tr>
+                    <td>Require Approve or Reject Action</td>
+                    <td>@Model.RequireApproveRejectAction</td>
+                </tr>
+                <tr>
+                    <td>Changed Property</td>
+                    <td>@Model.ChangedProperty</td>
+                </tr>
+                <tr>
+                    <td>Notification Level</td>
+                    <td>@Model.NotificationLevel</td>
+                </tr>
+                <tr>
+                    <td>Icon</td>
+                    <td><i class="@Model.Icon @Model.Color"></i></td>
+                </tr>
+                <tr>
+                    <td>Summary Text With Placeholder</td>
+                    <td>@Model.SummaryTextWithPlaceholder</td>
+                </tr>
+                <tr>
+                    <td>Url With Placeholder</td>
+                    <td>@Model.UrlWithPlaceholder</td>
+                </tr>
+                <tr>
+                    <td>Notification ReceivedBy</td>
+                    <td>@Model.NotificationReceivedBy</td>
+                </tr>
+                <tr>
+                    <td>Users With Roles</td>
+                    <td>@(Model.UsersWithRoles?.Any() ?? false ? string.Join(" | ", Model.UsersWithRoles) : "")</td>
+                </tr>
+                <tr>
+                    <td>Require Received Notes</td>
+                    <td>@Model.RequireReceivedNotes</td>
+                </tr>
+                <tr>
+                    <td>Active Status</td>
+                    <td>@Model.IsActive</td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary" onclick="setRoles()">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+@*</form>*@
+
+
+<script>
+    function setRoles() {
+    
+        var ad = $('.single-role:visible:checked').map(function() {
+            return $(this).data('id');
+        }).get().join(',');
+        $('#Roles').val(ad);
+    }
+</script>

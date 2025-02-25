@@ -1,0 +1,93 @@
+﻿@model Reminder
+
+<form asp-action="AddOrUpdateReminder" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#__@Model.EmployeeRoleId" data-ajax-success="sendNotification('success', 'Reminder value was just @(Model == null || Model.Id == 0 ? "created" : "updated")'); hideModal()" id="departmentsForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    <input asp-for="EmployeeRoleId" type="hidden" />
+    <input asp-for="_Role" type="hidden" />
+
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @(Model == null || Model.Id <= 0 ? "New Reminder" : "Manage Reminder")
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <div class="alert alert-info">
+                <i class="fa fa-info-circle"></i> Changes made after 5:00 am PAK will take effect starting from the next day
+            </div>
+        </div>
+        <table class="table table-borderless">
+            <tbody>
+                <tr class="form-group">
+                    <td><b>about</b></td>
+                    <td>
+                        <select asp-for="About" class="form-control" asp-items="@Html.GetEnumSelectList<RemindAbout>()"></select>
+                    </td>
+                </tr>
+                <tr class="form-group">
+                    <td><b>of</b></td>
+                    <td>
+                        <select asp-for="Of" class="form-control" asp-items="@Html.GetEnumSelectList<EmployeeSelectorReminder>()"></select>
+                    </td>
+                </tr>
+                <tr class="form-group">
+                    <td><b>when</b></td>
+                    <td>
+                        <div class="d-flex">
+                            <input asp-for="When" as class="form-control" />
+                            <select asp-for="In" class="form-control ml-3 mr-3" asp-items="@Html.GetEnumSelectList<RemindIn>()"></select>
+                            <select asp-for="BeforeOrAfter" class="form-control" asp-items="@Html.GetEnumSelectList<RemindBeforeAfter>()"></select>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="form-group">
+                    <td></td>
+                    <td>
+                        <div class="form-group">
+                            <label class="custom-control custom-radio">
+                                <input type="radio" asp-for="RemindAction" class="custom-control-input" value="@RemindAction.Reminder">
+                                <span class="custom-control-label" for="chbxTerms">
+                                    Reminder (auto expiration)
+                                </span>
+                            </label>
+                            <label class="custom-control custom-radio">
+                                <input type="radio" asp-for="RemindAction" class="custom-control-input" value="@RemindAction.Task">
+                                <span class="custom-control-label" for="chbxTerms">
+                                    Task (no expiration)
+                                </span>
+                            </label>
+                        </div>
+                        <small class="text-muted">
+                            Please note that reminders that are triggered before the event, will disappear from the dashboard one day after the event.
+                        </small>
+                    </td>
+                <tr class="form-group">
+                    <td><b>Note</b></td>
+                    <td>
+                        <input asp-for="Note" as class="form-control" placeholder="Any additional information to share" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">
+            Save
+        </button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        @if (Model.Id > 0)
+        {
+            <a class="modal__btn modal__btn-danger float-right" asp-action="Remove" asp-route-id="@Model.Id" asp-route-remove="self" data-ajax-method="POST" data-ajax="true" data-ajax-update="#dayOff_table" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', 'Day off was just removed');hideModal();" data-ajax-confirm="Are you sure you want to remove this day off?">Remove</a>
+        }
+    </footer>
+</form>
+
+
+<script>
+    if ('Model.IsTaskRelated' === "True") {
+        $('#IsTaskRelated').change();
+    }
+
+</script>

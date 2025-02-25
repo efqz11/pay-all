@@ -1,0 +1,169 @@
+﻿@model AppUser
+@inject Payroll.Database.AccountDbContext dbContext
+@{
+    ViewData["Title"] = "User - " + Model.UserName;
+    var roles = (Dictionary<string, string>)ViewBag.RolesDict;
+    var empls = (List<Employee>)ViewBag.Employess;
+    var notifications = (List<Notification>)ViewBag.Notificatins;
+    ViewBag.IsUserDetail = true;
+}
+<link href="~/css/employee-grade.css" rel="stylesheet" />
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/timeline.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+
+<h2>@FeatureMenus.GetFeatureMenuItem(FeatureMenus.MenuItem.User) Users</h2>
+<div class="row mt-8 mb-3">
+    <div class="col-md-8">
+        <span class="link-summary">
+            @Model.UserName <a class="text-muted " data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-controller="Search" asp-action="SearchModal" asp-route-what="@EntityType.AppUser" style="">
+            <i class="fa fa-caret-down"></i>
+        </a>
+        </span>
+
+    </div>
+    <div class="col-md-4 text-right">
+        @*<partial name="~/Views/Request/_DisplayRequestStatus.cshtml" model="@Model." />*@
+    </div>
+</div>
+
+
+<div class="row">
+
+    <div class="col-md-12">
+        <div class="tab-wrapper bnb">
+            <ul class="tabs">
+                <li class="tab-link active" data-tab="1">User details</li>
+                <li class="tab-link" data-tab="2">Access grants</li>
+                @if(Model.OtherLogins.Any() || Model.CurrentLogins.Any()){
+                <li class="tab-link" data-tab="5">External Logins</li>
+                }
+                <li class="tab-link" data-tab="3">Notifications</li>
+                <li class="tab-link" data-tab="4">Login history</li>
+            </ul>
+        </div>
+        <div class="content-wrapper bnb p-0 pt-3">
+            <div id="tab-1" class="tab-content active">
+                <a class="btn btn-sm btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdate" asp-route-id="@Model.Id">
+                    <i class="fad fa-edit"></i> Edit
+                </a>
+
+                <a class="btn btn-sm btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdatePayAllRoles" asp-route-id="@Model.Id">
+                    <i class="fad fa-user-shield"></i> Update Roles
+                </a>
+
+                <div id="detailView">
+                    <partial name="_Detail" model="Model" />
+                </div>
+            </div>
+
+            <div id="tab-2" class="tab-content">
+                @*<partial name="_AccessGrantsRolesTable" model="@Model.AccessGrants" />*@
+            </div>
+            @if(Model.OtherLogins.Any() ||Model.CurrentLogins.Any()){
+            <div id="tab-5" class="tab-content">
+                <table class="table table-borderless">
+                    <tbody>
+                        @foreach (var login in Model.CurrentLogins)
+                        {
+                            <tr>
+                                <td id="@($"login-provider-{login.LoginProvider}")">@login.ProviderDisplayName</td>
+                                <td>
+                                    @if (Model.ShowRemoveButton)
+                                    {
+                                        <form id="@($"remove-login-{login.LoginProvider}")" asp-page-handler="RemoveLogin" method="post">
+                                            <div>
+                                                <input asp-for="@login.LoginProvider" name="LoginProvider" type="hidden" />
+                                                <input asp-for="@login.ProviderKey" name="ProviderKey" type="hidden" />
+                                                <button type="submit" class="btn btn-default" title="Remove this @login.LoginProvider login from your account">Remove</button>
+                                            </div>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        @: &nbsp;
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                                
+                @if (Model.OtherLogins?.Count > 0)
+                {
+                    @*<h4>Add another service to log in.</h4>
+                    <hr />*@
+                    @*<form id="link-login-form" asp-page-handler="LinkLogin" method="post" class="form-horizontal">
+                    </form>*@
+                     <div id="socialLoginList">
+                        <p>
+                            @foreach (var provider in Model.OtherLogins)
+                            {
+                                <button id="@($"link-login-button-{provider.Name}")" type="submit" class="btn btn-default" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
+                            }
+                        </p>
+                    </div>
+                }
+            </div>
+            }
+            <div id="tab-3" class="tab-content">
+                <form asp-action="GetUserNotifications" asp-controller="Notification" data-ajax="true" data-ajax-method="POST" data-ajax-update="#listing" data-ajax-success="" id="form-filter" data-ajax-failure="handleModalPostFailure">
+                    <input type="hidden" name="page" id="page" value="1" />
+                    <input type="hidden" name="id" value="@Model.Id" />
+                </form>
+
+                <div id="listing">
+
+                </div>
+
+                <div class="text-center">
+                    <button type="button" data-form="#form-filter" class="btn btn-outline-info btn-load-more" id="btn-load-more" data-page="1" style="display:block">Load More</button>
+                </div>
+            </div>
+            <div id="tab-4" class="tab-content">
+
+            </div>
+
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div id="employee-content">
+
+        </div>
+    </div>
+</div>
+
+<div class="text-center">
+</div>
+<div class="clearfix"></div>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+
+@section scripts {
+    <!-- Resources -->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script src="~/js/micro-charts.js"></script>
+    <script>
+
+        $(function () {
+            InitializeTabs();
+            $('#btn-load-more').click();
+        });
+
+
+        $('.intrrAction-search').keyup(debounce(function () {
+            console.log('starting... ');
+            listgroup_search($('.intrrAction-search').val(), $('.list-group.intrrAction'));
+        }, 500));
+        
+    </script>
+}

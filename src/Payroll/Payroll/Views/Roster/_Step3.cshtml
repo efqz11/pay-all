@@ -1,0 +1,102 @@
+﻿@model RosterVm
+
+@{
+    var workIndx = 0;
+    Layout = "_LayoutCard";
+    ViewBag.CardHeader = Model.SelectedMenuString;
+    ViewBag.RosterVm = Model;
+}
+
+<form asp-action="Process" asp-controller="Roster" data-ajax="true" data-ajax-method="POST" data-ajax-update="#card-placeholder" data-ajax-failure="handleModalPostFailure" data-ajax-success="setActiveTabByIndex(4)">
+    <input type="hidden" asp-for="SelectedMenu" />
+    <input type="hidden" asp-for="ScheduleId" />
+    <input type="hidden" asp-for="Employees" />
+    @if (!Model.EmployeeActiveContractFlag)
+    {
+        <div class="alert alert-danger">
+            <span class="d1-span"><i class="fa fa-exclamation-triangle text-danger"></i> Some employee don't have Employment(s). You need to ensure all employees have active employments to be enrolled in the roster</span>
+        </div>
+    }
+<table class="table">
+    <thead>
+        <tr>
+            <th>Employee</th>
+            <th>Contract</th>
+            @*<th>Requested Slots</th>
+                <th>Black Out Slots</th>
+                <th>Non Working Shifts</th>*@
+            <th>Rostering Summary</th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model.Employees)
+        {
+            <tr>
+                <td class="text-left font-weight-bold sticky-col first-col" style=" vertical-align: middle;display:flex">
+                    <div class="image-container">
+                        <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.id">
+                            <img src="@Url.Content(item.Photo ?? DefaultPictures.default_user)" height="35" class="mt-1 mr-2 rounded-circle" />
+                        </a>
+                    </div>
+                    <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.id">
+                        <div class="name-display pt-1">
+                            <span class="">@item.Name</span>
+                            <br>
+                            <small class="text-muted" style="position: relative;top: -4px;">@(Model.ActiveContracts.FirstOrDefault(a => a.EmployeeId == item.id)?.Employee.JobTitle ?? "No Designation") &middot; @item.Department</small>
+                        </div>
+                    </a>
+                </td>
+                @if (Model.ActiveContracts.Any(a => a.EmployeeId == item.id))
+                {
+                    <td>
+                        <h6>
+                            <span><i class="fa fa-dot-circle text-success"></i> @Model.ActiveContracts.FirstOrDefault(a => a.EmployeeId == item.id).EmploymentStatus.GetDisplayName()</span>
+
+                            <br />
+                            <small>@Model.ActiveContracts.FirstOrDefault(a => a.EmployeeId == item.id).GetDuration(User)</small>
+                        </h6>
+                    </td>
+                }
+
+                else
+                {
+                    <td colspan="2">
+                        <span class="text-danger"><i class="fa fa-exclamation-triangle"></i> No Employment!</span>
+                    </td>
+                }
+                <td>
+                    @if (Model.ActiveContracts.Any(a => a.EmployeeId == item.id))
+                    {
+                        <span><i class="fa fa-play text-success"></i>  Shifts will Start on @(Model.ActiveContracts.FirstOrDefault(a => a.EmployeeId == item.id).EffectiveDate < Model.StartDate ? Model.StartDate.ToSystemFormat(User) : Model.ActiveContracts.FirstOrDefault(a => a.EmployeeId == item.id).EffectiveDate.ToSystemFormat(User))</span>
+                        @if (Model.ActiveContracts.FirstOrDefault(a => a.EmployeeId == item.id).EndDate < Model.EndDate)
+                        {
+                            <br />
+                            <span><i class="fa fa-stop text-info"></i>  Shifts will End on @Model.ActiveContracts.FirstOrDefault(a => a.EmployeeId == item.id).EndDate.ToLocalFormat()</span>
+                        }
+                        @if ((Model.ActiveContracts.FirstOrDefault(a => a.EmployeeId == item.id).EffectiveDate - Model.StartDate).TotalDays > 0)
+                        {
+                            <br />
+                            <span class="text-muted">(Starting after @((Model.ActiveContracts.FirstOrDefault(a => a.EmployeeId == item.id).EffectiveDate - Model.StartDate).TotalDays) days)</span>
+                        }
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+    <div class="card-footer">
+        <div class="btn-toolbar float-right">
+            <a class="btn btn-lg btn-light " asp-action="Process" asp-route-id="@Model.ScheduleId" asp-route-t="2" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-update="#card-placeholder" data-ajax-success="setActiveTabByIndex(2)"><i class="fa fa-arrow-left"></i> &nbsp; Back</a>
+
+            <button type="submit" class="btn btn-primary btn-lg">Next &nbsp; <i class="fa fa-arrow-right"></i></button>
+        </div>
+    </div>
+</form>
+
+
+<script>
+</script>

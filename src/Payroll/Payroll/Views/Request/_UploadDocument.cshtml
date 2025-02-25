@@ -1,0 +1,237 @@
+﻿@model Request
+@{ 
+    var i = 0;
+}
+    <form asp-action="SaveDocument" asp-controller="Request" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-success="" id="uploadRequreDocs" failure="handleModalPostFailure">
+        @Html.AntiForgeryToken()
+        <input asp-for="Id" type="hidden"/>
+        <input asp-for="AttendanceId" type="hidden" />
+        <input asp-for="EmployeeId" type="hidden" />
+        <input asp-for="RequestType" type="hidden" />
+        <input asp-for="Status" type="hidden" />
+        <header class="modal__header">
+            <h2 class="modal__title" id="modal-1-title">
+
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewRequest" asp-controller="Request" asp-route-id="@Model.Id" asp-route-type="@Model.RequestType">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+                Upload Documents
+            </h2>
+            <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        </header>
+        <main class="modal__content" id="modal-1-content">
+
+            @*@if (Model.DayOff?.RequiredDocuments ?? false)
+            {
+                <div class="form-group">
+                    <i class="fa fa-alert"></i> Please upload below document(s)
+                </div>
+            }*@
+            <div class="form-group">
+                <label asp-for="DayOffId" class="control-label">Please upload all required documents</label>
+                <p>
+                    <a class="btn btn-sm btn-warning" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-method="POST" asp-action="AddDocument" asp-controller="Request" asp-route-id="@Model.Id">
+                        <i class="ion ion-plus"></i> Add New Document
+                    </a>
+                </p>
+                <table class="table table-sm table-documents">
+                    <tbody>
+                        @foreach (var item in Model.FileDatas)
+                        {
+
+                            <tr>
+                                <td>
+                                    <input type="hidden" name="[@i].Id" value="@item.Id" />
+                                    @if (item.IsNameChangeable)
+                                    {
+                                        <input type="text" name="[@i].Name" value="@item.Name" class=" name form-control form-control-sm" />
+                                    }
+                                    else
+                                    {
+                                        <input type="hidden" name="[@i].Name" class="name" value="@item.Name" />
+                                        <span>@item.Name*</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.IsUploaded)
+                                    {
+                                        <a href="@item.FileUrl" target="_blank"><small>@item.FileName</small></a>
+                                    }
+                                    else
+                                    {
+                                        <input type="file" name="file_@item.Id" data-id="@item.Id" data-htmlId="file_@item.Id" onchange="uploadFile(this)" class="small" />
+                                    }
+
+                                    <div class="loader loader-blue btn-loading text-left" id="file_loading_@item.Id" data-page="2" style="line-height: 1px;display:none;font-size:small">
+                                        <div class="ball-beat"><div></div><div></div><div></div></div>
+                                    </div>
+                                </td>
+                                <td class="text-right">
+                                    <input type="hidden" name="[@i].IsUploaded" value="@(item.IsUploaded ? "True" : "False")" />
+                                    @if (item.IsUploaded || User.IsInRole(Roles.PayAll.admin))
+                                    {
+
+                                        <a class="" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-method="POST" asp-action="RemoveDocument" asp-controller="Request" asp-route-id="@item.Id" asp-route-rId="@Model.Id" data-ajax-confirm="Are you sure you wish to remove">
+                                            <i class="text-danger fad fa-trash"></i>
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+
+                            i = i + 1;
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @*<div class="form-group">
+            <label asp-for="DayOffId" class="control-label">Choose leave</label>
+            <select asp-for="DayOffId" class="form-control" asp-items="@(new SelectList(dayOffs, "Id", "Name"))" onchange="$('.desc').hide(); $('.desc_' + $(this).val()).show();console.log('.desc_' + $(this).val())" >
+                <option value="0">Choose Type of Leave</option>
+            </select>
+        </div>*@
+
+        </main>
+        <footer class="modal__footer">
+            <button type="button" class="modal__btn modal__btn-primary" onclick="xxxx()">Save</button>
+            <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+            <button type="button" class="modal__btn modal__btn-warning btn-submit btn-send-approval float-right" onclick="xxxx(true)"><i class="fa fa-paper-plane"></i> Send for approval</button>
+        </footer>
+    </form>
+
+
+<script>
+    $(function () {
+
+        @*if ('@Model.DayOff.RequiredDocuments' === 'False') {
+            console.log('not require docs');*@
+            @*$('#Status').val('Submitted');
+            shideModal('@Model.RequestType' + ' was sent for approval');
+            sendNotification('success', 'Leave request was sent for approval');
+            $('#uploadRequreDocs').submit();*@
+        //}
+    });
+
+    function xxxx(approve) {
+        var id = '@Model.Id';
+        var url = GetAppRootPath() + "/Request/SaveDocument/" + id;
+        if (approve){url += "?approve=1";
+            $('.btn-send-approval').attr('disabled', true);
+            }
+            
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: $('table.table-documents').find('input').serialize()
+        })
+            .done(function (data, textStatus, jqXhr) {
+                if (approve) {
+                    shideModal('@Model.RequestType' + 'request was sent for approval');
+                    $(".modal__container").html(data);
+                }
+                //sendNotification('success', 'Leave request was sent for approval');
+                else
+                    sendNotification('success', 'Leave request was just saved');
+
+                // Clear the input
+                //$("#employee-content").html(data);
+            })
+            .fail(function (jqXhr, textStatus, errorThrown) {
+                if (errorThrown === "abort") {
+                    sendNotification('warning', 'Uploading was aborted');
+                } else {
+                    handleModalPostFailure(jqXhr, textStatus, errorThrown);
+                }
+            })
+            .always(function (data, textStatus, jqXhr) { 
+                if (approve){
+                    $('.btn-send-approval').attr('disabled', false);
+                }
+            });
+    }
+
+
+    function uploadFile(evnt) {
+        console.log(evnt);
+        var btn = evnt;
+        var id = $(btn).data('id');
+        var loading = $('#file_loading_' + id);
+        var file1 = $(btn)[0].files[0];
+        if (file1 !== undefined) {
+
+            var formData = new FormData();
+            formData.append("file", file1);
+            formData.append("Name", $(btn).parents('tr').find('input.name').val());
+            formData.append("id", id);
+
+
+            console.log($(btn).parents('tr').find('input.name').val());
+            //console.log('uploading...');
+            //console.log($(btn).next());
+            $(btn).hide();
+            console.log('show loading...' + '#file_loading_' + id);
+            $('#file_loading_' + id).show();
+            setTimeout(function () {
+
+                // You can abort the upload by calling jqxhr.abort();    
+                var jqxhr = $.ajax({
+                    url: GetAppRootPath() + "/Request/UploadDocument",
+                    type: "POST",
+                    contentType: false,
+                    data: formData,
+                    dataType: "json",
+                    cache: false,
+                    processData: false,
+                    async: false,
+                    xhr: function () {
+                        var xhr = new window.XMLHttpRequest();
+                        xhr.upload.addEventListener("progress",
+                            function (evt) {
+                                if (evt.lengthComputable) {
+                                    var progress = Math.round((evt.loaded / evt.total) * 100);
+                                    console.log('progress', progress);
+                                    // Do something with the progress
+                                }
+                            },
+                            false);
+                        return xhr;
+                    }
+                    })
+                    .done(function (data, textStatus, jqXhr) {
+                        sendNotification('success', 'File was uploaded successfully');
+                        $(".modal__container").html(data);
+                    })
+                    .fail(function (jqXhr, textStatus, errorThrown) {
+                        console.log('on error');
+                        console.log(jqXhr);
+                        if (jqXhr.status == 200) {
+                            sendNotification('success', 'File was uploaded successfully');
+                            $(".modal__container").html(jqXhr.responseText);
+                        }
+                        else {
+                            if (errorThrown === "abort") {
+                                sendNotification('warning', 'Uploading was aborted');
+                            } else {
+                                handleModalPostFailure(jqXhr, textStatus, errorThrown);
+                            }
+                        }
+                    })
+                    .always(function (data, textStatus, jqXhr) {
+                        $(loading).hide();
+                    });
+            }, 1000);
+        };
+    }
+
+    $(".has-datepicker").flatpickr({
+        dateFormat: "j-M-Y"
+    });
+    
+    $(".has-timepicker").flatpickr({
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+    });
+
+</script>

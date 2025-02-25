@@ -1,0 +1,81 @@
+﻿@model CompanyAccount
+@{
+    ViewData["name"] = "LogoUrl";
+    ViewData["src"] = Url.Content(Model.LogoUrl ?? DefaultPictures.default_company);
+}
+
+
+<form asp-action="UploadImage" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#change-form-wrapper" data-ajax-success="sendNotification('success', 'Logo was just saved')" id="avatarUploadForm" data-ajax-failure="handleModalPostFailure" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    @*<header>
+        <h2 class="modal__title" id="modal-1-title">
+            <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update="#change-form-wrapper" asp-action="Change" asp-controller="Company" asp-route-id="@Model.Id">
+                <i class="fad fa-arrow-alt-left fa-2x"></i>
+            </a>
+            @("Upload Company logo")
+        </h2>
+    </header>*@
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <partial name="_AvatarUpload" view-data="ViewData" model="Model">
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button type="button" class="btn btn-primary mr-2 btn-save-img" onclick="saveBase64Image()">Save</button>
+        <button type="button" class="btn btn-outline-primary" onclick="$('.modal__btn-back').click()">Back</button>
+    </footer>
+</form>
+
+
+@*<form name="foo" method="post" enctype="multipart/form-data">
+    <input type="file" value="c:/passwords.txt" name="FILE" id="XXXX">
+</form>*@
+
+<script>
+
+    function UploadImage() {
+
+        var formData = new FormData();
+
+        var file = $("#imagebase64").val();
+        formData.append("base64Image", file);
+
+        var id = $('#avatarUploadForm #Id').val().trim()
+        formData.append("Id", id);
+
+
+        var token = $('#avatarUploadForm input[name="__RequestVerificationToken"]').val().trim()
+        formData.append("__RequestVerificationToken", token);
+
+        //console.log(formData);
+
+        $(".btn-save-img").attr('disabled', 'disabled');
+        $(".btn-save-img").html(getLoaderWhiteHtml());
+
+        $.ajax({
+        type: "POST",
+        url: "@(Url.Action("UploadImage"))",          
+        data: formData,
+        processData: false,
+            contentType: false,
+            beforeSend: function (response) {
+                $("#imagePreview").css(
+                    "background-image", ""
+                );
+                $('#avatar-loader').fadeIn();
+            },
+            success: function (response) {
+                sendNotification('success', 'Logo was just saved');
+                //hideModal();
+                $('#main-content').html(response);
+            },
+            complete: function (response) {
+                $('#avatar-loader').fadeOut();
+                $(".btn-save-img").removeAttr('disabled');
+                $(".btn-save-img").html("Save");
+            },
+            error: handleModalPostFailure,
+        });
+    }
+</script>

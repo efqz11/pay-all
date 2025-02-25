@@ -1,0 +1,53 @@
+﻿@model Payroll.Models.Employee
+
+@{
+    ViewData["Title"] = "Change employee details";
+}
+
+<form asp-action="AddOrUpdateSocial" data-ajax="true" data-ajax-method="POST" data-ajax-update="#change-form-wrapper" data-ajax-success="sendNotification('success', 'Employee social information was saved');" id="employeeDetailsCreateForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @if (Model != null)
+            {
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update="#change-form-wrapper" asp-action="AddOrUpdateEmergencyContact" asp-controller="Employee" asp-route-id="@Model.Id">
+                    <i class="fad fa-arrow-alt-left fa-2x"></i>
+                </a>
+            }
+            Social Media Links
+        </h2>
+    </header>
+    <partial name="_ProgressSteps" model="80" />
+    <main class="modal__content" id="modal-1-content">
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="form-group">
+            <label asp-for="InstagramId" class="control-label">Instagram Url</label>
+            <input asp-for="InstagramId" class="form-control" />
+            <span asp-validation-for="InstagramId" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="FacebookId" class="control-label">Facebook Url</label>
+            <input asp-for="FacebookId" class="form-control" />
+            <span asp-validation-for="FacebookId" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="TwitterId" class="control-label">Twitter Url</label>
+            <input asp-for="TwitterId" class="form-control" />
+            <span asp-validation-for="TwitterId" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="LinkedInId" class="control-label">LinkedIn Url</label>
+            <input asp-for="LinkedInId" class="form-control" />
+            <span asp-validation-for="LinkedInId" class="text-danger"></span>
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="btn btn-primary mr-2">Save</button>
+        <button type="button" class="btn btn-outline-primary" onclick="$('.modal__btn-back').click()">Back</button>
+        <a class="btn btn-outline-primary right float-right" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="clearHome()" asp-action="UploadImage" asp-controller="Employee" asp-route-id="@Model.Id">Skip and Continue</a>
+    </footer>
+
+</form>

@@ -1,0 +1,23 @@
+﻿@model CompanyFile
+
+<form asp-action="SendRequestConfirm" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#change-form-wrapper" data-ajax-success="shideModal('Singature Requests were just sent and file is shared')" id="userForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            Request Signature
+        </h2>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <partial name="_ShowAlertMessage" />
+        </div>
+        <div class="form-group">
+            <span>Are you sure you wish to sent singature request?</span>
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">Send</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>

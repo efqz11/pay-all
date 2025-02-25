@@ -1,0 +1,309 @@
+﻿@model HomeEmployeeVm
+@{
+
+}
+<style>
+    .cell-attndance .item {
+        max-width: 115px !important;
+    }
+</style>
+
+<div class="card" style="">
+
+    <!--Card Header-->
+    <div class="card-header">
+        <div class="p-actions mb-0">
+            <span class="title float-left" style="position: relative;bottom: -2px;">Performance</span>
+            <form asp-action="GetPerformanceChart" asp-controller="Employee" id="filterForm" data-ajax-begin="loadingChart()" data-ajax="true" data-ajax-success="drawScheduleEmployeeChart(data)" data-ajax-failure="errorFetchingData()">
+                <input type="hidden" name="start" id="start" value="@Model.FilterForm.Start" />
+                <input type="hidden" name="end" id="end" value="@Model.FilterForm.End" />
+                <input type="hidden" name="id" id="id" value="@Model.FilterForm.EmployeeId" />
+
+                <div class="float-right">
+                    <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+
+                        <div class="btn-group mr-2" role="group" id="datefilter" aria-label="First group">
+                            <button type="button" class="btn-sm btn btn-outline-secondary border-right-0 " style="outline:none;border-top-left-radius: 0.2rem;border-bottom-left-radius: 0.2rem"><i class="fa fa-calendar-alt"></i></button>
+                            <button type="button" class="btn-sm btn btn-outline-secondary border-right-0 border-left-0" id="textBtn">@Model.FilterForm.DurationText</button>
+                            <button type="button" class="btn-sm btn btn-outline-secondary border-left-0" style="outline:none "><i class="fa fa-chevron-down"></i></button>
+                        </div>
+
+
+                        <div class="btn-group mr-2" role="group" aria-label="Third group">
+                            <select asp-items="@Html.GetEnumSelectList<TimeFrame>()" class="form-control form-control-sm" name="tf" id="tf">
+                                <option value="" selected>Show All</option>
+                            </select>
+
+                        </div>
+                        <div class="btn-group mr-2" role="group" aria-label="Third group">
+                            <select asp-items="@ViewBag.Axes" class="form-control form-control-sm" name="x" id="x">
+                                <option value="" selected>X-axis</option>
+                            </select>
+                        </div>
+                        <div class="btn-group mr-2" role="group" aria-label="Third group">
+                            <select asp-items="@ViewBag.Axes" class="form-control form-control-sm" name="y" id="y">
+                                <option value="" selected>Y-axis</option>
+                            </select>
+                        </div>
+                        <div class="btn-group" role="group" aria-label="Third group">
+                            <button type="submit" class="btn btn-sm btn-primary"><i class="fad fa-filter"></i> Update</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <style>
+        .table-performance tr:not(.axes) td:not(.divider) { padding:30px 10px; text-align:center; color:#e2e2e2; font-size:20px; border:0}
+        .table-performance td.divider { padding: 0px; text-align:center; color:black; border-left:1px solid #c1c1c1; width: 1px;}
+        .table-performance tr.divider { padding: 0px; border-bottom:1px solid #c1c1c1}
+        .table-performance tr.axes { padding: 0px; text-align:center; color:#c1c1c1; }
+        .table-performance tr.axes td.axes { width: 20px; border:0; }
+        .table-performance tr.axes td.axes span { writing-mode: vertical-rl; transform: rotate(180deg); }
+        /*.table-performance tr.axes td.axes { 
+            -ms-writing-mode: tb-rl;
+            -webkit-writing-mode: vertical-rl;
+            writing-mode: vertical-rl;
+            transform: rotate(270deg);
+            white-space: nowrap;
+        }*/
+         /*.table-performance td{ padding:30px 10px; text-align:center; color:black; font-size:20px}*/
+    </style>
+
+    <!--Card Body-->
+    <div class="card-body">
+        <div id="main-area">
+            <table class="table table-performance">
+                <tbody>
+                    <tr class="axes">
+                        <td rowspan="8" class="axes text-center">
+                            <span>Late mins</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td class="divider"></td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                    </tr>
+                    <tr>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td class="divider"></td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                    </tr>
+                    <tr>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td class="divider"></td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                    </tr>
+                    <tr class="divider">
+                        <td colspan="8" class="divider"></td>
+                    </tr>
+                    <tr>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td class="divider"></td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                    </tr>
+                    <tr>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td class="divider"></td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                    </tr>
+                    <tr>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td class="divider"></td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                        <td>&bull;</td>
+                    </tr>
+                    <tr class="axes">
+                        <td class="border-0"></td>
+                        <td colspan="7" class="text-center">Attendance</td>
+                    </tr>
+                </tbody>
+            </table>
+            @*<div id="chartdiv" style="height:500px"></div>*@
+        </div>
+    </div>
+</div>
+
+<script>
+    function loadingChart() { $('#chartdiv').html(getLoaderHtml()) }
+    function errorFetchingData() { $('#chartdiv').html("Oops! There aren't any data found or an error was occured!") }
+    function drawScheduleEmployeeChart(data) {
+        console.log(data); 
+
+        // Create chart instance
+        var chart = am4core.create("chartdiv", am4charts.XYChart);
+        chart.data = data;
+
+        // Create axes
+        var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+        //dateAxis.renderer.grid.template.location = 0;
+        //dateAxis.renderer.minGridDistance = 30;
+
+        var valueAxis1 = chart.yAxes.push(new am4charts.ValueAxis());
+        valueAxis1.title.text = "Hours";
+
+        var valueAxis2 = chart.yAxes.push(new am4charts.ValueAxis());
+        valueAxis2.title.text = "Days";
+        valueAxis2.renderer.opposite = true;
+        valueAxis2.renderer.grid.template.disabled = true;
+
+        // Create series
+        var series1 = chart.series.push(new am4charts.ColumnSeries());
+        series1.dataFields.valueY = "workedHours";
+        series1.dataFields.dateX = "dateString";
+        series1.yAxis = valueAxis1;
+        series1.name = "Regular Hours";
+        series1.tooltipText = "{name}\n[font-size: 20]{valueY} hrs[/]";
+        series1.fill = chart.colors.getIndex(0);
+        series1.strokeWidth = 0;
+        series1.clustered = false;
+        series1.columns.template.width = am4core.percent(40);
+
+        //series1.events.on('visibilitychanged', (ev) => {
+        //    ev.target.ignoreMinMax = !ev.visible;
+        //    ev.target.chart.invalidateData();
+        //});
+
+        var series2 = chart.series.push(new am4charts.ColumnSeries());
+        series2.dataFields.valueY = "overtimeHours";
+        series2.dataFields.dateX = "dateString";
+        series2.yAxis = valueAxis1;
+        series2.name = "Overtime Hours";
+        series2.tooltipText = "{name}\n[font-size: 20]{valueY} hrs[/]";
+        series2.fill = chart.colors.getIndex(0).lighten(0.5);
+        series2.strokeWidth = 0;
+        series2.clustered = false;
+        series2.toBack();
+
+        var series3 = chart.series.push(new am4charts.LineSeries());
+        series3.dataFields.valueY = "absentDays";
+        series3.dataFields.dateX = "dateString";
+        series3.name = "Absent Days";
+        series3.strokeWidth = 2;
+        series3.tensionX = 0.7;
+        series3.yAxis = valueAxis2;
+        series3.tooltipText = "{name}\n[font-size: 20]{valueY} days[/]";
+
+        var bullet3 = series3.bullets.push(new am4charts.CircleBullet());
+        bullet3.circle.radius = 3;
+        bullet3.circle.strokeWidth = 2;
+        bullet3.circle.fill = am4core.color("#fff");
+
+        var series4 = chart.series.push(new am4charts.LineSeries());
+        series4.dataFields.valueY = "lateHours";
+        series4.dataFields.dateX = "dateString";
+        series4.name = "Late Hours";
+        series4.strokeWidth = 2;
+        series4.tensionX = 0.7;
+        series4.yAxis = valueAxis1;
+        series4.tooltipText = "{name}\n[font-size: 20]{valueY}hrs[/]";
+        series4.tooltip.getFillFromObject = false;
+        series4.tooltip.background.fill = am4core.color("red");
+        series4.stroke = am4core.color("red");
+        series4.strokeDasharray = "3,3";
+
+        //var series4 = chart.series.push(new am4charts.LineSeries());
+        //series4.dataFields.valueY = "totalScheduledEmployees";
+        //series4.dataFields.dateX = "dateString";
+        //series4.name = "Schdeuled Employees";
+        //series4.strokeWidth = 2;
+        //series4.tensionX = 0.7;
+        //series4.yAxis = valueAxis2;
+        //series4.tooltipText = "{name}\n[font-size: 20]{valueY} empls[/]";
+        //series4.stroke = chart.colors.getIndex(5).lighten(0.5);
+        //series4.strokeDasharray = "3,3";
+
+        //var bullet4 = series4.bullets.push(new am4charts.CircleBullet());
+        //bullet4.circle.radius = 3;
+        //bullet4.circle.strokeWidth = 2;
+        //bullet4.circle.fill = am4core.color("#fff");
+
+        // Add cursor
+        chart.cursor = new am4charts.XYCursor();
+
+        // Add legend
+        chart.legend = new am4charts.Legend();
+        chart.legend.position = "top";
+
+        // Add scrollbar
+        chart.scrollbarX = new am4charts.XYChartScrollbar();
+        chart.scrollbarX.series.push(series1);
+        chart.scrollbarX.series.push(series3);
+        chart.scrollbarX.parent = chart.bottomAxesContainer;
+        hidelogos();
+
+    }
+    
+
+    $('#datefilter').daterangepicker({
+        autoUpdateInput: false,
+        showDropdowns: true,
+        locale: {
+            cancelLabel: 'Clear'
+        },
+        opens: 'left',
+
+        ranges: {
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+            'Last 3 Months': [moment().subtract(3, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+            'Last 6 Months': [moment().subtract(6, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+            'Last Year': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')],
+            'Last 2 Years': [moment().subtract(2, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')]
+        }
+    });
+
+    $('#datefilter').on('apply.daterangepicker', function (ev, picker) {
+        console.log(picker.startDate);
+        console.log(picker.startDate.month(), picker.startDate.year());
+        console.log($(this).find('#textBtn'));
+
+        $(this).find('#textBtn').text(getDuration(picker.startDate, picker.endDate));
+
+        // 1/10/2020 12:34:32 PM
+        $('#start').val(picker.startDate.format('MM/DD/YYYY HH:mm:ss'));
+        $('#end').val(picker.endDate.format('MM/DD/YYYY HH:mm:ss'));
+
+        //$('#filterForm').submit();
+    });
+
+    $('input[name="datefilter"]').on('cancel.daterangepicker', function (ev, picker) {
+        $(this).val('');
+    });
+
+     $('.src').click(function (e) {
+        var match = $('#table-tasks')
+            .find('tr.' + $(this).data('target'));
+
+        $('#table-tasks tbody tr').not(match).hide();
+         $(match).show();
+        $('.src').removeClass('active');
+        $(this).addClass('active');
+    });
+</script>

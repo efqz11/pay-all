@@ -1,0 +1,156 @@
+﻿@model Report
+@{
+    var href = ViewBag.Href;
+    var titile = ViewBag.Titile;
+    ViewData["Title"] = "Report - Customize ";
+
+    var pie = (Dictionary<string, int>)ViewBag.Pie;
+    var ByDept = (List<Tuple<string, int, int, int>>)ViewBag.ByDept;
+    bool isdailty = Model.Id == ReportTypes.DailyAttendnace;
+
+
+    //ViewBag.ProgressStep = 1;
+    ViewBag.Header = $"Options for {titile} report";
+    //ViewBag.BackAction = Url.Action("Change", new { id = ViewBag.PrevEmpId });
+}
+
+
+<style>
+    .select2-container {
+        width: 100% !important;
+    }
+</style>
+<style media="print">
+    table, th, td {
+        border-collapse: collapse;
+        border: 1px solid black;
+        width: 100%;
+        text-align: right;
+    }
+    body {
+        -webkit-print-color-adjust: exact;
+    }
+</style>
+<div id="area52">
+    <div class="layout-main-landing">
+        <div class="row">
+            <div class="layout-main-landing-header col-sm-12">
+                <div class="relative">
+                    <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                        <div class="content-block-with-icon__content">
+                            <h1 class="page-title margin-top-none margin-bottom-none">
+                                @ViewBag.Header
+                            </h1>
+                        </div>
+                    </div>
+
+                    <nav aria-label="Breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class=""><a class="gusto-link" asp-action="Index">Reports</a></li>
+                            <li class="active" aria-current="page">SetOptions</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <div class="layout-main-landing-row row margin-bottom-20px">
+            <div class="col-sm-12 col-md-8 content">
+
+                <form asp-action="@href" data-ajax="true" data-ajax-method="POST" data-ajax-update="#area52" data-ajax-success="sendNotification('success', 'Your report is ready!');" id="form" data-ajax-failure="handleModalPostFailure">
+                    @Html.AntiForgeryToken()
+                    <input name="Id" type="hidden" value="@ViewBag.Id" />
+
+                    @if (Model.Id == ReportTypes.OTClaimed || Model.Id == ReportTypes.Pension)
+                    {
+                        <div class="form-group mb-4 row">
+                            <div class="col">
+                                <label for="st" class="control-label">Choose start date</label>
+                                <input name="st" class="form-control form-control-lg has-datepicker" />
+                            </div>
+                            <div class="col">
+                                <label for="en" class="control-label">Choose end date</label>
+                                <input name="en" class="form-control form-control-lg has-datepicker" />
+                            </div>
+                        </div>
+                    }
+                    else if (isdailty)
+                    {
+                        <div class="form-group mb-4">
+                            <label for="dt" class="control-label">Choose a date</label>
+                            <p class="small">
+                                Date will be same as attendance dates.
+                            </p>
+                            <input name="dt" class="form-control form-control-lg has-datepicker" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="form-group mb-4">
+                            <label for="dt" class="control-label">Choose a month</label>
+                            <p class="small">
+                                Days in month will be displayed on columns.
+                            </p>
+                            <input name="dt" class="form-control form-control-lg has-monthpicker" />
+                        </div>
+                    }
+
+                    <div class="form-group mb-4">
+                        <label for="EmployeeId" class="control-label">Choose employee</label>
+                        <p class="small">
+                            Choose employees you wish to include in the report
+                        </p>
+                        <select name="empIds" id="empIds" class="form-control form-control-lg" asp-items="ViewBag.Employees" multiple>
+                        </select>
+                    </div>
+
+
+                    <div class="form-group mb-4">
+                        <label for="EmployeeId" class="control-label">Choose employee fields to include</label>
+                        <p class="small">
+                            Basic field on employee name and ID will be shown, you can add more fields below if you want
+                        </p>
+                        <select name="fields" id="fields" class="form-control form-control-lg" asp-items="ViewBag.EmployeeFields" multiple>
+                        </select>
+                    </div>
+
+                    <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+                        <a asp-action="Index" class="btn btn-lg btn-outline-primary">Back</a>
+                        <button class="btn btn-lg btn-primary btn-next" type="submit">Submit</button>
+                    </div>
+                </form>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+
+@section scripts {
+
+    <script src="~/js/payroll.js"></script>
+    <script>
+
+        loadEmpddSearch('#empIds');
+        $('#fields').select2({
+            //width:'300px'
+            placeholder: "Select Fields",
+        });
+
+        $(".has-datepicker").flatpickr({
+            dateFormat: "j-M-Y"
+        });
+        $(".has-monthpicker").flatpickr({
+            dateFormat: "j-M-Y",
+            altFormat: "F j, Y",
+        });
+    </script>
+
+}

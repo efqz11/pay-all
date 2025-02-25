@@ -1,0 +1,28 @@
+﻿@model PayrollPeriodEmployee
+@inject Payroll.Database.PayrollDbContext dbContext
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="text-left font-weight-bold p-4" style="display:flex">
+            <div class="image-container">
+                <a asp-controller="Employee" asp-action="Detail" asp-route-id="@Model.EmployeeId">
+                    <img src="@Url.Content(Model.Employee.Avatar ?? DefaultPictures.default_user)" height="35" class="mt-1 mr-2 rounded-circle" />
+                </a>
+            </div>
+            <a asp-controller="Employee" asp-action="Detail" asp-route-id="@Model.EmployeeId">
+                <div class="name-display pt-1">
+                    <span class="">@Model.Employee.Name</span>
+                    <br>
+                    @*@(Model.Employees.FirstOrDefault(a => a.id == item.Employee.Id)?._PatternStartIndex) - @(Model.Employees.FirstOrDefault(a => a.id == item.Employee.Id)?._PatternEndIndex)*@
+                    <small class="text-muted" style="position: relative;top: -4px;">@(Model.Designation ?? "No Designation") &middot; @Model.Employee.Department.Name</small>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-8">
+
+        <div id="chartdiv"></div>
+
+    </div>
+</div>
+

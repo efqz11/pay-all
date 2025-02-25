@@ -1,0 +1,256 @@
+﻿@model CompanyAccount
+
+
+<div class="row">
+    <div class="layout-main-landing-header col-sm-12">
+        <div class="relative">
+            <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                @*<img class="zp-icon-image large content-block-with-icon__icon hidden-xs flex-self-start" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-map-288f54db.svg" alt="">*@
+                <div class="content-block-with-icon__content">
+                    <h1 class="page-title margin-top-none margin-bottom-none">
+                        Add company profile
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ol class="progress-bar-tabs progress-bar-style-default">
+    <li data-step="1" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Profile</div></li>
+    <li data-step="2" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Registration</div></li>
+    <li data-step="3" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Location</div></li>
+    <li data-step="4" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Contact</div></li>
+</ol>
+
+<partial name="_ShowAlertMessage" />
+
+<div class="row pt-3">
+    <div class="col-sm-12 col-md-7 content">
+        @*<form asp-action="Welcome" asp-controller="Account" class="gwb_3YnzF gwb_1gvhf gwb_1KWvf gwb_3Eve3 mb-3" id="welcomeForm" style="--autoRows:max-content; --rowGap:2.4rem; --maxWidth:65rem; --display:grid;">*@
+
+        <form asp-action="AddOrUpdate" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" data-ajax-success="sendNotification('success', 'Company details were just saved')" id="form" data-ajax-failure="handleModalPostFailure">
+            @Html.AntiForgeryToken()
+            <input asp-for="Id" type="hidden" value="@Model.Id" />
+            <div aria-describedby="161f936f-f0c8-497d-9623-4d85dcd2f8cb" class="step" data-step="1">
+                <h4 class="pb-4 fs-unmask">Tell us about your company</h4>
+
+
+                <div class="form-group mb-5 no_cc">
+                    <label class="font-weight-bold text-large mb-0">What is the name of your company?</label>
+                    <input class="form-control form-control-lg" asp-for="Name" data-val="true" data-val-required="⚠️ Please name of your company" />
+                    <span class="text-danger" asp-validation-for="Name"></span>
+                </div>
+
+                <div class="form-group mb-4 no_cc">
+                    <label class="font-weight-bold text-large mb-0">What is the official website of your company?</label>
+                    <input class="form-control form-control-lg" asp-for="Website" />
+                    <span class="text-danger" asp-validation-for="Website"></span>
+                </div>
+            </div>
+            <div aria-describedby="161f936f-f0c8-497d-9623-4d85dcd2f8cb" class="step" data-step="2">
+                <h4 class="pb-4 fs-unmask">
+                    Tell us about your company's registration
+                </h4>
+                <div class="mt-2">
+                    <div class="form-group mb-4 no_cc">
+                        <label class="font-weight-bold text-large mb-0">What is your company's registration no.?</label>
+                        <input class="form-control form-control-lg" asp-for="CompanyRegistrationNo" />
+                        <span class="text-danger" asp-validation-for="CompanyRegistrationNo"></span>
+                    </div>
+
+                    <div class="form-group mb-4 no_cc">
+                        <label class="font-weight-bold text-large mb-0">Who is the Managing Director in your company?</label>
+                        <p class="text-weight-normal">
+                            All employees who do not have a line manager, will be directly under managing director in your company
+                        </p>
+                        <input class="form-control form-control-lg" asp-for="ManagingDirector" data-val="true" data-val-required="⚠️ Please name of your company's managing director" />
+                        <span class="text-danger" asp-validation-for="ManagingDirector"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div aria-describedby="161f936f-f0c8-497d-9623-4d85dcd2f8cb" class="step" data-step="3">
+                <h4 class="pb-4 fs-unmask">
+                    Tell us about your company location
+                </h4>
+                <div class="mt-2">
+                    <div class="form-group mb-4 no_cc">
+                        <label class="font-weight-bold text-large mb-0">Filing & Mailing Address</label>
+                        <input class="form-control form-control-lg mb-2" asp-for="Street1" data-val="true" data-val-required="⚠️ Please enter name of the street / location" />
+                        <input class="form-control form-control-lg" asp-for="Street2" />
+                        <span class="text-danger" asp-validation-for="Street1"></span>
+                    </div>
+
+                    <div class="form-group mb-4 no_cc">
+                        <label class="font-weight-bold text-large mb-0">City</label>
+                        <input class="form-control form-control-lg" asp-for="City" />
+                        <span class="text-danger" asp-validation-for="City"></span>
+                    </div>
+                    <div class="form-group mb-4 no_cc">
+                        <label class="font-weight-bold text-large mb-0">State</label>
+                        <input class="form-control form-control-lg" asp-for="State" />
+                        <span class="text-danger" asp-validation-for="State"></span>
+                    </div>
+                    <div class="form-group mb-4 no_cc">
+                        <label class="font-weight-bold text-large mb-0">Zip</label>
+                        <input class="form-control form-control-lg" asp-for="Zip" />
+                        <span class="text-danger" asp-validation-for="Zip"></span>
+                    </div>
+                </div>
+            </div>
+
+            @*<div aria-describedby="161f936f-f0c8-497d-9623-4d85dcd2f8cb" class="step" data-step="3">
+                    <h4 class="pb-4 fs-unmask">
+                        Tell us about your company's entity type and industry
+                    </h4>
+                    <div class="mt-2">
+
+                        <div class="form-group mb-4">
+                            <label class="text-large mb-0 font-weight-bold">
+                                What's your company's time zone?
+                            </label>
+                            <p class="text-weight-normal">
+                                If you’re not sure, leave this blank for now and we’ll collect this info later.
+                            </p>
+                            <select class="form-control form-control-lg" asp-for="TimeZone" asp-items="@ViewBag.TimeZone" data-val="true" data-val-required="⚠️ Please choose your company's entity type">
+                                <option value="">Choose..</option>
+                            </select>
+                            <span class="text-danger" asp-validation-for="TimeZone"></span>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label class="text-large font-weight-bold">
+                                What industry are you in?
+                            </label>
+                            <p class="text-weight-normal">
+                                Select the industry that most closely matches your company’s. Think you fall between industries? Choose the one that best represents your primary business activity (this is usually the activity that generates the most income for your company).
+                            </p>
+                            <select class="form-control form-control-lg" asp-for="IndustryId" asp-items="ViewBag.IndustryId" data-val="true" data-val-required="⚠️ Please choose your company's industry">
+                                <option value="">Choose..</option>
+                            </select>
+                            <span class="text-danger" asp-validation-for="IndustryId"></span>
+                        </div>
+                    </div>
+                </div>*@
+            <div aria-describedby="161f936f-f0c8-497d-9623-4d85dcd2f8cb" class="step" data-step="4">
+                <h4 class="pb-4 fs-unmask">
+                    Tell us about your company's contact
+                </h4>
+                <div class="mt-2">
+                    <div class="form-group mb-4">
+                        <label class="text-large mb-0 font-weight-bold">
+                            Phone no.
+                        </label>
+                        <p class="text-weight-normal">
+                            Your official customer support or front office contact.
+                        </p>
+                        <input class="form-control form-control-lg" asp-for="Phone" />
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="text-large mb-0 font-weight-bold">
+                            Hotline
+                        </label>
+                        <p class="text-weight-normal">
+                            Should you company own hotline or toll-free number, please specify here.
+                        </p>
+                        <input class="form-control form-control-lg" asp-for="Hotline" />
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="text-large mb-0 font-weight-bold">
+                            Email
+                        </label>
+                        <p class="text-weight-normal">
+                            This is your official email address of your company
+                        </p>
+                        <input class="form-control form-control-lg" asp-for="Email" />
+                    </div>
+
+                    @*<div class="form-group mb-4">
+                            <label class="text-large mb-0 font-weight-bold">
+                                Address
+                            </label>
+                            <p class="text-weight-normal">
+                                Head office address, street and post code
+                            </p>
+                            <textarea class="form-control form-control-lg" rows="5" asp-for="Address"></textarea>
+                            <span class="text-danger" asp-validation-for="Address"></span>
+                        </div>*@
+                </div>
+            </div>
+            <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+                <button class="btn btn-lg btn-outline-primary btn-back mr-2" type="button">Back</button>
+                <button class="btn btn-lg btn-primary btn-next" type="button">Submit</button>
+                <div class="spinner display-none" style="display: none;">
+                    <img src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/images/loader-spinner-e1422883.gif"
+                         alt="Loading. Please Wait."><span class="inline-block margin-left-5px">
+                        Please
+                        wait…
+                    </span>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+@*<form asp-action="AddOrUpdate" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#change-form-wrapper" data-ajax-success="sendNotification('success', 'Company details were just saved')" id="userForm" data-ajax-failure="handleModalPostFailure">
+        @Html.AntiForgeryToken()
+        <input asp-for="Id" type="hidden" value="@Model.Id" />
+
+        <header class="modal__header">
+
+            <h2 class="modal__title" id="modal-1-title">
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update="#change-form-wrapper" asp-action="Change" asp-controller="Company" asp-route-id="@Model.Id">
+                    <i class="fad fa-arrow-alt-left fa-2x"></i>
+                </a>
+
+                @(Model == null || Model.Id <= 0 ? "New Company" : "Manage Company")
+            </h2>
+            <h2 class="modal__title" id="modal-1-title">
+            </h2>
+        </header>
+        <main class="modal__content" id="modal-1-content">
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" as class="form-control" />
+                <span class="text-danger" asp-validation-for="Name"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Website" class="control-label"></label>
+                <input asp-for="Website" as class="form-control" />
+                <span asp-validation-for="Website" class="text-danger"></span>
+            </div>
+            <div class="row">
+                <div class="form-group col">
+                    <label asp-for="IndustryId" class="control-label">Industry</label>
+                    <select asp-items="ViewBag.IndustryId" asp-for="IndustryId" as class="form-control"></select>
+                    <span asp-validation-for="IndustryId" class="text-danger"></span>
+                </div>
+                <div class="form-group col">
+                    <label asp-for="TimeZone" class="control-label">TimeZone</label>
+                    <select asp-items="ViewBag.TimeZone" asp-for="TimeZone" as class="form-control"></select>
+                    <span asp-validation-for="TimeZone" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col">
+                    <label asp-for="ManagingDirector" class="control-label"></label>
+                    <input asp-for="ManagingDirector" as class="form-control" />
+                    <span class="text-danger" asp-validation-for="ManagingDirector"></span>
+                </div>
+                <div class="form-group col">
+                    <label asp-for="CompanyRegistrationNo" class="control-label">Company Registration No.</label>
+                    <input asp-for="CompanyRegistrationNo" as class="form-control" />
+                    <span asp-validation-for="CompanyRegistrationNo" class="text-danger"></span>
+                </div>
+            </div>
+        </main>
+        <footer class="modal__footer">
+            <button type="submit" class="btn btn-primary mr-2">Save</button>
+            <button type="button" class="btn btn-outline-primary" onclick="$('.modal__btn-back').click()">Back</button>
+        </footer>
+    </form>*@

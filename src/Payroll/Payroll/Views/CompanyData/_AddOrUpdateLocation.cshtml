@@ -1,0 +1,33 @@
+﻿@model Location
+
+<form asp-action="AddOrUpdateLocation" asp-controller="CompanyData" data-ajax="true" data-ajax-method="POST" data-ajax-update="#settingDataListing" data-ajax-success="sendNotification('success', '@Model.Name was just saved');hideModal()" id="departmentsForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    @if (Model != null && Model.Id > 0)
+    {
+        <input asp-for="Id" type="hidden" />
+    }
+    <input asp-for="CompanyId" type="hidden" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @(Model == null || Model.Id <= 0 ? "New Location" : "Manage Location")
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <label asp-for="Name" class="control-label"></label>
+            <input asp-for="Name" as class="form-control" />
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">
+            Save
+        </button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+
+        @if (Model != null && Model.Id > 0)
+        {
+            <a class="modal__btn modal__btn-danger float-right" asp-action="RemoveLocation" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@Model.Name was just removed');hideModal()" data-ajax-update="#settingDataListing" data-ajax-confirm="Are you sure you want to remove @Model.Name" data-ajax-begin="convertToLoadingTable('#tblMasterPayAdjustments')">Remove</a>
+        }
+    </footer>
+</form>

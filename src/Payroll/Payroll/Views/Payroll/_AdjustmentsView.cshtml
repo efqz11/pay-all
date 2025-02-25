@@ -1,0 +1,86 @@
+﻿@model List<PayAdjustment>
+@{
+    var dict = Model.GroupBy(x => x.VariationType).ToDictionary(x => x.Key, x => x.Count());
+}
+
+<div class="row">
+    <div class="col pr-0">
+        <h6 class="text-left mb-0">
+            Pay Components for Calculation Sheet
+            @*<br />
+            <small class="pt-1">Showing Employee interactions througout payrol period</small>*@
+        </h6>
+    </div>
+    <div class="col">
+        <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+            <div class="float-right mr-2 hide">
+                <select class="form-control form-control-sm" style="width:250px !important" asp-items="@(new SelectList(ViewBag.PayAdjustments, "Id", "Name"))" name="payAdjustmentId" id="payAdjustmentId" onchange="loadPayAdjustmentFieldValues();">
+                    <option value="0">All Adjustments</option>
+                </select>
+            </div>
+            @*<div class="float-right mr-2">
+                <select class="form-control form-control-sm empId" style="width:250px !important" name="empId" id="empId" onchange="loadPayAdjustmentFieldValues()"></select>
+            </div>*@
+
+            <a class="btn-link" data-ajax="true" data-ajax-update="#adjustment-table-fv" id="btnReloadAjdTable" style="display:none">
+            </a>
+        </div>
+    </div>
+</div>
+@*<button class="btn btn-info">
+    <div class="loader loader-white btn-loading" data-page="2" style="line-height: 1px;display:block">
+        <div class="ball-beat"><div></div><div></div><div></div></div>
+    </div>
+</button>*@
+<div id="adjustment-table-fv" class="mt-1"></div>
+
+<div class="row mt-2">
+    @*<div class="col-md-3">
+        <table class="table table-hover c">
+            <thead>
+                <tr style="border-width:0px">
+                    <th>Adjustments</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="2">
+                        <input type="text" placeholder="search for adjustment" class="form-control form-control-sm " />
+                    </td>
+                </tr>
+                @foreach (var item in Model.Where(x => x.VariationType.ToString().Contains("Addition")))
+                {
+                    <tr>
+                        <td>
+                            <a asp-action="GetPayAdjustmentFieldValues" asp-route-addId="@(item.Id)" asp-route-payrolId="@(ViewBag.PayrolPeriodId)" class="btn-link" data-ajax="true" data-ajax-update="#adjustment-table-fv">
+                                @item.Name  <small>(@Html.DisplayFor(m => item.VariationType))</small>
+                            </a>
+                        </td>
+                        <td>
+                            <div class="cell-action text-left">
+                                @if (true)
+                                {
+                                    if (true)
+                                    {
+                                        <span class="btn btn-warning" role="tooltip" data-microtip-position="top" aria-label="Some employees are missing in calculation sheet for @item.Name"><b><i class="fa fa-question-circle"></i> DD</b></span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="btn btn-success"><b><i class="fa fa-check-circle"></i> Ready!</b></span>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>*@
+</div>
+
+<script>
+
+    loadEmpddSearch('.empId');
+
+</script>

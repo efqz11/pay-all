@@ -1,0 +1,85 @@
+﻿@model PayItemVm
+@{
+    int _tab = 1;
+}
+
+@for (int i = 0; i < Model.PayrolPayAdjustments.OrderBy(z => z.CalculationOrder).Count(); i++)
+{
+    @*@Html.DisplayFor(m => Model.PayrolPayAdjustments[i].Id);
+        @Html.DisplayFor(m => Model.PayrolPayAdjustments[i].PayAdjustmentId);
+        @Html.DisplayFor(m => Model.PayrolPayAdjustments[i].Adjustment)
+        @Html.DisplayFor(m => Model.PayrolPayAdjustments[i].EmployeeName)*@
+    @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayAdjustmentId)
+    @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].Id)
+    @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].EmployeeName)
+    @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].EmployeeId)
+    @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].VariationType)
+    @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].Total)
+    @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].CalculationOrder)
+    @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayAdjustmentId)
+    @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].Adjustment)
+
+    <tr>
+        @for (int j = 0; j < Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues.OrderBy(z => z.CalculationOrder).Count(); j++)
+        {
+
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].Id)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].PayrollPeriodPayAdjustmentId)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].PayAdjustment)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].Key)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].ListSelect)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].IsManualEntry)
+
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].BaseType)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].FieldType)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].ListType)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].ListFilter)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].ListSelect)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].DisplayName)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].Calculation)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].CalculationOrder)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].CalculationIdentifier)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].IsClientCalculatable)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].IsServerCalculatable)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].OnBlur)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].UpdateInputClass)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].EvalMethod)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].IsReturn)
+            @Html.HiddenFor(m => Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].DisplayedValueFrontEnd)
+
+
+            @if (Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].BaseType == BaseType.ComputedList)
+            {
+                <td>@Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].ListSelect</td>
+            }
+
+            @if (Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].BaseType == BaseType.ManualEntry)
+            {
+
+                if (Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].FieldType == FieldType.Number || Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].FieldType == FieldType.Decimal)
+                {
+                    <td><input type="number" tabindex="@(_tab++)" class="form-control manual-entry" data-identifier="@Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].CalculationIdentifier" value="@Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].Value" asp-for="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].Value" data-updateInputClass="@Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].UpdateInputClass" data-evalMethod="@Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].EvalMethod" /></td>
+                }
+
+                if (Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].FieldType == FieldType.Text)
+                {
+                    <td><input type="text" tabindex="@(_tab++)" class="form-control manual-entry" data-identifier="@Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].CalculationIdentifier" value="@Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].Value" asp-for="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].Value" /></td>
+                }
+
+
+                if (Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].FieldType == FieldType.Date)
+                {
+
+                    <td><input type="text" tabindex="@(_tab++)" class="form-control has-datepicker" data-identifier="@Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].CalculationIdentifier" value="@Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].Value" asp-for="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].Value" /></td>
+                }
+            }
+
+            @if (Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].BaseType == BaseType.Calculated)
+            {
+                <td>
+                    <input type="number" class="form-control calculated" value="@Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].Value" asp-for="PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].Value" data-identifier="@Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].CalculationIdentifier" data-updateInputClass="@Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].UpdateInputClass" data-evalMethod="@Model.PayrolPayAdjustments[i].PayrollPeriodPayAdjustmentFieldValues[j].EvalMethod" readonly="readonly" />
+                </td>
+            }
+        }
+    </tr>
+}

@@ -1,0 +1,162 @@
+﻿@model RosterVm
+@{
+    Layout = "_LayoutCard";
+    ViewBag.CardHeader = "Overall Roster Information";
+    var attendanceErrors = (List<Attendance>)ViewBag.AttendanceErrors;
+}
+
+
+<div class="modal micromodal-slide" id="modal-roster-errors" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-recreate-table-title" style="width: 100%;">
+            <header class="modal__header text-center">
+                <h2 class="modal__title" id="modal-1-title">
+                    Conflict Records
+                </h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+            </header>
+            <main class="modal__content" id="modal-1-content">
+                <div class="alert alert-danger">
+                    <span class="d1-span">@attendanceErrors.Count() Errors found in roster</span>
+                </div>
+
+                <b>@attendanceErrors.Select(x => x.Date).Distinct().Count() Dates(s)</b> have conflicting shifts
+                <ul>
+                    @foreach (var item in attendanceErrors.GroupBy(a=> a.Date))
+                    {
+                        <li>
+                            <span>@item.Key.ToLocalFormat() &middot; @item.Count() Attendance record(s)</span>
+                        </li>
+                    }
+                </ul>
+
+                <b>@attendanceErrors.Select(x => x.EmployeeId).Distinct().Count() Employee(s)</b> have conflicting shifts on days below
+                <ul>
+                    @foreach (var item in attendanceErrors.OrderBy(a => a.EmployeeId).ThenBy(a => a.Date))
+                    {
+                        <li>
+                            <span>@item.Employee.Name &middot; @item.Date.ToLocalFormat() &mdash; @item.CompanyWorkTime.ShiftName</span>
+                        </li>
+                    }
+                </ul>
+            </main>
+            <footer class="modal__footer">
+                <a asp-controller="Schedule" asp-action="Index" asp-route-tab="Schedule" asp-route-start="@Model.StartDate" asp-route-end="@Model.EndDate" class="modal__btn modal__btn-primary"><i class="fas fa-file"></i> Resolve</a>
+                <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+            </footer>
+        </div>
+    </div>
+</div>
+
+
+<form asp-action="Process" asp-controller="Roster" data-ajax="true" data-ajax-method="POST" data-ajax-update="#card-placeholder" data-ajax-failure="handleModalPostFailure"  data-ajax-success="setActiveTabByIndex(6)">
+    <input type="hidden" asp-for="SelectedMenu" />
+    <input type="hidden" asp-for="ScheduleId" />
+    @if (attendanceErrors?.Any() ?? false)
+    {
+        <div class="alert alert-danger">
+            <b>@attendanceErrors.Select(x => x.EmployeeId).Distinct().Count() Employee(s)</b> have conflicting shifts on days below
+            <span class="btn-link" aria-label="Open modal" onclick="MicroModal.show('modal-roster-errors')">Click to View all errors</span>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-success">
+           <i class="fa fa-check-circle"></i>  No Conflicts found
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="wrapper">
+                <div class="top text-center">
+                    <div class="bg-light border-0 p-3 pt-4 pb-4 text-center">
+                        <i class="ion fa fa-braille fa-3x mb-2"></i>
+                        <div class="badge badge-success">@Model.Slots</div>
+                        <br />
+                        <h5 class="pb">Day Shift Slots</h5>
+                        @*<span class="text-muted">My time offs and holidays :)</span>*@
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="wrapper">
+                <div class="top text-center">
+                    <div class="bg-light border-0 p-3 pt-4 pb-4 text-center">
+                        <i class="ion fa fa-users fa-3x mb-2"></i>
+                        <div class="badge badge-success">@Model.EmployeeIds.Count()</div>
+                        <br />
+                        <h5 class="pb">Employees</h5>
+                        @*<span class="text-muted">My time offs and holidays :)</span>*@
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="wrapper">
+                <div class="top text-center">
+                    <div class="bg-light border-0 p-3 pt-4 pb-4 text-center">
+                        <i class="ion fa fa-calendar fa-3x mb-2"></i>
+                        <div class="badge badge-success">@Model.WorkTimeIds.Count()</div>
+                        <br />
+                        <h5 class="pb">Shifts</h5>
+                        @*<span class="text-muted">My time offs and holidays :)</span>*@
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="wrapper">
+                <div class="top text-center">
+                    <div class="bg-light border-0 p-3 pt-4 pb-4 text-center">
+                        <i class="ion fa fa-calendar fa-3x mb-2"></i>
+                        <div class="badge badge-success">@Model.DaysData.Count()</div>
+                        <br />
+                        <h5 class="pb">Pattern</h5>
+                        @*<span class="text-muted">My time offs and holidays :)</span>*@
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @{
+        var conseqdays = 0;
+        var skip = 0;
+        var take = 7;
+        var totalWeeks = Model.DaysData.Count / take;
+        var days = Model.DaysData.Count(a => a.ShiftId != 0);
+        var conseq = days / totalWeeks;
+
+    }
+    <br />
+    <div class="">
+
+        <h6 class="mb-0 ml-3">Here is a quick summary of your roster configuration</h6>
+        <ol style="line-height:1.7; padding-top:10px">
+            @if (!Model.EmployeeActiveContractFlag)
+            {
+                <li class="text-danger">Some employees <b>DO NOT</b> have active Employment(s) and this may lead to them having limited work schedules and tasks when the roster is completed.</li>
+            }
+            <li>Each employee is working consecutive of <span>@Model._ConseqetiveDays</span> days.</li>
+            <li>For each week for each employee total working hours is <span>@Model._TotalWorkingHoursPerWeek.ToString("N0")</span> hrs.</li>
+            @foreach (var item in Model.WorkTimes)
+            {
+                <li>@item.Name - @(item?.WorkTimeWorkItems?.Count() ?? 0) Allowed Task(s) &middot; @(item.WorkTimeWorkItems?.SelectMany(a => a.WorkableEmployeeIds)?.Distinct()?.Count() ?? 0) Workable Employee(s).</li>
+            }
+            <li>Rotating pattern is @Model._PattenString.</li>
+        </ol>
+    </div>
+
+
+    <div class="card-footer ">
+        <div class="btn-toolbar float-right">
+            <a class="btn btn-lg btn-light " asp-action="Process" asp-route-id="@Model.ScheduleId" asp-route-t="4" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-update="#card-placeholder" data-ajax-success="setActiveTabByIndex(4)"><i class="fa fa-arrow-left"></i> &nbsp; Back</a>
+
+            <button type="submit" class="btn btn-primary btn-lg">Next &nbsp; <i class="fa fa-arrow-right"></i></button>
+
+        </div>
+    </div>
+</form>

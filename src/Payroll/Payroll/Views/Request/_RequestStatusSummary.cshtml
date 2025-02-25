@@ -1,0 +1,84 @@
+﻿@model Request
+@{
+    var processConfigs = (List<RequestApprovalConfig>)ViewBag.ProcessConfig;
+    var notifs = (List<Notification>)ViewBag.Notifications;
+    int indx = 0;
+}
+
+@if (processConfigs == null || processConfigs.Count <= 0)
+{
+    <div class="alert alert-danger">
+       <span class="mb-2">Approval Process not configured!</span>
+    </div>
+}
+else
+{
+<div class="alert alert-warning">
+    <span class="mb-2">Approval Process</span>
+    <div class="d-flex keep-svg-def">
+        @if (Model.TransferredEmployeeId.HasValue)
+        {
+            <div class="mr-2 font-weight-bold">
+                @*0 &middot;*@
+                <i class="fade people-arrows"></i> Subsitute
+                @if (notifs.Any(a => a.Step == 0 && a.NotificationActionTakenType == NotificationActionTakenType.Approved))
+                {
+                    <i class="fas fa-check-circle text-success" title="@notifs.First(a => a.Step == 0 && a.NotificationActionTakenType == NotificationActionTakenType.Approved).ActionTakenDate.ToSystemFormat(User, true)"></i>
+                }
+                <i class="fad fa-chevron-double-right"></i>
+            </div>
+        }
+        @foreach (var item in processConfigs.OrderBy(a => a.Step))
+        {
+    <div class="mr-2 font-weight-bold">
+        @*@item.Step &middot;*@
+        @Html.Raw(item.GetApprovalPersonHtml(User))
+
+        @if (notifs != null && notifs.Any(a => a.Step == item.Step))
+        {
+            if (notifs.Any(a => a.Step == item.Step && a.NotificationActionTakenType == NotificationActionTakenType.Approved))
+            {
+                <i class="fas fa-check-circle text-success" title="@notifs.First(a => a.Step == item.Step && a.NotificationActionTakenType == NotificationActionTakenType.Approved).ActionTakenDate.ToSystemFormat(User, true)"></i>
+            }
+            else if (notifs.Any(a => a.Step == item.Step && a.NotificationActionTakenType == NotificationActionTakenType.Rejected))
+            {
+                <i class="fas fa-times-circle text-danger" title="@notifs.First(a => a.Step == item.Step && a.NotificationActionTakenType == NotificationActionTakenType.Rejected).ActionTakenDate.ToSystemFormat(User, true)"></i>
+            }
+            else
+            {
+                <i class="fas fa-alert-info text-info"></i>
+            }
+        }
+        @if (indx < processConfigs.Count() - 1)
+        {
+            <i class="fad fa-chevron-double-right"></i>
+        }
+        <br />
+    </div>
+
+            indx++;
+        }
+    </div>
+</div>
+}
+@*@if (Model.Status == WorkItemStatus.Submitted)
+    {
+        <div class="alert alert-warning" style="display: flex;">
+            <div class="" style="position: relative;top: 3px;">
+                <i class="fa fa-exclamation-circle fa-2x"></i>
+            </div>
+            <div class="pl-3 " style="line-height: 1.3;">
+                <span>Request was submitted about @Model.SubmissionDate?.GetTimeDifference() ago </span>
+                @if (processConfig != null)
+                {
+                    <br />
+                    <small class="">@(processConfig != null && processConfig.IsAutomaticActiomAfterSubmission ? $"Request will be auto {processConfig.AutoAction.Value.ToString().ToLower()} around {Model.SubmissionDate.Value.AddHours(processConfig.AutoActionAfterHours).ToSystemFormat(User, true)}" : "")</small>
+                    @if (processConfig.IsAutomaticActiomAfterSubmission)
+                    {
+                        <br />
+                        <small>Request can be approved by HR and your supervisor</small>
+                    }
+                }
+            </div>
+        </div>
+    }*@

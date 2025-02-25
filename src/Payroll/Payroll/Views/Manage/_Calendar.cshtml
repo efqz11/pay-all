@@ -1,0 +1,324 @@
+﻿@model HomeEmployeeVm
+@{
+
+    var time = new decimal[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    //var attmSchedule = Model.AttedanceSchedule.FirstOrDefault()?.Attendances;
+    //var shifts = attmSchedule?.Select(a => a.CompanyWorkTimeId)?.ToArray()?.Distinct() ?? default(int[]);
+
+    var cmpConfig = (CompanyAccount)ViewBag.cmpConfig;
+
+    var calendars = (List<Tuple<string, string, string>>)ViewBag.calendars;
+
+    var moveDate = (DateTime)ViewBag.WeekStart;
+    var _start = (DateTime)ViewBag.Start;
+    var _end = (DateTime)ViewBag.End;
+    var total = DateTime.DaysInMonth(_start.Year, _start.Month) + (_start - moveDate).TotalDays;
+    var rows = total / 7;
+    var cols = Math.Ceiling(total / rows);
+
+    var empId = ViewBag.empId != null ? (int)ViewBag.empId : (int?)null;
+
+}
+<style>
+
+    .cell-attndance .item {
+        /*max-width: 115px !important;*/
+    }
+
+    .table-calendar tbody td {
+        /*padding: 10px 5px;*/
+        padding: 0px;
+    }
+
+        .table-calendar tbody td .cell-div {
+            min-height: 100px;
+        }
+
+    .table-calendar tbody td {
+        vertical-align: top !important;
+    }
+
+    .cell-attndance .item:not(.leave) {
+        margin: 10px 2px;
+        /*max-width: 115px !important;*/
+    }
+
+    .cell-attndance .item.leave.hover {
+        /*   -webkit-transform: scale(1.5);
+        transform: scale(1.5);*/
+        text-decoration: none;
+        background-color: #cbcbcb;
+    }
+    
+    .cell-attndance .leave {
+        border-radius: 0px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    } 
+/*
+    .cell-attndance .leave,
+    .table-calendar .cell-attndance
+    {
+        border-radius: 0px;
+        border: none;
+    }
+*/
+    .table-calendar tbody td.leave {
+        padding: 0;
+        border:0;
+    }
+
+    .table-calendar tbody td .list-group-item {
+        padding: 10px 2px;
+        border: none;
+        margin-bottom: 5px !important;
+    }
+
+    .cell-div {
+        min-height: 70px;
+    }
+
+    .past {
+        opacity: 0.3;
+    }
+</style>
+
+<style>
+    .list-group-item.z {
+        z-index: 236;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    /*.list-group-item.active,
+    .list-group-item.active small {
+        color: white !important;
+    }
+
+    .list-group-item:hover {*/
+        /*background-color: rgba(237, 237, 237, 0.34) !important;*/
+        /*transform: scale(1.05);
+        transition: all 0.25s;
+        z-index: 111;
+    }
+
+        .list-group-item.z {
+            z-index: 2336;
+        }
+
+    .list-group-item.active {
+        background-color: #ffffffa8 !important;
+        border-left: 1px solid #d9d9d9e8 !important;
+        border-radius: 0;
+    }
+
+    .animate {
+        transition: all 0.25s
+    }*/
+</style>
+
+<div class="card" style="">
+
+    <!--Card Header-->
+    <div class="card-header">
+
+        <div class="title">
+            <div class="" role="group" aria-label="First group" style="display:inline-flex">
+                <a class="mr-4 text-primary" asp-action="Calendar" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-onDate="@((_start).AddDays(-1))" asp-route-empId="@empId" data-ajax="true" data-ajax-update="#employee-content"><i class="fa fa-chevron-left"></i></a>
+                @* <span type="button" id="datefilterSchedule" class=" btn btn-sm"><i class="fad fa-calendar-alt"></i></span> *@
+                <a class="text-primary" asp-action="Calendar" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-onDate="@(_end.AddDays(1))" data-ajax="true" data-ajax-update="#employee-content"><i class="fa fa-chevron-right"></i></a>
+            </div>
+
+            <span class="mr-2 ml-2 pt-1">@ViewBag.DurationText</span>
+        </div>
+        <div class="p-actions mb-0 float-right">
+                <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+
+                    @*<div class="btn-group mr-2" role="group" aria-label="0th group">
+                        <button type="button" onclick="$(this).toggleClass('active');$('.item.completed').toggleClass('show')" class="btn-sm btn btn-outline-secondary "><i class="fa fa-clipboard-check"></i></button>
+                    </div>
+
+                    <div class="btn-group mr-2" role="group" aria-label="First group">
+                        <a asp-action="Calendar" asp-controller="Manage" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-onDate="@((_start).AddDays(-1))" data-ajax="true" data-ajax-update="#employee-content" class="btn-sm btn btn-outline-secondary border-right-0"><i class="ion ion-arrow-left-c"></i></a>
+                        <button type="button" id="datefilterSchedule" class="btn-sm btn btn-outline-secondary border-left-0 border-right-0">@ViewBag.DurationText</button>
+                        <a asp-action="Calendar" asp-controller="Manage" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-onDate="@(_end.AddDays(1))" data-ajax="true" data-ajax-update="#employee-content" class="btn-sm btn btn-outline-secondary border-left-0"><i class="ion ion-arrow-right-c"></i></a>
+                    </div>*@
+
+                    <div class="btn-group" role="group" aria-label="Third group">
+                        @* <a class="btn btn-sm btn-primary" asp-action="AddOrUpdateUserTask" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="fad fa-plus-circle"></i> Add Task</a>*@
+                        @*<a class="btn btn-sm btn-outline-primary" asp-action="AddOrUpdateWork" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="ion ion-plus"></i> Add Work</a>*@
+                        @*<button type="button" class="btn btn-sm btn-primary"></button>*@
+                    </div>
+                </div>
+        </div>
+    </div>
+
+    <!--Card Body-->
+    <div class="card-body">
+        <div id="main-area">
+
+            <span class="link-summary d-flex">
+                @foreach (var item in calendars)
+                {
+                    <span class="src btn-sm btn btn-outline-@item.Item2 mr-2 active" data-target="@item.Item1">
+                        <span class="d-flex ">
+                            <span class="mr-2"><i class=" @item.Item3"></i></span>   @item.Item1
+                        </span>
+                    </span>
+                }
+            </span>
+
+            <table class="table table-calendar table-bordered" id="weekly-table3123" style=" table-layout: fixed">
+                <thead>
+                    <tr>
+                    <tr style="">
+                        @for (var start = moveDate; start < moveDate.AddDays(7).Date; start = start.AddDays(1))
+                        {
+                            <td class="@(cmpConfig.DayOfWeekHolidays.Contains((int)start.DayOfWeek) ? "" : "")">
+
+                                <div class="pt-2 text-center">
+                                    <h4>@start.ToString("ddd").ToUpper()</h4>
+                                </div>
+                            </td>
+                        }
+                    </tr>
+                </thead>
+                @if (Model == null || Model.WorkTimes.Any() == false)
+                {
+                    <tbody>
+                        <tr>
+
+                            <td colspan="8">
+                                <div class="p-5 text-center" style="width:100%">
+                                    <p class="text-lead mt-5">No schedules were found for the week @ViewBag.CurrentRangeDisplay</p>
+                                    @*<a class="btn btn-primary" asp-action="AddOrUpdateSchedule" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="ion ion-plus"></i> Add Schedule</a>*@
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                }
+                else
+                {
+                    <tbody>
+                        @for (int i = 0; i < rows; i++)
+                        {
+
+
+                            <tr>
+                                @for (var start = moveDate; start < moveDate.AddDays(7).Date; start = start.AddDays(1))
+                                {
+                                    <td class=" @(cmpConfig.DayOfWeekHolidays.Contains((int)start.DayOfWeek) ? "bg-light" : "") ">
+                                        <div class="cell-div cell-attndance @(start.Month != _start.Month ? "past" : "")">
+                                            <h5 class="w-100 text-right @(start.Date == DateTime.Now.Date ? "text-primary" : "") pr-2 pt-2">
+                                                <span class=" ">@start.Day</span>
+                                            </h5>
+
+                                            <div class="list-group">
+                                                @foreach (var item in Model.MyRequests.Where(a => a.Start.Date <= start.Date && a.End.Date >= start.Date))
+                                                {
+                                                    <div class="lv_@item.RequestId list-group-item m-0 item p-1 leave small list-group-item-@calendars[0].Item2 @(item.Start == start.Date ? "z" : "")" data-cell="lv_@item.RequestId" onclick="$(this).next().click()">
+                                                        @if (item.Start.Date == start.Date)
+                                                        {
+                                                            <span>
+                                                                <i class="@calendars[0].Item3"></i> @Html.Raw(item.RequestedStatusIcon) @item.DayOffName &middot; @item.RequestedDuration
+                                                            </span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>&nbsp;</span>
+                                                        }
+                                                    </div>
+
+                                                    <a class="" asp-action="ViewRequest" asp-controller="Request" asp-route-id="@item.RequestId" asp-route-type="@RequestType.Leave.ToString()" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="handleModalPostFailure" style="display:none">
+                                                    </a>
+                                                }
+
+
+                                                @if (Model.PublicHolidaysUpcoming.Any(a => a.Date == start.Date))
+                                                {
+                                                    foreach (var item in Model.PublicHolidaysUpcoming.Where(a => a.Date == start.Date))
+                                                    {
+                                                        <div class="list-group-item m-0 p-1 small list-group-item-@calendars[2].Item2"><i class="@calendars[2].Item3"></i> @item.Name</div>
+                                                    }
+                                                }
+
+
+                                                @if (Model.BirthDaysInMonth.Any(a => a.Key.Date == start.Date))
+                                                {
+                                                    foreach (var item in Model.BirthDaysInMonth.First(a => a.Key.Date == start.Date).Value)
+                                                    {
+                                                        <div class="list-group-item m-0 p-1 small list-group-item-@calendars[1].Item2"><i class="@calendars[1].Item3"></i> @item.FullName</div>
+                                                    }
+                                                }
+
+
+                                                @if (Model.WorkAnniversaries.Any(a => a.Key.Date == start.Date))
+                                                {
+                                                    foreach (var item in Model.WorkAnniversaries.First(a => a.Key.Date == start.Date).Value)
+                                                    {
+                                                        <span class="list-group-item m-0 p-1 small list-group-item-@calendars[4].Item2"><i class="@calendars[4].Item3"></i> @item.FullName @item.WorkAnniversaryYear year(s)</span>
+                                                    }
+                                                }
+
+                                                @*@if (Model.MyRequests.Any(a => a.Start.Date <= start.Date && a.End.Date < start.Date.AddDays(1)))*@
+                                                @{
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                }
+                            </tr>
+
+
+                            moveDate = moveDate.AddDays(7);
+                        }
+                    </tbody>
+                }
+            </table>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+
+@*Loader*@
+<div class="text-center">
+
+    <div class="loader btn btn-primary btn-loading" data-page="2" style="line-height: 1px;display:none">
+        <div class="ball-beat"><div></div><div></div><div></div></div>
+    </div>
+</div>
+
+<script>
+
+    $('.item').on('mouseover', function () {
+        $('.item').removeClass('hover');
+        $('.item[data-cell="' + $(this).data('cell') + '"]').addClass('hover');
+    });
+    $('.item').on('mouseleave', function () {
+        $('.item').removeClass('hover');
+    });
+
+
+            //var active = false;
+
+            //$("td.cell-attndance").mousedown(function (ev) {
+            //    active = true;
+            //    $(".highlight").removeClass("highlight"); // clear previous selection
+            //    ev.preventDefault(); // this prevents text selection from happening
+            //    $(this).addClass("highlight");
+            //});
+
+            //$("td.cell-attndance").mousemove(function (ev) {
+            //    if (active) {
+            //        $(this).addClass("highlight");
+            //    }
+            //});
+
+            //$(document).mouseup(function (ev) {
+            //    active = false;
+            //});
+</script>
+

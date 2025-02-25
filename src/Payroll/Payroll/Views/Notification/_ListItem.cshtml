@@ -1,0 +1,121 @@
+﻿@model Notification
+@{ 
+    var showDetails = ViewBag.ShowDetails != null ? (bool)ViewBag.ShowDetails : false;
+}
+
+<div class="list-group-item list-group-item-action border-0 border">
+    <div class="row">
+        <div class="col-md-1 col-xs-2 text-center icon d-flex pr-0">
+            <i class="@Model.NotificationType.Icon" style="color:@Model.NotificationType.Color;left: 3px;position:relative; top: 6px;"></i>
+            @if (User == null)
+            {
+                <img src="@Model.Avatar" /> @Model.Avatar
+            }
+            else
+            {
+                <div class="image-container mr-0">
+                    <a asp-controller="Employee" asp-route-id="@Model.RequestingEmployeeId" asp-action="Detail">
+                        <img src="@Url.Content(Model.RequestingEmployeeAvatar ?? DefaultPictures.default_user)" title="@Model.RequestingEmployeeName" class="" />
+                    </a>
+                </div>
+                @*<img src="@Model.RequestingEmployeeAvatar" height="40" />*@
+            }
+
+
+            @if (Model.EmployeeId.HasValue)
+            {
+            }
+            @*@if (Model.EmployeesWithRoles != null && Model.EmployeesWithRoles.Any())
+        {
+            <i class="fa fa-user-shield" title="@(string.Join(", ", Model.EmployeesWithRoles))"></i>
+        }*@
+        </div>
+        <div class="col-md-10 col-xs-8">
+            <div>
+                <a href="@Model.Url"  data-ajax="@Model.IsXhrRequest.ToString().ToLower()" data-ajax-update=".modal__container" data-ajax-begin="showModal()">
+                    @Html.Raw(Model.Summary)
+                </a>
+                <br />
+                <small class="text-muted">
+                    @if (showDetails)
+                    {
+                        <i class="fad @(Model.IsRead ? "fa-eye" : "fa-eye-slash")" title="Status: @Model.IsRead"></i>
+                        <i class="fad @(Model.User != null ? "fa-user" : "fa-user-slash")" title="Status: @(Model.User?.UserName ?? "")"></i>
+                    }
+                    @(Model.SentDate.ToSystemFormat(User, true))
+                </small>
+            </div>
+        </div>
+        <div class="col-md-1 col-xs-2">
+            @if (showDetails)
+            {
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" id="dropdownMenuReference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
+                        <i class="ion ion-more"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-left" aria-labelledby="dropdownMenuReference">
+
+                        @if (!Model.IsRead)
+                        {
+                            if (Model.NotificationType.RequireApproveRejectAction)
+                            {
+                                <a class="dropdown-item text-warning" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="TakeAction" asp-controller="Notification" asp-route-id="@Model.Id" asp-route-from="mynotification">
+                                    <i class="fal fa-exclamation-circle"></i> Take Action
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="dropdown-item text-success" data-ajax="true" data-ajax-success="sendNotification('success', 'Notification is marked as read');$(this).parents('.list-group-item').fadeOut(1500)" asp-action="MarkAsRead" asp-controller="Notification" asp-route-id="@Model.Id" asp-route-from="mynotification" title="Mark as read">
+                                    <i class="fal fa-check-circle"></i> Mark as read
+                                </a>
+                            }
+
+                            <div class="dropdown-divider"></div>
+                        }
+                        else
+                        {
+                            <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="TakeAction" asp-controller="Notification" asp-route-id="@Model.Id">
+                                <i class="fal fa-info-square"></i> View Summary
+                            </a>
+                        }
+                        <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewNotificationType" asp-controller="Notification" asp-route-id="@Model.NotificationTypeId">
+                            <i class="@Model.NotificationType.Icon @Model.NotificationType.Color"></i> Type details
+                        </a>
+
+                        @*<a class="dropdown-item" asp-action="Change" asp-route-id="@Model.Id">
+                            <i class="fal fa-edit"></i> Edit
+                        </a>
+
+                        <a class="dropdown-item" asp-action="Detail" asp-route-id="@Model.Id" data-id="3"><i class="fal fa-building"></i> View Profile</a>
+
+                        <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewAccessGrants" asp-route-id="@Model.Id">
+                            <i class="fal fa-user-shield"></i> Who has Access?
+                        </a>*@
+
+                        @*<a class="dropdown-item text-danger" asp-action="Remove" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@item.Name was just removed');location.reload()" data-ajax-confirm="Are you sure you want to remove @item.Name" data-ajax-begin="convertToLoadingTable('#tblMasterPayAdjustments')">Remove</a>*@
+                    </div>
+                </div>
+            }
+            else
+            {
+                
+                @if (!Model.IsRead)
+                {
+                    if (Model.NotificationType.RequireApproveRejectAction)
+                    {
+                        <a class="btn btn-warning btn-group list-group-toggler" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="TakeAction" asp-controller="Notification" asp-route-id="@Model.Id" asp-route-from="mynotification" style="display:none">
+                            <i class="far fa-exclamation-circle"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-success btn-group list-group-toggler" data-ajax="true" data-ajax-success="sendNotification('success', 'Notification is marked as read');$(this).parents('.list-group-item').fadeOut(1500)" asp-action="MarkAsRead" asp-controller="Notification" asp-route-id="@Model.Id" asp-route-from="mynotification" style="display:none" title="Mark as read">
+                            <i class="fad fa-check-circle"></i>
+                        </a>
+                    }
+                }
+            }
+        </div>
+    </div>
+</div>
+

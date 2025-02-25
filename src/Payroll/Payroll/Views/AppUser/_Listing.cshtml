@@ -1,0 +1,150 @@
+﻿@model List<AppUser>
+@{ 
+    var cnp = (SelectList)ViewBag.CmpIds;
+}
+@*<p class="mb-2">@ViewBag.Count Employee(s) from @(ViewBag.DeptRouteId == 0 ? " all departments" : ViewBag.DeptName + " department")</p>*@
+
+<table class="table table-hover data-container-table" id="contractMainTable">
+    <thead>
+        <tr>
+            <th></th>
+            <th>User</th>
+            <th>Access Grant</th>
+            @*<th>Status</th>*@
+            <th>Recent Login</th>
+            <th></th>
+            @*<th>DateOfJoined</th>*@
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+        <tr>
+            <td>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm  dropdown-toggle dropdown-toggle-split" id="dropdownMenuReference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
+                        <i class="ion-ios-more"></i>
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
+                        <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdate" asp-route-id="@item.Id">
+                            <i class="ion-ios-compose-outline"></i> Edit Details
+                        </a>
+
+                        <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateOther" asp-route-id="@item.Id">
+                            <i class="ion-ios-compose-outline"></i> Edit Other Details
+                        </a>
+
+                        <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewAccessGrant" asp-route-id="@item.Id">
+                            <i class="fa fa-user-shield"></i> Access Grants
+                        </a>
+                        <div class="dropdown-divider"></div>
+
+                        <a class="dropdown-item" asp-action="Detail" asp-route-id="@item.Id" data-id="3">View Profile</a>
+
+                        <a class="dropdown-item text-danger" asp-action="Remove" asp-route-id="@item.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@item.UserName was just removed');location.reload()" data-ajax-confirm="Are you sure you want to remove @item.UserName" data-ajax-begin="convertToLoadingTable('#tblMasterPayAdjustments')">Remove</a>
+
+                    </div>
+                </div>
+            </td>
+            <td class="text-left font-weight-bold sticky-col first-col">
+                <div style="vertical-align: middle;display:flex">
+
+                    <div class="image-container">
+                        <a asp-action="Detail" asp-route-id="@item.Id">
+                            <img src="@Url.Content(item.Avatar ?? DefaultPictures.default_user)" height="35" class="mt-1 mr-2 rounded-circle" />
+                        </a>
+                    </div>
+                    <div>
+                        <a asp-action="Detail" asp-route-id="@item.Id" >
+                            <span class="">@item.UserName</span>
+                        </a>
+                        
+                        <br />
+                        <small class="text-muted">
+                            <span>@item.NickName &middot; @item.PhoneNumber</span>
+                            @if (item.GetUserRoles()?.Any(a => a == Roles.PayAll.admin) ?? false)
+                            {
+                                <i class="fa fa-user-shield text-info" title="Admin access"></i>
+                            }
+
+                            <a data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewAccessGrant" asp-route-id="@item.Id">
+                                <i class="fa @(item.AccessGrants.Count > 0 ? "text-warning" : "text-secondary") fa-shield-alt"></i> @*<span>@item.AccessGrants.Count access grant(s)</span>*@
+                            </a>
+                            @*roles: @item.GetUserRoles()*@
+                        </small>
+                    </div>
+                </div>
+            </td>
+
+        @*<td><span>
+            Phone &middot; @item.PhoneNumber <br>
+            Email &middot; @item.Email
+            </span>
+        </td>*@
+        <td>
+            @foreach(var acc in item.AccessGrants)
+            {
+                <p class="m-1"><a data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewAccessGrant" asp-route-id="@item.Id" >
+                @("@"+cnp.FirstOrDefault(a => a.Value == acc.CompanyAccountId.ToString())?.Text?.ToLower())
+            </a></p>
+            }
+        </td>
+        <td>
+            @if (item.AppUserLogins.Any())
+            {
+                <span> <i class="fa fa-eye"></i>Last accesed on @item.LastLoginTimeStamp.ToLocalFormat() </span>
+            }
+            else
+            {
+                <span>No activity</span>
+            }
+        </td>
+        <td>
+            <a class="btn btn-sm btn-outline-danger" asp-action="Remove" asp-route-id="@(item.Id)" data-ajax-method="POST" data-ajax-update="#masterEmployeeArea" data-ajax="true" data-ajax-failure="alert('unable to delete, possibly there are childrens')" data-ajax-success="sendNotification('success', '@item.NameDisplay was just removed')" data-ajax-confirm="Are you sure you want to remove @item.NameDisplay?"><i class="ion-trash-b"></i> Remove</a>
+        </td>
+        @*<td><small>@item.DateOfJoined?.ToString("dd-MMM-yyyy")</small></td>*@
+        </tr>
+        }
+
+    </tbody>
+</table>
+@if(!Model.Any()){
+    <partial name="_SmartMessages" ></partial>
+}
+
+
+@*<script>
+    
+</script>
+=======
+        $(function () {
+            var canFetch = true;
+            $(window).on("scroll", function () {
+                var page = $('.btn-loading').data('page');
+                var docHeight = $(document).height();
+                var winScrolled = $(window).height() + $(window).scrollTop(); // Sum never quite reaches
+                if ((docHeight - winScrolled) < 1) {
+                    console.log('scrolled to bottom of page');
+                    var url = $('.list-group-depts > .active').find('a').attr('href') + "&page=" + page;
+
+                    if (canFetch == false) return;
+                    $('.btn-loading').show();
+                    $.post(url, function (data) {
+                        $('#masterEmployeeAreaTable tbody').append(data);
+                        console.log('data updated');
+                    }).done(function (e) {
+                    }).always(function (data) {
+                        if ($.isEmptyObject(data.trim())) {
+                            canFetch = false;
+                            $('.btn-loading').hide();
+                        } else {
+                            var newPage = (parseInt(page) + 1);
+                            console.log('newpage: ' + newPage);
+                            $('.btn-loading').data('page', newPage);
+                        }
+                        $('.btn-loading').hide();
+                    });
+                }
+            })
+        })
+</script>*@

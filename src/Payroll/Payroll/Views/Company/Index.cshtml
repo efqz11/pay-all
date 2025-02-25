@@ -1,0 +1,199 @@
+﻿@model List<CompanyAccount>
+@{
+    ViewData["Title"] = "Account Company";
+}
+<link href="~/css/schedules.css" rel="stylesheet" />
+
+
+<div class="float-right pb-1">
+    <a class="btn btn-sm btn-primary" asp-action="NewCompany"><i class="fa fa-plus-circle"></i> Add Company</a>
+</div>
+<div class="text-lg-left">
+    <h2 class="">@FeatureMenus.GetFeatureMenuItem(FeatureMenus.MenuItem.Company) Company Accounts</h2>
+    <p>Total @ViewBag.Count Companies</p>
+
+
+    @*<small><span class="src btn-outline-success btn-sm btn " data-target="variableaddition">@Model.Count(x => x.VariationType == VariationType.VariableAddition) Variable Addition(s)</span> · <span class="src btn-outline-danger btn-sm btn " data-target="variablededuction">@Model.Count(x => x.VariationType == VariationType.VariableDeduction) Variable Deduction(s)</span> · <span class="src btn-outline-primary btn-sm btn" data-target="constantaddition">@Model.Count(x => x.VariationType == VariationType.ConstantAddition) Constant Addition(s)</span> · <span class="src btn-outline-primary btn-sm btn" data-target="constantdeduction">@Model.Count(x => x.VariationType == VariationType.ConstantDeduction) Constant Deduction(s)</span></small>*@
+</div>
+
+
+@*<div class="text-center">
+        <h1 class="display-4">Company</h1>
+        <p>Total @ViewBag.Count Companies(s)</p>
+
+        <div class="float-right pb-1">
+            <a class="btn btn-sm btn-outline-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdate" data-ajax-failure="handleModalPostFailure"><i class="ion-android-add-circle"></i> Add Company</a>
+        </div>
+    </div>*@
+<div class="clearfix"></div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="search-wrapper mb-4">
+            <form asp-controller="Company" asp-action="Search" class="" data-ajax-begin="convertToLoadingTable('.data-container-table')" data-ajax="true" data-ajax-method="POST" data-ajax-update="#masterEmployeeArea" data-ajax-success="changeActiveTab(this)">
+
+                <div class="form-group has-search mb-1">
+                    <span class="form-control-feedback"><i class="fad fa-search"></i></span>
+                    <input type="text" class="txt-search form-control txt-search-weekly" name="query" placeholder="Type name to search">
+                </div>
+            </form>
+            @*<h5 class="">@ViewBag.Count Employee(s) from @(ViewBag.DeptRouteId == 0 ? " all departments" : ViewBag.DeptName + " department")</h5>*@
+        </div>
+
+        <div id="masterEmployeeArea">
+            <partial name="_Listing" model="Model" />
+        </div>
+    </div>
+</div>
+
+@section scripts {
+
+    <script>
+
+
+        $(function () {
+            var canFetch = true;
+            $(window).on("scroll", function () {
+                var page = $('.btn-loading').data('page');
+                var docHeight = $(document).height();
+                var winScrolled = $(window).height() + $(window).scrollTop(); // Sum never quite reaches
+                if ((docHeight - winScrolled) < 1) {
+                    console.log('scrolled to bottom of page');
+                    var url = $('.list-group-depts > .active').find('a').attr('href') + "&page=" + page;
+
+                    if (canFetch == false) return;
+                    $('.btn-loading').show();
+                    $.post(url, function (data) {
+                        console.log(data);
+                        $('#masterEmployeeAreaTable tbody').append(data);
+                        console.log('data updated');
+                    }).done(function (e) {
+                    }).always(function (data) {
+                        if ($.isEmptyObject(data) || data == undefined || data == "") {
+                            canFetch = false;
+                            $('.btn-loading').hide();
+                        } else {
+                            var newPage = (parseInt(page) + 1);
+                            console.log('newpage: ' + newPage);
+                            $('.btn-loading').data('page', newPage);
+                        }
+                        $('.btn-loading').hide();
+                    }).fail(function (e) {
+                        canFetch = false;
+                        $('.btn-loading').hide();
+                    });;
+                }
+            })
+        })
+
+        function changeActiveTab(item) {
+            $('.list-group-depts').find('.list-group-item').removeClass("active");
+            $(item).parent().addClass("active");
+            canFetch = true;
+        }
+        var items = $('.list-group-depts').find('.list-group-item');
+
+
+        // sort on click to list-box
+        $('.list-group-item').click(function () {
+            $(this).find('a.filter').click();
+        });
+
+
+        $('.txt-search').keyup(debounce(function () {
+            console.log('starting... ');
+            table_search($('.txt-search').val(), $('.data-container-table tbody tr'), '0123');
+        }, 500));
+
+
+        function table_search(search, tr, indexSearch = '0') {
+            //check if element don't exist in dom
+            var regEx = /^[0-9]*$/;
+            if (tr.length == 0 || !regEx.test(indexSearch)) {
+                return;
+            }
+            /*hide tr don't contain search in input*/
+            for (var i = 0; i < tr.length; i++) {
+                var resule = 'false';
+                for (var j = 0; j < indexSearch.length; j++) {
+                    if (tr.eq(i).children().length > indexSearch[j]) {
+                        if (tr.eq(i).children().eq(indexSearch[j]).text().toLowerCase().indexOf(search.toLowerCase()) != -1) {
+                            resule = 'success';
+                            break;
+                        }
+                    }
+                }
+                if (resule == 'success') {
+                    tr.eq(i).show();
+                } else {
+                    tr.eq(i).hide();
+                }
+            }
+        }
+    </script>
+
+}
+@*<div class="text-center">
+        <h1 class="display-4">@Model.Name</h1>
+        <p>payroll</p>
+
+        <table class="table table-hover">
+            <thead>
+            <th>ID | Name</th>
+            <th>Basic Salary</th>
+            @foreach (var item in Model.PayrollPeriodEmployees.SelectMany(x => x.PayrollPeriodAdditions.OrderBy(z => z.CalculationOrder)).Select(z => z.Addition).Distinct())
+            {
+                <th>@item</th>
+            }
+            <th>Gross Pay</th>
+            @foreach (var item in Model.PayrollPeriodEmployees.SelectMany(x => x.PayrollPeriodDeductions.OrderBy(z => z.CalculationOrder)).Select(z => z.Deduction).Distinct())
+            {
+                <th>@item</th>
+            }
+            <th>Net Salary</th>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.PayrollPeriodEmployees)
+                {
+                    <tr>
+                        <td>@item.EmpID | @item.Employee.Name</td>
+                        <td>@item.BasicSalary</td>
+
+                        @foreach (var add in item.PayrollPeriodAdditions)
+                        {
+                            <td>@add.Total</td>
+                        }
+                        <td><b>@item.GrossPay</b></td>
+                        @foreach (var ddd in item.PayrollPeriodDeductions)
+                        {
+                            <td>@ddd.Total</td>
+                        }
+                        <td><b>@item.NetSalary</b></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div id="accordion">
+            @foreach (var item in Model.PayrollPeriodEmployees)
+            {
+                <div class="card">
+                    <div class="card-header" id="headingOne">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne_@item.EmpID" aria-expanded="true" aria-controls="collapseOne">
+                                @item.EmpID - @item.Employee.Name
+                            </button>
+                        </h5>
+                    </div>
+
+                    <div id="collapseOne_@item.EmpID" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+                        <div class="card-body">
+                            <dl>
+                                <dd>Basic Salary</dd>
+                                <dt>@item.BasicSalary</dt>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>*@

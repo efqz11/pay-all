@@ -1,0 +1,155 @@
+﻿@model PayItemVm
+@{
+    Layout = null;
+    List<Tuple<int, int, int, decimal>> allFieldCounts = ViewBag.FieldCounts;
+    var payAdjustmnets = (List<PayAdjustment>)ViewBag.PayAdjustments;
+    int width = ViewBag.FieldCounts == null ? 0 : Convert.ToInt32(Math.Round((allFieldCounts.Count()/ decimal.Parse(payAdjustmnets.Count().ToString())) * 100m, 1));
+    string css = "progress_" + (width <= 5 ? 5 : width <= 25 ? 25 : width <= 50 ? 50 : width <= 75 ? 75 : 100);
+}
+
+
+<p class="">Payment Adjustment overview for payrol period @ViewBag.PayrolPediodText</p>
+<div class="progress-display m-2 mb-4 pr-5 pl-5">
+    <div class="progress-bar" role="tooltip" data-microtip-position="top" aria-label="@(ViewBag.IsLoading != null && ViewBag.IsLoading ? "Please wait" : allFieldCounts.Count() + "pay adjustments are ready")">
+        <span class="bar">
+            <span class="progress @css p-0 pr-2 text-right" style="width:@width%;height:18px;"><b>@(width.ToString("N0"))%</b></span>
+        </span>
+    </div>
+
+</div>
+
+<div class="clearfix"></div>
+<div class="row">
+    <div class="col">
+        <table class="table table-hover @(ViewBag.IsLoading != null && ViewBag.IsLoading ? "box-placeholder" : "")">
+            <thead>
+                <tr>
+                    <th>Additions</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (ViewBag.IsLoading != null && ViewBag.IsLoading)
+                {
+                    foreach (var item in payAdjustmnets.Where(x => x.VariationType.ToString().Contains("Addition")))
+                    {
+
+                        <tr>
+                            <td><span class="text line"></span></td>
+                            <td><span class="text line"></span></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    foreach (var item in payAdjustmnets.Where(x => x.VariationType.ToString().Contains("Addition")))
+                    {
+                        var totalfieldsInConfig = item._fieldsCount;
+                        int empCount = (int)ViewBag.EmployeeCount;
+                        bool isReady = totalfieldsInConfig * empCount == allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item3;
+                        <tr>
+                            <td>
+                                <a asp-action="PayAdjustment" asp-route-addId="@(item.Id)" asp-route-payrolId="@(Model.PayrolPeriodId)" class="btn-link">
+                                    @item.Name  <small>(@Html.DisplayFor(m => item.VariationType))</small>
+                                </a>
+                                <br />
+                                <small>@(allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item2 ?? 0)/@empCount Employee(s)</small> &mdash; <small>@(allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item3 ?? 0)/@(empCount * totalfieldsInConfig) Field Values(s)</small>
+                                <br />
+                                <strong>@((allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item3 ?? 0).ToString("N2"))  &mdash; @((allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item4 ?? 0).ToString("N2")) <small>(avg)</small></strong>
+                            </td>
+                            <td>
+                                <div class="cell-action text-center">
+                                    @if (!isReady)
+                                    {
+                                        if (allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item2 > 0)
+                                        {
+                                            <span class="btn btn-warning" role="tooltip" data-microtip-position="top" aria-label="Some employees are missing in calculation sheet for @item.Name"><b><i class="fa fa-question-circle"></i> Incomplete</b></span>
+                                        }
+                                        else
+                                        {
+                                            <a class="btn-recreate-table btn btn-danger mt-2 text-white" asp-action="UpdatePayAdjustmentFields" asp-route-addId="@(item.Id)" asp-route-payrolId="@(Model.PayrolPeriodId)" data-ajax-begin="openLoadingModal('Recreating Table', 'Please wait while we re-create table for @ViewBag.ItemName')" data-ajax-method="POST" data-ajax-success="shideModal('@ViewBag.ItemName records were created successfully');createTableSuccess('@item.Name');" data-ajax-failure="hideFailedLoadingModalCustom('There was an error while creating table');" role="tooltip" data-microtip-position="top" aria-label="Create table to calculate @item.Name" data-ajax="true">
+                                                <span><i class="fa fa-exclamation-circle "></i> <b> Create</b></span>
+                                            </a>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="btn btn-success"><b><i class="fa fa-check-circle"></i> Ready!</b></span>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="col">
+        <table class="table table-hover @(ViewBag.IsLoading != null && ViewBag.IsLoading ? "box-placeholder" : "")">
+            <thead>
+                <tr>
+                    <th>Deduction</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (ViewBag.IsLoading != null && ViewBag.IsLoading)
+                {
+                    foreach (var item in payAdjustmnets.Where(x => x.VariationType.ToString().Contains("Deduction")))
+                    {
+
+                        <tr>
+                            <td><span class="text line"></span></td>
+                            <td><span class="text line"></span></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    foreach (var item in payAdjustmnets.Where(x => x.VariationType.ToString().Contains("Deduction")))
+                    {
+                        var totalfieldsInConfig = item.Fields.Where(x => x.IsActive).Count();
+                        int empCount = (int)ViewBag.EmployeeCount;
+                        bool isReady = totalfieldsInConfig * empCount == allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item3;
+
+                        <tr>
+                            <td>
+                                <a asp-action="PayAdjustment" asp-route-addId="@(item.Id)" asp-route-payrolId="@(Model.PayrolPeriodId)" class="btn-link">
+                                    @item.Name  <small>(@Html.DisplayFor(m => item.VariationType))</small>
+                                </a>
+                                <br />
+                                <small>@(allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item2 ?? 0)/@empCount Employee(s)</small> &mdash; <small>@(allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item3 ?? 0)/@(empCount * totalfieldsInConfig) Field Values(s)</small>
+                                <br />
+                                <strong>@((allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item3 ?? 0).ToString("N2"))  &mdash; @((allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item4 ?? 0).ToString("N2")) <small>(avg)</small></strong>
+                            </td>
+                            <td>
+                                <div class="cell-action text-center">
+                                    @if (!isReady)
+                                    {
+                                        if (allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item2 > 0)
+                                        {
+                                            <span class="btn btn-warning" role="tooltip" data-microtip-position="top" aria-label="Some employees are missing in calculation sheet for @item.Name"><b><i class="fa fa-question-circle"></i> Incomplete</b></span>
+                                        }
+                                        else
+                                        {
+                                            <a class="btn-recreate-table btn btn-danger mt-2 text-white" asp-action="UpdatePayAdjustmentFields" asp-route-addId="@(item.Id)" asp-route-payrolId="@(Model.PayrolPeriodId)" data-ajax-begin="openLoadingModal('Recreating Table', 'Please wait while we re-create table for @ViewBag.ItemName')" data-ajax-method="POST" data-ajax-success="shideModal('@ViewBag.ItemName records were created successfully');createTableSuccess('@item.Name');" data-ajax-failure="hideFailedLoadingModalCustom('There was an error while creating table');" role="tooltip" data-microtip-position="top" aria-label="Create table to calculate @item.Name" data-ajax="true">
+                                                <span><i class="fa fa-exclamation-circle "></i> <b> Create</b></span>
+                                            </a>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="btn btn-success"><b><i class="fa fa-check-circle"></i> Ready!</b></span>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+</script>

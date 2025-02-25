@@ -1,0 +1,44 @@
+﻿@inject UserResolverService userResolverService
+
+
+<div class="list-group empl-sidebar" id="empl-sidebar-menu">
+    <div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="general_table" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-controller="Employee" asp-action="General" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this);InitializeTabs()"><i class="fad fa-info-circle"></i> General</a></div>
+
+    @* User.IsInRole(Roles.PayAll.admin)  *@
+    @if (User.IsHrManagerOrAdmin() || userResolverService.IsMyProfile(Model.Id) || userResolverService.IsMyDirectReport(Model.Id))
+    {
+        <div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="performance_table" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" data-ajax-success="setActiveTab(this);" asp-controller="Employee" asp-action="Performance" asp-route-id="@Model.Id"><i class="fad fa-chart-line"></i> Performance</a></div>
+
+        <div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="contract_table" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-controller="Employee" asp-action="EmploymentAndJob" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this);InitializeTabs();init_empOrgChart()"><i class="fad fa-briefcase"></i> Employment</a></div>
+
+        @*<div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="contract_table" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-action="Contracts" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)">Agreements</a></div>*@
+
+        <div class="list-group-item border-right-0 border-left-0 border-bottom-0"><a class="" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-controller="Employee" asp-action="Compensation" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this);InitializeTabs()"><i class="fad fa-hand-holding-usd"></i> Compensation</a></div>
+
+        <div class="list-group-item border-right-0 border-left-0 border-bottom-0"><a class="" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-controller="Employee" asp-action="Payment" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this);InitializeTabs()"><i class="fad fa-money-check-alt"></i> Payment</a></div>
+        @*<div class="list-group-item border-right-0 border-left-0 border-bottom-0"><a class="" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-action="CompensationBenefits" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)"><i class="fad fa-hand-holding-usd"></i> Compensation & Benefits</a></div>*@
+        @*<div class="list-group-item border-right-0 border-left-0 border-bottom-0"><a class="" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="clearHome()" asp-action="AddOrUpdate" asp-route-id="@Model.Id">Team & Allocation</a></div>
+            <div class="list-group-item border-right-0 border-left-0 border-bottom-0"><a class="" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="clearHome()" asp-action="AddOrUpdate" asp-route-id="@Model.Id">Goals</a></div>*@
+        <div class="list-group-item border-right-0 border-left-0 border-bottom-0"><a class="" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-controller="Employee" asp-action="TimeOffAndLeaves" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)"><i class="fad fa-calendar-times"></i> Time Off & leaves</a></div>
+
+        <div class="list-group-item border-right-0 border-left-0 border-bottom-0"><a class="" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-controller="Employee" asp-action="Resources" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this);InitializeTabs()"><i class="fad fa-folders"></i> Resources</a></div>
+
+        <div class=" border-top m-2"></div>
+
+        <div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="welcome_back" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-controller="Home" asp-action="Sb_WelcomeBack" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)"><i class="far fa-smile"></i> Welcome back!</a></div>
+
+        <div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="schedule_tab" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-controller="Employee" asp-action="Schedule" asp-route-id="@Model.Id" asp-route-view="0" data-ajax-success="setActiveTab(this);InitTab_Schedules()"><i class="fa fa-calendar-alt"></i> Schedule</a></div>
+
+
+        <div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="schedule_tab" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-controller="Manage" asp-action="Calendar" asp-route-empId="@Model.Id" data-ajax-success="setActiveTab(this);InitTab_Schedules()"><i class="fa fa-calendar-alt"></i> Calendar</a></div>
+
+        <div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="tasks_tab" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-controller="Employee" asp-action="Tasks" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)"><i class="fa fa-tasks"></i> Tasks</a></div>
+
+        <div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="requests_tab" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-controller="Employee" asp-action="Requests" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)"><i class="fa fa-paper-plane"></i> Requests <span class="badge badge-primary">3</span></a></div>
+
+        <div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="requests_tab" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-controller="Employee" asp-action="ViewNotifications" asp-route-id="@Model.UserId" data-ajax-success="setActiveTab(this)"><i class="fa fa-bell-on"></i> Notifications</a></div>
+
+        <div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="requests_tab" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-controller="Employee" asp-action="PtoAccrurals" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)"><i class="fad fa-abacus"></i> PTO Accruals</a></div>
+    }
+
+</div>

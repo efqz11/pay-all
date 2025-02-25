@@ -1,0 +1,174 @@
+﻿@model WorkItemSubmission
+@{
+    var work = Model.WorkItem.Work;
+    var css = "";
+    var width = 0;
+}
+@inject Payroll.Database.PayrollDbContext dbContext
+
+<form asp-action="SubmitWork" asp-controller="Schedule" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" data-ajax-begin="showModal();SetAjaxSuccess()" data-ajax-success="sendNotification('success', 'oops! that should not happen');updateActiveTab()" id="submitWorkForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" asp-for="Status" />
+    <input type="hidden" asp-for="WorkItemId" />
+    <input type="hidden" asp-for="Name" />
+    <input type="hidden" asp-for="Id" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+
+            <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewWorkItem" asp-route-id="@Model.WorkItemId" asp-route-date="@Model.WorkItem.Date">
+                <i class="fa fa-arrow-left"></i>
+            </a>
+
+            @(Model.Id == 0 ? "Submit " + Model.WorkItem.Work.Name : "Update Submission")
+            @*<br />
+                <small>@Model.Date.ToLongDateString()</small>*@
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            @if (Model.WorkItem.RemainingSubmissions > 0)
+            {
+                <div class="text-danger">
+                    <i class="fas fa-exclamation-circle"></i> <b>@Model.WorkItem.RemainingSubmissions more</b> @Model.WorkItem.Work.Name submission(s) required!
+                </div>
+            }
+        </div>
+
+        @*@if (work.TotalRequiredCount > 0)
+        {
+            <div class="form-group">
+                <small style="">
+                    @if (work.MoreCredit > 0)
+                    {
+                        <span class="text-success"><i class="ion ion-arrow-up-c"></i> @(work.MoreCredit.ToString("N0"))</span>
+                        <span class="text-danger"> &middot; <i class="ion ion-arrow-down-c"></i> @(work.LessDeduct.ToString("N0"))</span>
+
+                    }
+                </small>
+            </div>
+        }*@
+
+        @*<div class="form-group">
+            <label asp-for="Name" class="control-label">Name</label>
+            <input asp-for="Name" class="form-control" />
+        </div>*@
+
+        <div class="form-group">
+            <label asp-for="Details" class="control-label">Brief description of work summary</label>
+            <textarea asp-for="Details" class="form-control"></textarea>
+        </div>
+
+        @if (Model.Status != WorkItemStatus.Draft)
+        {
+            <small>
+                last updated on @(((DateTime)dbContext.Entry(Model).Property("ModifiedDate").CurrentValue).ToString("dd MMM yyyy HH:mm:ss \"GMT\"zzz"))
+                <br />
+                @("Status: " + Model.Status)
+            </small>
+        }
+
+
+        @*<div class="form-group">
+            <span class="sch-@work.ShiftColor text-white p-2 rounded">Work time: @work.Duration</span>
+        </div>
+        <div class="form-group">
+            Status: @Html.Raw(Model.StatusString)
+        </div>
+
+        <div class="form-group">
+            Check-in / out: @Model.DurationCheckin
+        </div>*@
+
+        @*<p>workStart: @Model.WorkStartTime.ToString("dd-MMM-yyy HH:mm:ss") | Now: @DateTime.Now.ToString("dd-MMM-yyy HH:mm:ss")</p>*@
+
+
+        @*@if (Model.WorkEndTime.Date >= DateTime.Now.Date)
+        {
+            if (Model.WorkStartTime > DateTime.Now)
+            {
+                // work not started
+                <small>work starting in about @(Model.WorkStartTime.GetTimeDifference())</small>
+            }
+            else if (DateTime.Now > Model.WorkStartTime && DateTime.Now <= Model.WorkEndTime)
+            {
+                <small>work has started. work end time in @Model.WorkEndTime.ToString("h tt").ToLower()</small>
+            }
+            else
+            {
+                <small>work has ended at @Model.WorkEndTime.ToString("h tt").ToLower(). It's been about @(Model.WorkEndTime.GetTimeDifference())</small>
+            }
+        }*@
+        @*<div class="form-group">
+            <small>* overnight duty</small>
+        </div>*@
+    </main>
+    <footer class="modal__footer">
+
+        <button class="modal__btn modal__btn-primary" type="submit">
+            <i class="fa fa-save"></i> Save
+        </button>
+        &nbsp;
+        @if (Model.Status == WorkItemStatus.Draft)
+        {
+            <button class="modal__btn modal__btn-primary" type="submit" onclick="$('#Status').val('Submitted');">
+                <i class="fa fa-share"></i> Send for Approval
+            </button>
+        }
+        &nbsp;
+
+
+        @if (Model != null && Model.Id > 0)
+        {
+            <a class="modal__btn modal__btn-danger float-right" asp-action="RemoveWorkItemSubmission" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-update=".modal__container" data-ajax-success="sendNotification('success', 'Submission was remove');">Remove</a>
+        }
+        @*@if (Model.Status == WorkItemStatus.Submitted)
+        {
+            <div class="float-right">
+                <a asp-action="ApproveWork" asp-controller="Schedule" asp-route-wiId="@Model.WorkItemId" asp-route-id="@Model.Id" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" data-ajax-begin="showModal()" title="Send for Approval" class="btn btn-sm btn-outline-success" style="">
+                    <i class="fas fa-check-circle"></i> Approve
+                </a>
+
+                <text>&mdash;</text>
+
+                <a class="modal__btn modal__btn-danger" asp-action="Remove" asp-route-wiId="@Model.WorkItemId" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-begin="clearHome()" data-ajax-success="sendNotification('success', 'Submission was just rejected');hideModal();">
+                    <i class="fas fa-times-circle"></i> Reject
+                </a>
+            </div>
+        }*@
+    </footer>
+</form>
+
+
+<script>
+    function SetAjaxSuccess() {
+        var form = $('#submitWorkForm');
+        var status = $(form).find('#Status').val();
+        if (status === "Approved") {
+            // approved
+            if (confirm('This action will send this item for approval. Are you sure?')) {
+                $(form).attr("data-ajax-success", "sendNotification('success', 'Work was sent for approval')");
+            }
+            else
+                return false
+        }
+        else
+            $(form).attr("data-ajax-success", "sendNotification('success', 'Work details were just saved')");
+
+        //$(form).submit();
+    }
+
+
+    $(".has-datepicker").flatpickr({
+        dateFormat: "j-M-Y"
+    });
+
+    $(".has-timepicker").flatpickr({
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+    });
+</script>

@@ -1,0 +1,27 @@
+﻿@model Attendance
+@inject Payroll.Database.PayrollDbContext dbContext
+
+<form asp-action="AddOrUpdateAttendance" asp-controller="Schedule" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__Container" data-ajax-begin="showModal()" data-ajax-success="sendNotification('success', 'Attendance record was just saved');hideModal()" id="addUpdateConnectionForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @ViewBag.Header
+            <br />
+            <small>
+            </small>
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group" style="font-size:12pt">
+            @ViewBag.Summary
+        </div>
+    </main>
+    <footer class="modal__footer">
+
+
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>
+

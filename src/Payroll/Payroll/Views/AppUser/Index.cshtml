@@ -1,0 +1,200 @@
+﻿@model List<AppUser>
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="row mt-2">
+    <div class="col-md-4">
+        <div class="text-lg-left">
+            <h2>@FeatureMenus.GetFeatureMenuItem(FeatureMenus.MenuItem.User) Users</h2>
+            <p>View all users who have access</p>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="filters float-right">
+            <form asp-action="Index" style="display: inline-flex;" id="rosterFilterForm">
+                @*<div class="form-group">
+            <label class="control-label text-muted">Contract Type</label>
+            <select name="type" id="type" class="form-control form-control-sm" asp-items=@(Html.GetEnumSelectList<ContractType>()) onchange="submitFIlterForm()">
+                <option value="0">All Types</option>
+            </select>
+        </div>*@
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Company</label>
+                    <select name="cmpId" id="cmpId" class="form-control form-control-sm" asp-items="@ViewBag.CmpIds" onchange="submitFIlterForm()">
+                        <option value="0">All Companies</option>
+                    </select>
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Role</label>
+                    <select name="role" id="role" class="form-control form-control-sm" asp-items="@ViewBag.Roles" onchange="submitFIlterForm()">
+                        <option value="">All Roles</option>
+                    </select>
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Limit</label>
+                    <select name="limit" id="limit" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Sort</label>
+                    <select name="sort" id="sort" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                        <option value="None">None</option>
+                        <option value="Recent">Recent</option>
+                        <option value="Expiring">Expiring</option>
+                        <option value="Long">Long</option>
+                        <option value="Short">Short</option>
+                    </select>
+                </div>
+                @*<div class="form-group ml-2">
+            <form asp-controller="AppUser" asp-action="Search" class="" data-ajax-begin="convertToLoadingTable('.data-container-table')" data-ajax="true" data-ajax-method="POST" data-ajax-update="#masterEmployeeArea" data-ajax-success="changeActiveTab(this)">
+                <input type="text" class="txt-search form-control" name="query" placeholder="Type name to search" />
+            </form>
+        </div>*@
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-12" id="">
+        @if (ViewBag.Count != null)
+        {
+            <p>About @ViewBag.Count Users found (@ViewBag.TimeSec seconds)</p>
+        }
+        <partial name="_Listing" model="Model" />
+
+        <div class="text-center">
+            <div class="loader btn btn-primary btn-loading" data-page="2" style="line-height: 1px;display:none">
+                <div class="ball-beat"><div></div><div></div><div></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section scripts {
+
+    <script>
+        
+        var limit = '@ViewBag.limit';
+        if (limit)
+            $('#limit').val(limit);
+
+        var role = '@ViewBag.role';
+        if (role)
+            $('#role').val(role);
+
+        var empId = '@ViewBag.cmpId';
+        if (empId)
+            $('#cmpId').val(empId);
+        
+        var sort = '@ViewBag.sort';
+        if (sort)
+            $('#sort').val(sort);
+
+        function submitFIlterForm() { $('#rosterFilterForm').submit() }
+    </script>
+    <script>
+        $(function () {
+            var canFetch = true;
+            $(window).on("scroll", function () {
+
+                var page = $('.btn-loading').data('page');
+                var docHeight = $(document).height();
+                var winScrolled = $(window).height() + $(window).scrollTop(); // Sum never quite reaches
+                if ((docHeight - winScrolled) < 1) {
+                    // <a href="~/Views/Shared/_Layout.cshtml">~/Views/Shared/_Layout.cshtml</a>
+                    console.log('scrolled to bottom of page');
+                    console.log('canFetch: ' + canFetch);
+                    if (canFetch == false) return;
+
+                    var formData = $('#rosterFilterForm :input').serializeArray();
+                    formData.pop("__RequestVerificationToken");
+                    formData.push({ name: "page", value: page });
+                    var url = $('#rosterFilterForm').attr('href');
+                    console.log('sending - ', url, formData);
+
+
+                    $('.btn-loading').show();
+                    $('.hidden-container').empty();
+                    //convertToLoadingTable('.data-container-table');
+                    $.ajax({
+                        url: url,
+                        data: formData,
+                        error: function () {
+                            $('#info').html('<p>An error has occurred</p>');
+                        },
+                        type: 'POST',
+                        //dataType: 'jsonp',
+                        success: function (data) {
+                            //console.log('data (raw): ', data);
+
+                            $('.hidden-container').html(data);
+                            var rows = $('.hidden-container').find('#contractMainTable tbody tr');
+
+                            console.log('data (clean rows): ', rows);
+
+                            if ($.isEmptyObject(rows) || rows == undefined || rows == "" || $(rows).length <= 0) {
+                                canFetch = false;
+                                $('.btn-loading').hide();
+                                console.log('EMPTY DATA (fetch aborted)');
+                            }
+                            else {
+                                $('#contractMainTable tbody').append(rows);
+                                console.log('data updated');
+                            }
+                        },
+                        complete: function (data) {
+                            if ($.isEmptyObject(data) || data == undefined || data == "") {
+                                canFetch = false;
+                                $('.btn-loading').hide();
+                            } else {
+                                var newPage = (parseInt(page) + 1);
+                                console.log('newpage: ' + newPage);
+                                $('.btn-loading').data('page', newPage);
+                            }
+                            $('.btn-loading').hide();
+                            $('.hidden-container').empty();
+                        }
+                    });
+                }
+            })
+        })
+
+
+
+        $('.txt-search').keyup(debounce(function () {
+            console.log('starting... ');
+            table_search($('.txt-search').val(), $('.data-container-table tbody tr'), '0123');
+        }, 500));
+
+
+        function table_search(search, tr, indexSearch = '0') {
+            //check if element don't exist in dom
+            var regEx = /^[0-9]*$/;
+            if (tr.length == 0 || !regEx.test(indexSearch)) {
+                return;
+            }
+            /*hide tr don't contain search in input*/
+            for (var i = 0; i < tr.length; i++) {
+                var resule = 'false';
+                for (var j = 0; j < indexSearch.length; j++) {
+                    if (tr.eq(i).children().length > indexSearch[j]) {
+                        if (tr.eq(i).children().eq(indexSearch[j]).text().toLowerCase().indexOf(search.toLowerCase()) != -1) {
+                            resule = 'success';
+                            break;
+                        }
+                    }
+                }
+                if (resule == 'success') {
+                    tr.eq(i).show();
+                } else {
+                    tr.eq(i).hide();
+                }
+            }
+        }
+    </script>
+}

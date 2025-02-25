@@ -1,0 +1,217 @@
+﻿@model List<Employee>
+
+<p class="mb-2">@ViewBag.Count Employee(s) from @(ViewBag.DeptRouteId == 0 ? " all departments" : ViewBag.DeptName + " department")</p>
+
+<table class="table table-sm table-hover data-container-table" id="masterEmployeeAreaTable">
+    <thead>
+        <tr>
+            <th></th>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Employment</th>
+            @*<th>Identity</th>*@
+            <th>Status</th>
+            @*<th>DateOfJoined</th>*@
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm  dropdown-toggle dropdown-toggle-split" id="dropdownMenuReference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
+                            <i class="ion-ios-more"></i>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
+
+                            <a class="dropdown-item" asp-action="Detail" asp-route-id="@item.Id" data-id="3"><i class="fal fa-user-tag"></i> View Profile</a>
+
+                            @if (item.HasUserAccount)
+                            {
+                                <a class="dropdown-item" target="_blank" asp-action="Detail" asp-controller="AppUser" asp-route-id="@item.UserId">
+                                    <i class="fal fa-user-circle"></i> View Associated User
+                                </a>
+                            }
+                            <div class="dropdown-divider"></div>
+
+                            <a class="dropdown-item" target="_blank" asp-action="Change" asp-route-id="@item.Id">
+                                <i class="fal fa-edit"></i> Edit Employee
+                            </a>
+
+                            <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="MapUser" asp-route-id="@item.Id">
+                                <i class="fal fa-user-shield"></i> Map User
+                            </a>
+
+                            <div class="dropdown-divider"></div>
+
+                            <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-controller="AuditLog" asp-action="ViewSummary" asp-route-keyId="@item.Id" asp-route-modal="Employee">
+                                <i class="fal fa-history"></i> Audit Trail
+                            </a>
+
+                            <a class="dropdown-item text-warning" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="TerminateEmployee" asp-route-id="@item.Id">
+                                <i class="fal fa-user-times"></i> Terminate
+                            </a>
+
+                            <a class="dropdown-item text-danger" asp-action="Remove" asp-route-id="@item.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@item.Name was just removed');$(this).parents('td').parent().fadeOut();" data-ajax-confirm="Are you sure you want to remove @item.Name"><i class="fal fa-trash-alt"></i> Remove</a>
+
+                        </div>
+                    </div>
+
+
+                    @*@if (item.BackgroundJob != null)
+                    {
+                        <i class="ion-ios-close"></i>
+                    }*@
+                </td>
+                <td>
+                    @if (item.HasUserAccount)
+                    {
+                        <i class="ion ion-at" title="@item.UserName"></i>
+                    }
+                    @item.EmpID
+                </td>
+                <td>
+
+                    <div class="text-left" style=" margin-left: 0px;padding-left: 0px;display:flex">
+                        <div class="hovercard-next" rel="popover">
+                            <div class="image-container" style="">
+                                <img src="@Url.Content(item.Avatar ?? DefaultPictures.default_user)" class="image " />
+                            </div>
+                        </div>
+
+                        @*<div class="Popover js-hovercard-content position-absolute" style="display: none">
+                            <div class="">
+                                <div class="f6 border-bottom mr-n3 ml-n3 user-status-container">
+                                    <div class="d-flex flex-items-center p-2 width-full " data-team-hovercards-enabled="">
+                                        <div class="mr-1 ml-1 f5">
+                                            <div><g-emoji class="g-emoji" alias="robot" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f916.png">🤖</g-emoji></div>
+                                        </div>
+                                        <div class="user-status-message-wrapper f6 text-gray-dark ws-normal lh-condensed">
+                                            Robots!
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex mt-3">
+                                    <div class="flex-self-start text-center">
+                                        <div class="rounded-1 overflow-hidden">
+                                            <a data-octo-click="hovercard-link-click" asp-action="detail" asp-route-id="@item.Id">
+                                                <img class="d-block avatar-user" src="@Url.Content(item.Avatar ?? DefaultPictures.default_user)" width="60" height="60" alt="@item.GetSystemName(User)">
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <div class="overflow-hidden ml-3">
+                                        <a class="f5 text-bold link-gray-dark no-underline" asp-action="detail" asp-route-id="@item.Id">@item.GetSystemName(User)</a>
+                                        <br />
+                                        <a class="link-gray no-underline" asp-action="detail" asp-route-id="@item.Id"> @item.JobTitle</a>
+
+                                        <div class="mt-1">
+                                            <div>
+                                                @item.Individual?.Bio_About?.LimitTo(150)
+                                            </div>
+                                        </div>
+                                        @if (item.Location != null)
+                                        {
+                                            <div class="mt-2 text-gray text-small">
+                                                <i class="fal fa-map-marker-alt"></i>
+                                                @item.Location
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+
+
+
+                                @if (item.DateOfJoined.HasValue)
+                                {
+                                    <hr class="ml-n3 mr-n3">
+
+                                    <div class="d-flex flex-items-baseline f6 text-gray mt-1 ">
+                                        <div class="mr-1 flex-shrink-0">
+                                            <i class="fad fa-calendar-check"></i>
+                                        </div>
+
+                                        <span class="lh-condensed">
+                                            Joined on @item.DateOfJoined.ToSystemFormat(User)
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                        </div>*@
+                        <div>
+                            <a asp-action="detail" asp-route-id="@item.Id">
+                                @item.GetSystemName(User)
+                            </a>
+
+                            <br />
+                            <span class="text-muted">@item.JobTitle</span>
+                        </div>
+                    </div>
+                </td>
+                <td>@item.Department?.Name</td>
+                <td>@Html.DisplayFor(a => item.EmployeeStatus)</td>
+                @*<td>@item.IdentityNumber <br /><small class="text-muted">@item.IdentityType </small></td>*@
+                <td>
+                    <small class="tag  @item.StatusCss">@item.HrStatus</small><br />
+                    @*@if (item.IsContractActive)
+                        {
+                            <a asp-action="Detail" asp-controller="Contract" asp-route-id="@item.ActiveContractId">
+                                <small>@item.ActiveContractName</small>
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="btn-link" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateContractTerms" asp-controller="Contract" asp-route-id="@item.Id">
+                                <small><i class="ion-ios-compose-outline"></i> New Agreement</small>
+                            </a>
+                        }*@
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="text-center">
+    <div class="loader btn btn-primary btn-loading" data-page="2" style="line-height: 1px;display:none">
+        <div class="ball-beat"><div></div><div></div><div></div></div>
+    </div>
+</div>
+
+@*<script>
+
+    </script>
+    =======
+            $(function () {
+                var canFetch = true;
+                $(window).on("scroll", function () {
+                    var page = $('.btn-loading').data('page');
+                    var docHeight = $(document).height();
+                    var winScrolled = $(window).height() + $(window).scrollTop(); // Sum never quite reaches
+                    if ((docHeight - winScrolled) < 1) {
+                        console.log('scrolled to bottom of page');
+                        var url = $('.list-group-depts > .active').find('a').attr('href') + "&page=" + page;
+
+                        if (canFetch == false) return;
+                        $('.btn-loading').show();
+                        $.post(url, function (data) {
+                            $('#masterEmployeeAreaTable tbody').append(data);
+                            console.log('data updated');
+                        }).done(function (e) {
+                        }).always(function (data) {
+                            if ($.isEmptyObject(data.trim())) {
+                                canFetch = false;
+                                $('.btn-loading').hide();
+                            } else {
+                                var newPage = (parseInt(page) + 1);
+                                console.log('newpage: ' + newPage);
+                                $('.btn-loading').data('page', newPage);
+                            }
+                            $('.btn-loading').hide();
+                        });
+                    }
+                })
+            })
+    </script>*@

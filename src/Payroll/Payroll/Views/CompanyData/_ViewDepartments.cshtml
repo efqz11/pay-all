@@ -1,0 +1,85 @@
+﻿@model Company
+@{
+    var i = 1;
+    var data = (IDictionary<int?, int>)ViewBag.CountData;
+}
+
+<h5>Departments and Line Managers</h5>
+
+<a class="btn btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateDepartment" asp-controller="CompanyData" asp-route-cmpId="@Model.Id">
+    <i class="fad fa-plus-circle"></i> New Department
+</a>
+<table class="table data-container-table">
+    <thead>
+        <tr>
+            <td></td>
+            <th>#</th>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Employee(s)</th>
+            <th>Manger(s)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Departments.OrderBy(x => x.DisplayOrder))
+        {
+        <tr>
+            <td width="20" class="p-0">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" id="dropdownMenuReference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
+                        <i class="ion-ios-more"></i>
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
+
+                        <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateManager" asp-controller="CompanyData" asp-route-deptId="@item.Id" asp-route-cmpId="@Model.Id">
+                            <i class="fal fa-plus-circle"></i>  New Manger
+                        </a>
+
+                        <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateDepartment" asp-controller="CompanyData" asp-route-id="@item.Id">
+                            <i class="fal fa-edit"></i> Edit
+                        </a>
+
+                        <div class="dropdown-divider"></div>
+
+                        <a class="dropdown-item text-danger" asp-action="RemoveDepartment" asp-controller="CompanyData" asp-route-id="@item.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@item.Name was just removed');$(this).parents('td').parent().fadeOut();" data-ajax-confirm="Are you sure you want to remove?"><i class="fal fa-trash-alt"></i> Remove</a>
+                    </div>
+                </div>
+            </td>
+            <td>@(i++)</td>
+            <td>@item.DeptCode</td>
+            <td>@item.Name</td>
+            <td>
+                @(data.ContainsKey(item.Id) ? data[item.Id] : 0)
+            </td>
+            <td>
+                @if (item.DepartmentHeads.Any())
+                {
+                    @foreach (var man in item.DepartmentHeads)
+                    {
+                        <div class="text-left font-weight-bold" style=" vertical-align: middle;display:flex">
+                            <img src="@Url.Content(man.Employee?.Avatar ?? DefaultPictures.default_user)" height="20" class="mr-2 rounded-circle" />
+                            <div class="name-display">
+                                <span class="">@man.Employee.NameDisplay</span>
+
+                                <a class="" data-ajax="true" data-ajax-update=".modal__container" asp-action="RemoveManager" data-ajax-method="POST" asp-controller="CompanyData" asp-route-id="@man.Id" asp-route-cmpId="@Model.Id" data-ajax-confirm="Are you sure you wish to remove @man.Employee.NameDisplay as Manager to @item.Name?" data-ajax-success="$(this).parent().parent().fadeOut()">
+                                    <i class="fa fa-trash-alt text-danger"></i>
+                                </a>
+
+                                @*<br />
+                            <smalL>@man.Employee.JobTitle</smalL>*@
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <a class="btn btn-sm btn-info" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateManager" asp-controller="CompanyData" asp-route-deptId="@item.Id" asp-route-cmpId="@Model.Id">
+                        <i class="fa fa-plus-circle"></i>  New Manger
+                    </a>
+                }
+            </td>
+        </tr>
+        }
+        <tr></tr>
+    </tbody>
+</table>

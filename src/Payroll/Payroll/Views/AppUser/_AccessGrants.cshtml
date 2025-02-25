@@ -1,0 +1,84 @@
+﻿@model List<AccessGrant>
+@using Payroll.Services
+@inject UserResolverService userResolverService
+@{ 
+    var IsChangeUserAccessGrant = ViewBag.IsChangeUserAccessGrant != null && ViewBag.IsChangeUserAccessGrant;
+}
+
+<header class="modal__header">
+    <h2 class="modal__title" id="modal-1-title">
+        Veiw Access Grant
+        <small>
+            <br />@ViewBag.User.UserName
+            @if (ViewBag.IsChangeUserAccessGrant != null && ViewBag.IsChangeUserAccessGrant == true && User.IsInRole(Roles.PayAll.admin))
+            {
+                <i class="fa fa-shield-alt text-success"></i> 
+            }
+            </small>
+    </h2>
+    <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+
+</header>
+<main class="modal__content" id="modal-1-content">
+    @if (Model.Count <= 0)
+    {
+        <p>
+            Sorry! There are no records
+        </p>
+    }
+    else
+    {
+
+        <table class="table table-sm">
+            <tbody>
+
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            <a asp-controller="Company" asp-action="Detail" asp-route-id="@item.CompanyAccountId"><span title="@item.Roles" role="tooltip"><i class="fa fa-shield-alt"></i></span> @item.CompanyAccount.Name</a>
+                        </td>
+                        <td>
+                            <span title="@item.Roles">@item.Status</span>
+                        </td>
+                        <td>
+                            @if (item.CompanyAccountId.ToString() != userResolverService.GetCompanyId().ToString())
+                            {
+                                <a class="float-right text-danger" asp-action="ChangeUserAccessGrant" asp-route-id="@item.Id" asp-route-userId="@userResolverService.GetUserId()" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', 'User access grant will be updated to @item.CompanyAccount.Name');hideModal();setTimeout(function(){location.reload()}, 1000)" data-ajax-update=".acess-grant-layout" aria-label="Chang access to @item.CompanyAccount.Name"><i class="fa fa-external-link-square-alt"></i></a>
+                            }
+                            else
+                            {
+                                <span class="float-right text-secondary">
+                                    <i class="fa fa fa-building"></i>
+                                </span>
+                            }
+                        </td>
+                        @if (!IsChangeUserAccessGrant)
+                        {
+                            <td>
+
+                                @*role="tooltip" data-microtip-position="top"*@
+                                <a class="float-right text-danger" asp-action="RemoveAccessGrant" asp-route-id="@item.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-begin="showModal();" data-ajax-success="sendNotification('success', 'Access grant :@item.CompanyAccount.Name was just removed');" data-ajax-update=".modal__container" data-ajax-confirm="Are you sure you want to remove this access gramt?"><i class="fa fa-trash-alt"></i></a>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    
+    @if (!IsChangeUserAccessGrant)
+    {
+        <a class="btn-add modal__btn modal__btn-primary" asp-action="AddOrUpdateAccessGrant" asp-route-userId="@ViewBag.User.Id" asp-route-id="@ViewBag.X" data-ajax-method="GET" data-ajax-update=".modal__container" data-ajax="true">Add Record</a>
+        <div class="add-or-update">
+
+        </div>
+    }
+    else
+    {
+        <a class="btn-add modal__btn modal__btn-primary" asp-action="Index" asp-controller="Company">View All Companies</a>
+    }
+</main>
+<footer class="modal__footer">
+    <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+</footer>

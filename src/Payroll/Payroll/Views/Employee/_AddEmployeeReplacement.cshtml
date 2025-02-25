@@ -1,0 +1,54 @@
+﻿
+@{
+    ViewData["Title"] = "Change employee details";
+}
+
+    <form asp-action="AddEmployeeReplacement" data-ajax="true" data-ajax-method="POST" data-ajax-update="#change-form-wrapper" data-ajax-success="sendNotification('success', 'Employment information was just updated');" id="employeeJobInfoCreateForm" data-ajax-failure="handleModalPostFailure">
+        @Html.AntiForgeryToken()
+        <input name="Id" type="hidden" value="@ViewBag.Id" />
+        <header class="modal__header">
+            <h2 class="modal__title" id="modal-1-title">
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update="#change-form-wrapper" asp-action="Change" asp-controller="Employee" asp-route-id="@ViewBag.Id">
+                    <i class="fad fa-arrow-alt-left fa-2x"></i>
+                </a>
+
+                Add Replacement Employee
+            </h2>
+        </header>
+        <main class="modal__content" id="modal-1-content">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            @if(!ViewBag.HasReplacementEmployee)
+            {
+                <div class="form-group">
+                    <div class="alert alert-danger">
+                        Oops! Looks like there isnt any employee who needs replacement
+                    </div>
+                </div>
+            }
+
+            <div class="row">
+                <div class="form-group col">
+                    <label name="date" class="control-label">Effective Date</label>
+                    <input name="date" type="text" class="form-control has-datepicker" />
+                    <span for="date" class="text-danger"></span>
+                </div>
+                <div class="form-group col">
+                    <label name="ReplacingEmployeeId" class="control-label">Replacement Employee</label>
+                    <select asp-items="ViewBag.ReplacingEmployeeId" name="ReplacingEmployeeId" class="form-control"><option value="0">Choose Employee</option></select>
+                    <span for="ReplacingEmployeeId" class="text-danger"></span>
+                </div>
+            </div>
+
+        </main>
+        <footer class="modal__footer">
+            <button type="submit" class="btn btn-primary mr-2">Save</button>
+            <button type="button" class="btn btn-outline-primary" onclick="$('.modal__btn-back').click()">Back</button>
+        </footer>
+
+    </form>
+
+
+<script>
+    initDatePicker();
+</script>

@@ -1,0 +1,83 @@
+﻿@model Payroll.Models.Employment
+
+@{
+    ViewData["Title"] = "Change employee details";
+}
+
+    <form asp-action="AddEmployment" data-ajax="true" data-ajax-method="POST" data-ajax-update="#employee-content" data-ajax-success="sendNotification('success', 'Employment information was just updated');hideModal();InitializeTabs()" id="employeeJobInfoCreateForm" data-ajax-failure="handleModalPostFailure">
+        @Html.AntiForgeryToken()
+        <input asp-for="Id" type="hidden" value="@Model.Id" />
+        <input asp-for="EmployeeId" type="hidden" />
+        <header class="modal__header">
+
+            <h2 class="modal__title" id="modal-1-title">
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update="#change-form-wrapper" asp-action="Change" asp-controller="Employee" asp-route-id="@Model.EmployeeId">
+                    <i class="fad fa-arrow-alt-left fa-2x"></i>
+                </a>
+
+                working hours
+            </h2>
+        </header>
+        <main class="modal__content" id="modal-1-content">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+
+            <div class="form-group">
+                <label asp-for="JobId" class="control-label">Choose any vacant Job</label>
+                <select asp-items="ViewBag.JobId" asp-for="JobId" class="form-control">
+                    <option value="0">Choose Job</option>
+                </select>
+                <span asp-validation-for="JobId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" class="date-chooser custom-control-input" onchange="onCheckChange(this);">
+                    <span class="custom-control-label" for="chbxTerms">
+                        Update paycomponents default values based on the new Job
+                    </span>
+                </label>
+            </div>
+
+
+            <div class="row mb-2">
+                <div class="form-group col">
+                    <label asp-for="EffectiveDate" class="control-label">Since when? <i class="fad fa-question" title="Leave empty for today"></i></label>
+                    <input asp-for="EffectiveDate" type="text" class="form-control has-datepicker" />
+                    <span asp-validation-for="EffectiveDate" class="text-danger"></span>
+                </div>
+                <div class="form-group col">
+                    <label asp-for="ReportingEmployeeId" class="control-label">Reporting Employee</label>
+                    <select asp-for="ReportingEmployeeId" class="form-control">
+                        <partial name="_EmployeeDropdownOpt" model="(List<Employee>)ViewBag.ReportingEmployeeId" />
+                    </select>
+                    <span asp-validation-for="ReportingEmployeeId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-inline" style="font-size:">
+                <div class="form-group mb-2">
+                    <label for="PayrolPeriodStartDate" class="">Employee works &nbsp;</label>
+                    <input type="number" class="form-control" style="width:80px">&nbsp; hours per week and &nbsp;
+                    <input type="number" class="form-control" style="width:80px">&nbsp; hours every day &nbsp;
+                </div>
+            </div>
+
+        </main>
+        <footer class="modal__footer">
+            <button class="btn btn-primary mr-2">Save</button>
+        <button type="button" class="btn btn-outline-primary" onclick="$('.modal__btn-back').click()">Back</button>
+        </footer>
+
+    </form>
+
+
+    <script>
+    initDatePicker();
+
+        var empId = '@Model.ReportingEmployeeId';
+        if (empId)
+            $('#ReportingEmployeeId').val(empId);
+
+
+    $('#zEmploymentStatus option').eq(5).remove();
+    </script>

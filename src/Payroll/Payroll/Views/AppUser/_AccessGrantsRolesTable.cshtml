@@ -1,0 +1,374 @@
+﻿@using System.Reflection;
+@using Payroll.Filters;
+
+@model List<EmployeeRole>
+@{
+    var IsChangeUserAccessGrant = ViewBag.IsChangeUserAccessGrant != null && ViewBag.IsChangeUserAccessGrant;
+    var agRoles = (List<AccessGrantRole>)ViewBag.AccessGrantRoles;
+    var empDdList = (List<Employee>)ViewBag.empDdList;
+    var isUserDetail = ViewBag.IsUserDetail != null ? (bool)ViewBag.IsUserDetail : false;
+    var empls = (List<Employee>)ViewBag.Employess;
+    //var roles = typeof(Roles.Company).GetFields().Select(a => a.Name).ToList();
+    var i = 0;
+    var r = 0;
+    var cmp = (Company)ViewBag.PayrolCompany;
+
+    Type[] inTypes = new Type[] { typeof(Payroll.Controllers.AppUserController), typeof(Payroll.Controllers.EmployeeController) };
+    Assembly asm = Assembly.Load("Payroll");
+    var controlleractionlist = asm.GetTypes()
+    .Where(type => (typeof(Microsoft.AspNetCore.Mvc.Controller)).IsAssignableFrom(type))
+    .Where(t=> inTypes.Contains(t))
+    .SelectMany(type => type.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public))
+    .Where(method => method.IsPublic && !method.IsDefined(typeof(NonActionAttribute)) && method.IsDefined(typeof(ActionPermissionsAttribute)))
+    // .Where(m => !m.GetCustomAttributes(typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute), true).Any())
+    .Select(x => new {
+        Controller = x.DeclaringType.Name,
+        MethodInfor = x,
+        Action = x.Name, 
+        //ReturnType = x.ReturnType.Name, Attributes = String.Join(", ", x.GetCustomAttributes().Select(a => a.GetType().Name.Replace("Attribute", "Attribute"))), 
+        Permissions = x.GetCustomAttributes().Where(a=> a.GetType()==typeof(ActionPermissionsAttribute)).SelectMany(a=> (a as ActionPermissionsAttribute).GetPermission), 
+        //Params= string.Join(", ", x.GetParameters().Select(a => a.Name + ":" + a.ParameterType.Name)), 
+        idf = x.DeclaringType.Name + "." + x.Name + "." + String.Join(",", x.GetCustomAttributes().Select(a => a.GetType().Name.Replace("Attribute", "Attribute")))
+    })
+                .OrderBy(x => x.Controller).ToList();
+    var controllerList = controlleractionlist.GroupBy(a => a.Controller);
+}
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="list-group list-group-roles tabs">
+            @foreach (var item in Model)
+            {
+                <div class="list-group-item list-group-item-action tab-link text-uppercase font-weight-bold" data-tab="420@(i++)">
+                    @item.Role.Replace("_", " ")
+                <span class="badge badge-dark text-right float-right member-count">@item.AssignedEmployees.Count()</span>
+            </div>
+        }
+        </div>
+    </div>
+    @{
+        var j = i;
+        i = 0;
+    }
+    <div class="col-md-9">
+
+        <div class="content-wrapper bnb p-0 pt-1">
+            @foreach (var item in Model)
+            {
+                r = 0;
+                var roles = item.UserAccessRights!= null && item.UserAccessRights.ContainsKey("role") ? item.UserAccessRights["role"] : default;
+                var scope = item.UserAccessRights!= null && item.UserAccessRights.ContainsKey("scope") ? item.UserAccessRights["scope"] : default;
+                <div id="tab-420@(i++)" class="tab-content">
+                    <h2 @item.Id>@item.Role</h2>
+                    @*@if(roles != null)
+                    {
+                        <small>@string.Join("$", scope) | @string.Join("$", roles) | @roles.Contains("AppUserController.READ")</small>
+                    }*@
+
+                    <div class="tab-wrapper bnb">
+                        <ul class="tabs scroll">
+                            <li class="tab-link active" data-tab="@("1" + i + j)"><i class=""></i> Modules</li>
+                            <li class="tab-link" data-tab="@("2" + i + j)"><i class=""></i> Members</li>
+                            <li class="tab-link" data-tab="@("3" + i + j)"><i class=""></i> Reminders</li>
+                            <li class="tab-link" data-tab="@("4" + i + j)"><i class=""></i> Calendar</li>
+                            <li class="tab-link" data-tab="@("5" + i + j)"><i class=""></i> Security</li>
+                        </ul>
+                    </div>
+                    <div class="content-wrapper bnb p-0 pt-1">
+                        <div id="tab-@("1" + i + j)" class="tab-content active">
+
+                            <form data-ajax="true" data-ajax-method="POST" data-ajax-success="sendNotification('success', 'User access rights were just saved'); $(this).find('.btn-save-uar').fadeOut()" asp-action="AddOrRemoveEmpRole" asp-controller="Company">
+                                <input type="hidden" value="@item.Id" name="Id" id="Id" />
+                                @*@if (item.UserAccessRights != null && item.UserAccessRights.Any())
+                                {
+                                    @item.UserAccessRights?.Count @item.UserAccessRights.LastOrDefault()
+                                }*@
+                                <table class="table table-sm table-borderless tblScopes" id="">
+                                    <tbody>
+                                        <tr>
+                                            <td><b>SCOPE</b></td>
+                                            <td>Employee</td>
+                                            <td>
+                                                <input type="hidden" name="UserAccessRights[@r].Key" value="scope" />
+                                                <select class="form-control form-control-sm" name="UserAccessRights[@(r++)].Value" id="empScope">
+                                                    <option value="*" selected="@(scope?.FirstOrDefault() == "*")">All Employees</option>
+                                                    <option value="?"  selected="@(scope?.FirstOrDefault() == "?")">My Profile Only</option>
+                                                    <option value="@@"  selected="@(scope?.FirstOrDefault() == "@")">My Direct Reports</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                
+
+                                <table class="table table-sm tableUserRights" id="tableUserRights">
+                                    <tbody>
+                                        @foreach (var ac in controlleractionlist.GroupBy(a => a.Controller))
+                                        {
+                                            <tr class="parent parent_@ac.Key">
+                                                <th width="35px" class="p-3 text-white bg-light">
+                                                    <label class="custom-control custom-checkbox  ml-1 pt-1">
+                                                        <input type="checkbox" name="Controller" class="date-chooser custom-control-input ctrAction  @(roles?.Count(z=> z.StartsWith(ac.Key)) < ac.Count() && roles?.Count(z=> z.StartsWith(ac.Key)) > 0 ? "setIndeterminate" : "")" onchange="onParentClick(this, '@ac.Key')" value="true" @(ac.Count() == roles?.Count(z => z.StartsWith(ac.Key)) ? "checked" : "")>
+                                                        <span class="custom-control-label" for="chbxTerms">
+                                                        </span>
+                                                    </label>
+                                                </th>
+
+                                                <th colspan="4" class="p-3 bg-light ml-1 pt-1" onclick="$(this).parents('tbody').find('tr.@ac.Key').toggle()">
+
+                                                    <div class="float-left">
+                                                        <label class="" for="chbxTerms">
+                                                            @ac.Key.Replace("Controller", "") @*@item.UserAccessRights?.Count(z => z.Key.StartsWith(ac.Key))*@
+                                                        </label>
+                                                    </div>
+
+                                                    <span class="float-right">@ac.SelectMany(a => a.Permissions).Distinct().Count() actions <i class="fa fa-chevron-down" onclick="$(this).parents('tbody').find('tr.@ac.Key').toggle()"></i> </span>
+                                                </th>
+
+                                            </tr>
+
+
+                                            
+
+                                                @foreach (var it in ac.SelectMany(a => a.Permissions).Distinct())
+                                                {
+                                                    <tr class="@ac.Key" style="display:none" data-dd="@(ac.Key+"."+it)">
+                                                        <td width="35px">
+                                                            <label class="custom-control custom-checkbox ml-3  pt-1">
+                                                                <input type="hidden" name="UserAccessRights[@r].Key" value="role" />
+                                                                <input type="checkbox" name="UserAccessRights[@r].Value" id="@item.Role.ToString()_@it.ToString()_@ac.Key" data-v="@ac.Key.@it" class="date-chooser custom-control-input ctrAction" onchange="onClickChild(this, '@ac.Key')" value="@ac.Key.@it" @(roles?.Contains(ac.Key+"."+ it) ?? false ? "checked" : "")>
+                                                                <span class="custom-control-label" for="chbxTerms">
+                                                                </span>
+                                                            </label>
+                                                        </td>
+                                                        <td><label for="@item.Role.ToString()_@it.ToString()_@ac.Key" class="mb-0">@it</label></td>
+                                                        <td>
+                                                            <i><small>@string.Join(",", ac.Where(a => a.Permissions.Contains(it)).Select(a => a.Action).Distinct()).LimitTo(90)</small></i>
+                                                        </td>
+                                                    </tr>
+
+                                                    r++;
+                                                }
+                                        }
+                                    </tbody>
+                                </table>
+
+                                <button class="btn btn-primary btn-save-uar" style="display:none" type="button" onclick="updateUserAcessTable(this)">Update access rights</button>
+                            </form>
+                        </div>
+                        <div id="tab-@("2" + i + j)" class="tab-content">
+                            <div class="row">
+                                <div class="col">
+                                    <div>Available &middot; <span class="member-count">@empDdList.Count(a => !item.AssignedEmployees.Any(t => t.EmployeeId == a.Id))</span></div>
+                                    <input type="text" class="form-control mb-2" placeholder="filter" />
+                                    <div class="list-group" style="height:300px;overflow:auto">
+                                        @foreach (var zd in empDdList.Where(a => !item.AssignedEmployees.Any(t => t.EmployeeId == a.Id)))
+                                        {
+                                            <a onclick="addOrRemoveMember(this, '@zd.Id', '@item.Id')" class="list-group-item list-group-item-action">@zd.GetSystemName(User)</a>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="col ass">
+                                    <div>Assigned &middot; <span class="member-count">@item.AssignedEmployees.Count</span></div>
+                                    <input type="text" class="form-control mb-2" placeholder="filter" />
+                                    <div class="list-group" style="height:300px;overflow:auto">
+                                        @foreach (var zd in item.AssignedEmployees)
+                                        {
+                                            <a onclick="addOrRemoveMember(this, '@zd.EmployeeId', '@item.Id')" class="list-group-item list-group-item-action">@empDdList.First(a => a.Id == zd.EmployeeId).GetSystemName(User)</a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="tab-@("3" + i + j)" class="tab-content">
+                            <p>
+                                <a class="btn btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateReminder" asp-controller="Company" asp-route-id="@item.Id">
+                                    New Reminder
+                                </a>
+
+                                <div id="__@item.Id">
+                                    @if (item.Reminders.Any())
+                                    {
+                                        <partial name="_ViewReminders" model="item.Reminders" />
+                                    }
+                                </div>
+                            </p>
+                        </div>
+                        <div id="tab-@("4" + i + j)" class="tab-content">
+                            <form data-ajax="true" data-ajax-method="POST" data-ajax-success="sendNotification('success', 'Calendar defaults saved'); $(this).find('.btn-save-cal').fadeOut()" asp-action="AddOrRemoveEmpRole" asp-controller="Company">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" value="@item.Id" name="Id" />
+
+                                <table class="table table-responsive table-borderless">
+                                    <tbody>
+                                        @for (int l = 0; l < item.CalendarDefaults.Count; l++)
+                                        {
+                                            var cal = Calendars.List.FirstOrDefault(a => a.Item1.Equals(item.CalendarDefaults.ElementAt(l).Key));
+                                            <tr>
+                                                <td>
+                                                    <input type="hidden" name="CalendarDefaults[@l].Key"
+                                                           value="@item.CalendarDefaults.ElementAt(l).Key" />
+                                                    <span class="text-@cal.Item2">
+                                                        <i class="@cal.Item3 ml-2"></i> @cal.Item1
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <select name="CalendarDefaults[@l].Value" class="form-control cal-dd" value="@((int)item.CalendarDefaults.ElementAt(l).Value)" asp-items="@Html.GetEnumSelectList<EmployeeSelectorRole>()">
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+
+                                <button class="btn btn-primary btn-save-cal" style="display:none" type="submit">Update calendar defaults</button>
+                            </form>
+                        </div>
+                        <div id="tab-@("5" + i + j)" class="tab-content">
+                            <div class="form-group">
+                                <label class="custom-control custom-checkbox">
+                                    <input type="checkbox" asp-for="@item.Enable2fa" class="custom-control-input" value="@item.Enable2fa">
+                                    <span class="custom-control-label" for="chbxTerms">
+                                        Enforce 2 factor login for employees in <b>@item.Role</b> role
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                j++;
+            }
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function onClickChild(e, key) {
+        onCheckChange(e);
+        if ($(e).parents('tbody').find('tr.' + key + ' .ctrAction:checked').length <= 0) {
+            $(e).parents('tbody').find('tr.parent_' + key).find('.ctrAction').prop('checked', false);
+            $(e).parents('tbody').find('tr.parent_' + key).find('.ctrAction').prop("indeterminate", false);
+        }
+        if (($(e).parents('tbody').find('tr.' + key).length) == $(e).parents('tbody').find('tr.' + key + ' .ctrAction:checked').length) {
+            $(e).parents('tbody').find('tr.parent_' + key).find('.ctrAction').prop("indeterminate", false);
+            $(e).parents('tbody').find('tr.parent_' + key).find('.ctrAction').prop('checked', true);
+        }
+        else {
+            $(e).parents('tbody').find('tr.parent_' + key).find('.ctrAction').prop('checked', false);
+            $(e).parents('tbody').find('tr.parent_' + key).find('.ctrAction').prop("indeterminate", true);
+        }
+        $('.btn-save-uar').fadeIn();
+        //$(e).parents('tbody').find('tr.parent').toggle();
+    }
+
+    function onParentClick(e, key) {
+        $('.btn-save-uar').fadeIn();
+        onCheckChange(e);
+        if ($(e).is(':checked'))
+            $(e).parents('tbody').find('tr.' + key).find('.ctrAction:not(:checked)').click();
+        else
+            $(e).parents('tbody').find('tr.' + key).find('.ctrAction:checked').click();
+        // onCheckChange(this); $(this).parents('tbody').find('tr.@@ac.Key .ctrAction').click()
+
+    }
+
+    function updateUserAcessTable(btn) {
+        var form = $(btn).parents('form');
+        var fd = new FormData();
+
+        fd.append("Id", $(form).find("#Id").val());
+
+        var token = $(form).find('input[name="__RequestVerificationToken"]').val().trim();
+        fd.append("__RequestVerificationToken", token);
+
+        var checks = $(form).find('table tbody').find('tr:not(.parent) .ctrAction:checked');
+        var indx = $(checks).length;
+        var d = [];
+        fd.append('UserAccessRights[0].Key', 'role');
+        $.each(checks, function (i, e) {
+            //d[i] = $(this).data('v');
+            fd.append('UserAccessRights[0].Value', $(this).data('v'));
+            //fd.append('UserAccessRights[' + i + '].Key', $(this).prev().val());
+            //fd.append('UserAccessRights[' + i + '].Value', $(this).data('v'));
+        });
+
+        fd.append('UserAccessRights[1].Key', 'scope');
+        fd.append('UserAccessRights[1].Value', $(form).find('table.tblScopes tbody #empScope').val() );
+
+        var url = $(form).attr('action');
+
+        $.ajax({
+        type: "POST",
+        url: url,
+            data: fd,
+        processData: false,
+            contentType: false,
+            beforeSend: function (response) {
+                $(form).find('.btn-save-uar').attr('disabled', true);
+            },
+            success: function (response) {
+                sendNotification('success', 'User access rights were just saved');
+            },
+            complete: function (response) {
+                $(form).find('.btn-save-uar').removeAttr('disabled');
+                $(form).find('.btn-save-uar').html("Update Access Rights");
+                $(form).find('.btn-save-uar').fadeOut();
+            },
+            error: handleModalPostFailure,
+        });
+    }
+
+    function addOrRemoveMember(e, empId, roleId) {
+        var _this = $(e);
+        console.log('this =>', _this);
+        var _thisClone = $(_this).clone();
+        var thisCol = $(_this).parents('.col');
+        console.log('thisCol col ', thisCol);
+
+        var isThisAssigned = $(thisCol).hasClass('ass');
+
+        console.log('isThisAssigned col ', isThisAssigned);
+        var nextSibling = isThisAssigned ?  $(thisCol).prev() : $(thisCol).next();
+        console.log("next sibling => ", nextSibling);
+
+
+        var url = GetAppRootPath() + '/Company/AddOrRemoveEmployeeToRole?cmpId=@cmp.Id&empId=' + empId + '&roleId=' + roleId;
+        $.post(url).done(function () {
+            console.log(nextSibling, thisCol);
+
+            $(nextSibling).find('.list-group').append(_thisClone).fadeIn();
+            $(_this).hide().empty();
+
+            updateMemeberCount(thisCol);
+            updateMemeberCount(nextSibling);
+        })
+    }
+
+    function updateMemeberCount(col) {
+        var total = $(col).find('.list-group-item:visible').length;
+        $(col).find('.member-count').text(total);
+
+        if ($(col).hasClass('ass'))
+            $('.list-group-roles .list-group-item.active .member-count').text(total);
+    }
+
+
+    
+</script>
+
+
+@*<a onclick="addOrRemoveMember(this, '/****/', '/******/')
+   }
+   /* END EXTERNAL SOURCE * /
+   /* BEGIN EXTERNAL SOURCE * /
+   function name102() {
+   addOrRemoveMember(this, '/************/' , '/******/' )
+   }
+   /* END EXTERNAL SOURCE * /
+   /* BEGIN EXTERNAL SOURCE * /
+   function addOrRemoveMember(e, empId, roleId) {
+   var _this=$(e);
+   var _thisClone=$(e).clone();
+   var thisCol=$(e).parents('col'*@

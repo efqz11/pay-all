@@ -1,0 +1,44 @@
+﻿@model List<PayrollPeriodPayAdjustment>
+
+<div class="modal-content">
+    
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">field values used to calculate @ViewData["ItemName"]</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            @*@foreach (var item in Model)
+            {
+                <td>
+                    @item.Adjustment
+                </td>
+                <td>
+                    @if (i + 1 < Model.PayrollPeriodEmployees.Count())
+                    {
+                        @(previousTotal.ToString("N2"))
+                    }
+                </td>
+                <td>
+                    @deductions[j].Value.ToString("N2")
+                </td>
+                <td>
+                    @if (previousTotal == 0)
+                    {
+                    }
+                    else if (calcChange > 0)
+                    {
+                        <span class="ion-arrow-graph-up-right text-success"> @(perc + "%")</span>
+                    }
+                    else
+                    {
+                        <span class="ion-arrow-graph-down-right text-danger"> @(Math.Abs(perc) + "%")</span>
+                    }
+                </td>
+            }*@
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+        </div>
+</div>

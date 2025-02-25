@@ -1,0 +1,249 @@
+﻿@model CompanyAccount
+@inject Payroll.Database.AccountDbContext dbContext
+@{
+    var src = Url.Content(Model.LogoUrl ?? DefaultPictures.default_company);
+    var week = (Dictionary<string, bool>)ViewBag.Week;
+    var noti = (Notification)ViewBag.LastNotification;
+    var cmp = (Company)ViewBag.PayrolCompany;
+    var i = 0;
+}
+
+<div class="tab-wrapper bnb">
+    <ul class="tabs scroll">
+        <li class="tab-link active" data-tab="110"><i class=""></i> Status</li>
+        <li class="tab-link" data-tab="111"><i class=""></i> Master Data</li>
+        <li class="tab-link" data-tab="112"><i class=""></i> Configuration</li>
+        <li class="tab-link" data-tab="113"><i class=""></i> Company Logo</li>
+        <li class="tab-link" data-tab="114"><i class=""></i> Work Times</li>
+        <li class="tab-link" data-tab="115"><i class=""></i> Custom Formats</li>
+    </ul>
+</div>
+
+<div class="content-wrapper bnb p-0 pt-1">
+    <div id="tab-110" class="tab-content active">
+
+        <a class="btn btn-warning" asp-action="Change" asp-controller="Company" asp-route-id="@Model.Id">
+            <i class="fad fa-edit"></i> Make Changes
+        </a>
+
+        @if (Model.Status == CompanyStatus.Pending && noti != null && noti.IsRead == false)
+        {
+            <a class="btn btn-warning" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="TakeAction" asp-controller="Notification" asp-route-id="@noti.Id">
+                <i class="far fa-exclamation-circle"></i> Take Action
+            </a>
+        }
+        <table class="table table-sm table-borderless table-responsive table-details">
+            <tbody>
+                <tr>
+                    <td class="text-muted">Progress</td>
+                    <td><b>@Model.ProgressPercent%</b></td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Status</td>
+                    <td>
+                        <partial name="_DisplayRequestStatus" model="@Model.Status" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Owner</td>
+                    <td>
+                        <a asp-action="Detail" asp-controller="AppUser" asp-route-id="@dbContext.Entry(Model).Property(AuditFileds.CreatedById).OriginalValue)">
+                            @dbContext.Entry(Model).Property(AuditFileds.CreatedByName).OriginalValue
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Created Date</td>
+                    <td>@(((DateTime)dbContext.Entry(Model).Property(AuditFileds.CreatedDate).OriginalValue).ToSystemFormat(User, true))</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Facts</td>
+                    <td> 
+                        @ViewBag.empDdList.Count employee(s) &middot; <a asp-action="ImportMasterData" asp-route-id="@cmp.Id">Bulk import data</a>
+                    </td>
+                </tr>
+
+
+                @if (noti != null)
+                {
+                    <tr>
+                        <td colspan="2" class="text-left">
+                            <hr />
+                            <span class="text-left">Latest Status Update Summary</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Sent for Verification on</td>
+                        <td>
+                            @noti.SentDate.ToSystemFormat(User, true)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Recieved On</td>
+                        <td>
+                            @(noti.ReceivedDate.HasValue ? noti.ReceivedDate.ToSystemFormat(User, true) : "(not received)")
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Action Taken Date</td>
+                        <td>
+                            @(noti.ActionTakenDate.HasValue ? noti.ActionTakenDate.ToSystemFormat(User, true) : "(no action taken date)")
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Action</td>
+                        <td>
+                            @(noti.NotificationActionTakenType != NotificationActionTakenType.NoAction ? noti.NotificationActionTakenType.ToString() : "(no action taken)")
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <a class="btn btn-danger" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="RemoveData" asp-controller="Company" data-ajax-success="shideModal('Data Removed')" asp-route-id="@cmp.Id" data-ajax-confirm="This action will clear all employees and jobs data, are you sure you wish to proceed?">
+            <i class="far fa-exclamation-triangle"></i> Remove Employees and Jobs Data
+        </a>
+    </div>
+
+    <div id="tab-111" class="tab-content">
+        <table class="table table-sm table-borderless table-responsive table-details">
+            <tbody>
+                <tr>
+                    <td class="text-muted">Name</td>
+                    <td>@Model.Name</td>
+                </tr>
+                <tr>
+                    <td>Company Reg. No.</td>
+                    <td>
+                        @Model.CompanyRegistrationNo
+                    </td>
+                </tr>
+                <tr>
+                    <td><i class="fal fa-globe"></i> Website</td>
+                    <td>
+                        <a href="@Model.Website"><i class="ion-ios-world"></i> @Model.Website</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td><i class="ion-android-call"></i> Hotline</td>
+                    <td>
+                        <a href="tel:@Model.Hotline">@Model.Hotline</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td><i class="fa fa-envelope-open-text"></i> Email</td>
+                    <td>
+                        <a href="mailto:@Model.Website">@Model.Email</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Industry/td>
+                    <td>
+                        @(Model.Industry?.Name ?? "NA")
+                    </td>
+                </tr>
+                <tr>
+                    <td>Time Zone</td>
+                    <td>
+                        @Model.TimeZone @(TimeZoneInfo.GetSystemTimeZones().FirstOrDefault(a=> a.Id == Model.TimeZone)?.DisplayName ?? "")
+                    </td>
+                </tr>
+                <tr>
+                    <td>Managing Director</td>
+                    <td>
+                        @Model.ManagingDirector
+                    </td>
+                </tr>
+                <tr>
+                    <td>Address</td>
+                    <td>
+                        @Model.Address
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="tab-112" class="tab-content">
+        <p class="text-muted">
+            Week Start On ·
+            @Model.WeekStartDay
+        </p>
+        <p class="text-muted">
+            Payroll period · @Model.PayrolPeriodStartDate &mdash; @Model.PayrolPeriodEndDate
+
+            @if (Model.IsConfigured)
+            {
+                <span title="Payrol period is configured @Model.PayrolPeriodStartDate ― @Model.PayrolPeriodEndDate (@Model.PayrolPeriodDays days)" role="tooltip" data-microtip-position="top">
+                    <i class="ion ion-checkmark-circled text-success"></i>
+                </span>
+            }
+            else
+            {
+                <span aria-label="Payrol period not configured" role="tooltip" data-microtip-position="top">
+                    <i class="ion ion-ios-help text-warning "></i>
+                </span>
+            }
+        </p>
+
+        <p class="text-muted">
+            Working week ·
+
+            <span class="btn-group mr-2" role="group" aria-label="First group">
+                @foreach (var item in week)
+                {
+                    <button type="button" class="btn-sm btn btn-outline-success @(i==0 ? "border-right-0" : i == 6 ? "border-left-0" : "border-left-0 border-right-0") @(item.Value ? "" : "active")"><b>@item.Key.Substring(0, 1).ToUpper()</b></button>
+                    i++;
+                }
+            </span>
+        </p>
+        <p class="text-muted">
+            Weekends ·
+            @(Model.DayOfWeekHolidays != null ? string.Join(", ", Model.DayOfWeekHolidays.Select(a=> (DayOfWeek)a).ToArray()) : "")
+        </p>
+        <p class="text-muted">
+            @Html.DisplayNameFor(a => Model.WhenToApplyPaidTimeOffPolicyAfterJoining) ·
+            @Model.WhenToApplyPaidTimeOffPolicyAfterJoining.GetDisplayName()
+        </p>
+    </div>
+
+    <div id="tab-113" class="tab-content">
+        <div class="avatar-upload mt-0 mb-0 " style="margin:0 !important">
+            <div class="avatar-preview" style="width: 150px;height: 150px;">
+                <div id="imagePreview" style="@($"background-image: url('{src}');")">
+                </div>
+            </div>
+        </div>
+        <span class="text-muted">@(Model?.LogoUrl ?? "No Logo")</span>
+    </div>
+
+    <div id="tab-114" class="tab-content">
+        <partial name="_WorkTimeListing" model="@cmp" />
+    </div>
+
+    <div id="tab-115" class="tab-content">
+        <table class="table table-sm table-borderless table-responsive table-details">
+            <tbody>
+                <tr>
+                    <td class="text-muted">Date Format</td>
+                    <td>@Model.DateFormat</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Time Format</td>
+                    <td>@Model.TimeFormat</td>
+                </tr>
+                <tr>
+                    <td>Number Format</td>
+                    <td>
+                        @Model.CurrencyFormat
+                    </td>
+                </tr>
+                <tr>
+                    <td>Name Format</td>
+                    <td>
+                        @Model.NameFormat
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

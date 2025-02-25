@@ -1,0 +1,42 @@
+﻿@model DepartmentHead
+
+<form asp-action="AddOrUpdateManager" asp-controller="Department" data-ajax="true" data-ajax-method="POST" data-ajax-update="#depts_table" data-ajax-success="hideModal()" id="departmentManagerForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    @if (Model != null && Model.Id > 0)
+    {
+        <input asp-for="Id" type="hidden" />
+    }
+
+    <input asp-for="CompanyId" type="hidden" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @(Model == null || Model.Id <= 0 ? "New Department Manger" : "Manage Department Head")
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+        <div class="form-group">
+            <label class="control-label">Choose Employee to set as Manager</label>
+            <select asp-for="EmployeeId" class="form-control" data-width="100%"></select>
+            <span name="empId" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label">Which Department</label>
+            <select asp-for="DepartmentId" class="form-control" asp-items="@ViewBag.DepartmentId"></select>
+            <span name="empId" class="text-danger"></span>
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">
+            Save
+        </button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>
+
+
+<script>
+    loadEmpddSearch("#EmployeeId");
+</script>

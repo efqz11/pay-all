@@ -1,0 +1,198 @@
+﻿@model Job
+@inject Payroll.Database.PayrollDbContext dbContext
+@{
+    ViewData["Title"] = "Job - " + Model.JobTitle;
+}
+<link href="~/css/employee-grade.css" rel="stylesheet" />
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/card.css" rel="stylesheet" />
+<link href="~/css/timeline.css" rel="stylesheet" />
+<link href="~/css/jquery.orgchart-custom.css" rel="stylesheet" />
+
+<h2 class=""><small>  <a asp-action="Index" asp-route-dept="0" class="text-muted"><i class="fa fa-list"></i></a></small> Jobs</h2>
+
+<div class="row mt-8 mb-3">
+    <div class="col-md-8">
+        <span class="link-summary">
+            @Model.JobID &middot; @Model.JobTitle <a class="text-muted " data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-controller="Search" asp-action="SearchModal" asp-route-what="@EntityType.Job" style="">
+                <i class="fa fa-angle-down"></i>
+            </a>
+        </span>
+
+    </div>
+    <div class="col-md-4 text-right">
+        <partial name="_DisplayRequestStatus" model="@Model.JobStatus" />
+    </div>
+</div>
+
+
+<div class="row">
+
+    <div class="col-md-9">
+        <div class="tab-wrapper bnb">
+            <ul class="tabs">
+                <li class="tab-link active" data-tab="1">Summary</li>
+                <li class="tab-link" data-tab="2">Pay Components</li>
+                <li class="tab-link" data-tab="3">Associated Leave</li>
+                @*<li class="tab-link" data-tab="4">Employee</li>*@
+                <li class="tab-link" data-tab="5">Structure</li>
+                <li class="tab-link" data-tab="6">Audit Trail</li>
+            </ul>
+        </div>
+        <div class="content-wrapper bnb p-0 pt-3">
+
+            <div id="tab-1" class="tab-content active">
+
+                @if (Model.Employees.Any())
+                {
+                    <partial name="_EmployeeSummary" model="@Model.Employees.First()" />
+                }
+                else
+                {
+                    <p>No Employees found</p>
+                }
+
+
+                <partial name="_Details" model="Model" />
+            </div>
+
+            <div id="tab-2" class="tab-content">
+
+                <a class="btn btn-primary mb-2" data-ajax="true" data-ajax-update="#add-default-form" data-ajax-begin="" asp-action="AddDefaultPayComponents" asp-route-id="@Model.Id">
+                    <i class="fal fa-plus-circle"></i> Add / Change
+                </a>
+                <div id="add-default-form"></div>
+
+                <div id="ViewPayComponents">
+                </div>
+            </div>
+            <div id="tab-3" class="tab-content">
+
+                @*<a class="btn btn-primary mb-2" data-ajax="true" data-ajax-update="#ViewLeaves" data-ajax-begin="" asp-action="AddDayOffs" asp-route-id="@Model.Id">
+                <i class="fal fa-plus-circle"></i> Add / Change
+            </a>*@
+                @*<div id="add-default-leave-form"></div>*@
+
+                <div id="ViewLeaves">
+                </div>
+            </div>
+
+
+
+            <div id="tab-4" class="tab-content">
+                @if (Model.Employees.Any())
+                {
+                    <partial name="_EmployeeSummary" model="@Model.Employees.First()" />
+                }
+                else
+                {
+                    <p>No Employees found</p>
+                }
+
+                <partial name="_Details" model="Model" />
+
+
+                @*@if (Model.ReportingJob != null)
+                {
+                    <partial name="_Details" model="Model.ReportingJob" />
+                }*@
+
+
+                @*@if (Model.ReportingJobs != null && Model.ReportingJobs.Any())
+                {
+                    foreach (var item in Model.ReportingJobs)
+                    {
+                        <p>@item.JobID &middot; @item.JobTitle</p>
+                    }*@
+                }
+            </div>
+
+            <div id="tab-5" class="tab-content">
+                <div id="chart-container">
+
+                </div>
+            </div>
+            <div id="tab-6" class="tab-content">
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div id="employee-content">
+
+        </div>
+    </div>
+</div>
+
+<div class="text-center">
+</div>
+<div class="clearfix"></div>
+
+
+
+
+@section scripts {
+    <script type="text/javascript" src="https://dabeng.github.io/OrgChart/js/jquery.mockjax.min.js"></script>
+    <script type="text/javascript" src="https://dabeng.github.io/OrgChart/js/jquery.orgchart.js"></script>
+
+    <script>
+
+        $("#ViewPayComponents").html(getLoaderWhiteHtml());
+
+        $('#ViewPayComponents').load('@Url.Action("ViewPayComponents", new { id = @Model.Id })');
+
+        $('#ViewLeaves').load('@Url.Action("ViewLeaves", new { id = @Model.Id })');
+
+        setTimeout(function () {
+            InitializeTabs();
+            init_empOrgChart();
+        }, 500);
+        var oc = null;
+
+        function init_empOrgChart() {
+            var nodeTemplate = function (data) {
+                console.log(data);
+                return `
+                ${data.avatar == undefined ? `` : `<img class="avatar ${data.empstate}" src="${data.avatar}">`}
+                <div class="title">${data.name}</div>
+                <div class="content">
+                    <p class=""><i class="fad fa-briefcase"></i> ${data.title}</p>
+                    ${data.department == undefined || data.department == "" ? `` : `<p class="department"><i class="fad fa-user-friends"></i> ${data.department}</p>`}
+                    ${data.location == undefined ? `` : `<p class="location"><i class="fad fa-map-marker-alt"></i> ${data.location}</p>`}
+                    ${data.division == undefined || data.division == "" ? `` : `<p class="division"><i class="fad fa-sitemap"></i> ${data.division}</p>`}
+                    ${data.empstate == "None" || data.empstate == undefined ? `` : `<p class="empstate"><i class="fad fa-dot-circle"></i> ${data.empstate}</p>`}
+                </div>
+                `;
+            };
+            $.get(GetAppRootPath() + '/job/GetOrganChartJobs/@Model.Id', function (d) {
+
+
+                console.log(d);
+                var oc = $('#chart-container').orgchart({
+                    'data': d, // GetAppRootPath() + '/job/GetOrganChartJobs/@Model.Id', // datasource,
+                    'nodeTemplate': nodeTemplate,
+                    'exportButton': false,
+                    'pan': false,
+                    'zoom': false,
+                    'depth': 5,
+                    'nodeContent': 'title',
+                    'nodeID': 'id',
+                    //'createNode': function ($node, data) {
+                    //    var secondMenuIcon = $('<i>', {
+                    //        'class': 'oci oci-info-circle second-menu-icon',
+                    //        click: function () {
+                    //            $(this).siblings('.second-menu').toggle();
+                    //        }
+                    //    });
+                    //    // console.log(data);
+                    //    if (data.avatar !== undefined) {
+                    //        var secondMenu = '<div class="second-menu"><img class="avatar" src="' + data.avatar + '"></div>';
+                    //        $node.append(secondMenuIcon).append(secondMenu);
+                    //    }
+                    //}
+                });
+            });
+
+        }
+    </script>
+
+}

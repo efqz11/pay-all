@@ -1,0 +1,327 @@
+﻿.table-schedule thead tr td {
+    border-top: 0px solid #dee2e6;
+}
+
+.table-schedule tr td:not(:first-child) {
+    border-left: 1px solid #dee2e6;
+}
+
+.table-schedule td {
+    color: #565656;
+    padding: 4px;
+    
+    &.active
+    {
+        color: #4649c4;
+        padding: 4px;
+        background-color: #e9e8e8;
+    }
+}
+
+
+.sch-green {
+    background-color: rgba(163, 187, 11, 1) !important;
+}
+
+.sch-blue {
+    background-color: rgba(82, 164, 208, 1) !important;
+}
+
+.sch-red {
+    background-color: rgba(212, 104, 104, 1) !important;
+}
+.sch-orange {
+    background-color: rgba(187, 129, 11, 1) !important;
+}
+
+.sch-aqua {
+    background-color: rgba(12, 177, 174, 1) !important;
+}
+
+.sch-purple {
+    background-color: rgba(118, 12, 177, 1) !important;
+}
+
+.sch-overtime {
+    background-color: rgba(226, 152, 0, 1) !important;
+}
+
+
+.cell-attndance {
+    padding: 1px;
+
+    .item {
+        border-radius: 7px;
+        background-color: whitesmoke;
+        padding: 5px 7px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.5s ease-out;
+        display: block;
+        line-height: 1.3;
+
+        &:not(:first-child) {
+            margin-top: 3px;
+        }
+
+        &.active {
+            color: white;
+        }
+
+        small span {
+            font-weight: 500;
+            /*color: #676767;*/
+        }
+
+        &.overtime {
+            background-color: rgba(226, 152, 0, 0.3);
+
+            &:hover {
+                background-color: rgba(226, 152, 0, 0.4);
+            }
+
+            &.active {
+                background-color: rgba(226, 152, 0, 0.9);
+
+                &:hover {
+                    background-color: rgba(226, 152, 0, 1);
+                }
+            }
+        }
+
+        &.green {
+            background-color: rgba(163, 187, 11, 0.3);
+
+            &:hover {
+                background-color: rgba(163, 187, 11, 0.4);
+            }
+
+            &.active {
+                background-color: rgba(163, 187, 11, 0.9);
+
+                &:hover {
+                    background-color: rgba(163, 187, 11, 1);
+                }
+            }
+        }
+
+        &.blue {
+            background-color: rgba(82, 164, 208, 0.3);
+
+            &:hover {
+                background-color: rgba(82, 164, 208, 0.4);
+            }
+
+
+            &.active {
+                background-color: rgba(82, 164, 208, 0.9);
+
+                &:hover {
+                    background-color: rgba(82, 164, 208, 1);
+                }
+            }
+        }
+
+        &.red {
+            background-color: rgba(212, 104, 104, 0.3);
+
+            &:hover {
+                background-color: rgba(212, 104, 104, 0.3);
+            }
+
+            &.active {
+                background-color: rgba(212, 104, 104, 0.9);
+
+                &:hover {
+                    background-color: rgba(212, 104, 104, 1);
+                }
+            }
+        }
+        //
+        &.orange {
+            background-color: rgba(187, 129, 11, 0.3);
+
+            &:hover {
+                background-color: rgba(187, 129, 11, 0.3);
+            }
+
+            &.active {
+                background-color: rgba(187, 129, 11, 0.9);
+
+                &:hover {
+                    background-color: rgba(187, 129, 11, 1);
+                }
+            }
+        }
+
+
+        &.aqua {
+            background-color: rgba(12, 177, 174, 0.3);
+
+            &:hover {
+                background-color: rgba(12, 177, 174, 0.3);
+            }
+
+            &.active {
+                background-color: rgba(12, 177, 174, 0.9);
+
+                &:hover {
+                    background-color: rgba(12, 177, 174, 1);
+                }
+            }
+        }
+
+        &.purple {
+            background-color: rgba(118, 12, 177, 0.3);
+
+            &:hover {
+                background-color: rgba(118, 12, 177, 0.3);
+            }
+
+            &.active {
+                background-color: rgba(118, 12, 177, 0.9);
+
+                &:hover {
+                    background-color: rgba(118, 12, 177, 1);
+                }
+            }
+        }
+
+        &.empty {
+            cursor: pointer;
+            background-color: transparent;
+
+            &:hover {
+                background-color: #e9e8e8;
+                cursor: pointer;
+            }
+        }
+    }
+}
+
+.bg-overtime {
+    background-color: rgba(212, 104, 104, 0.7);
+}
+
+
+
+input[type="checkbox"].switch_1 {
+    font-size: 10px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 3.5em;
+    height: 1.5em;
+    background: #ddd;
+    border-radius: 3em;
+    position: relative;
+    cursor: pointer;
+    outline: none;
+    -webkit-transition: all .2s ease-in-out;
+    transition: all .2s ease-in-out;
+}
+
+input[type="checkbox"].switch_1:checked {
+    background: #0ebeff;
+}
+input[type="checkbox"].switch_1:disabled {
+    opacity: 0.3;
+}
+
+
+input[type="checkbox"].switch_1:after {
+    position: absolute;
+    content: "";
+    width: 1.5em;
+    height: 1.5em;
+    border-radius: 50%;
+    background: #fff;
+    -webkit-box-shadow: 0 0 .25em rgba(0,0,0,.3);
+    box-shadow: 0 0 .25em rgba(0,0,0,.3);
+    -webkit-transform: scale(.7);
+    transform: scale(.7);
+    left: 0;
+    -webkit-transition: all .2s ease-in-out;
+    transition: all .2s ease-in-out;
+}
+
+input[type="checkbox"].switch_1:checked:after {
+    left: calc(100% - 1.5em);
+}
+
+
+
+
+
+
+/* COPY FROM SCHEDULE CSS */
+/* ======================= */
+
+#weekly-schedule-table-container {
+    overflow-x: auto;
+}
+
+table#weekly-table11 th, #weekly-table11 tbody tr td:first-child {
+    min-width: 250px !important;
+    vertical-align:top;
+    padding-top: 8px;
+    padding-bottom: 0px;
+}
+
+
+table#tableTasks th, #tableTasks tbody tr td:first-child {
+    min-width: 150px !important;
+    vertical-align: top;
+    padding-top: 8px;
+    padding-bottom: 0px;
+}
+    table#weekly-table11 td {
+        /*color: #565656;*/
+        padding: 3px;
+    }
+
+    table#weekly-table11 th, #weekly-table11 td {
+        min-width: 120px;
+    }
+    table#tableTasks th, #tableTasks td {
+        min-width: 90px;
+    }
+
+    /* TABLE STICKY COLUMN CSS */
+    .cell-attndance {
+        vertical-align: middle !important;
+    }
+
+    .sticky-col {
+        position: sticky;
+        position: -webkit-sticky;
+        background-color: white;
+    }
+
+    .first-col {
+        /*width: 100px;
+        min-width: 100px;
+        max-width: 100px;*/
+        left: 0px;
+    }
+    /* Table week Ribbon */
+    table#weekly-table11 tr td.prova {
+        position: relative;
+        overflow: hidden;
+    }
+
+    table#weekly-table11 tr td.prova:after {
+        content: attr(data-ribbon);
+        position: absolute;
+        width: 67px;
+        height: 26px;
+        background: #428bca;
+        color: white;
+        top: -14px;
+        text-align: center;
+        line-height: 43px;
+        left: -35px;
+        transform: rotate(315deg);
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        font-size: 8px;
+    }

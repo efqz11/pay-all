@@ -1,0 +1,48 @@
+﻿@model List<AppUser>
+
+@{
+    var type = (UserType)ViewBag.type;
+}
+
+@*<p class="mb-2">@ViewBag.Count Employee(s) from @(ViewBag.DeptRouteId == 0 ? " all departments" : ViewBag.DeptName + " department")</p>*@
+
+<nav aria-label="Breadcrumb">
+    <ol class="breadcrumb">
+        <li class=""><a class="gusto-link" href="/company/settings/billing">Permissions</a></li>
+        <li class="active" aria-current="page">@type</li>
+    </ol>
+</nav>
+
+<table class="table table-hover data-container-table" id="masterEmployeeAreaTable">
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td class="text-right">
+                    <a asp-action="UploadImage" asp-route-id="@item.Id" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()">
+                        <img src="@Url.Content(item.Avatar ?? DefaultPictures.default_company)" class="rounded rounded-circle" height="40" width="40" />
+                    </a>
+                </td>
+                <td>
+                    &nbsp;
+                    <a asp-action="Detail" asp-route-id="@item.Id" data-ajax-begin="showModal()">
+                        @item.NameDisplay
+                    </a>
+                </td>
+                <td>
+                    @*<span>@Html.Raw(item.Address?.Replace("\n", "<br/>"))</span>*@
+                </td>
+                <td>
+                    @*<partial name="_DisplayRequestStatus" model="@item.Status" />*@
+                </td>
+
+                @*<td>@item.Departments.Count Department(s) <br /><small>@item.ManagingDirector</small></td>*@
+
+                @*<td>
+                        <a class="btn btn-sm btn-outline-danger float-right" asp-action="Remove" asp-route-id="@(item.Id)" data-ajax-method="POST" data-ajax-update="#masterEmployeeArea" data-ajax="true" data-ajax-failure="alert('unable to delete, possibly there are childrens')" data-ajax-success="sendNotification('success', '@item.Name was just removed')" data-ajax-confirm="Are you sure you want to remove @item.Name?"><i class="ion-trash-b"></i> Remove</a>
+                    </td>*@
+                @*<td><small>@item.DateOfJoined?.ToString("dd-MMM-yyyy")</small></td>*@
+            </tr>
+        }
+    </tbody>
+</table>

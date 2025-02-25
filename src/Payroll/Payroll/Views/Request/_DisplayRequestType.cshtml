@@ -1,0 +1,39 @@
+﻿@model Request
+
+<partial name="~/Views/Request/_DisplayRequestTypeOnly.cshtml" model="@Model.RequestType" />
+@if (Model.RequestType == RequestType.Leave || Model.RequestType == RequestType.Overtime)
+{
+    <br />
+    <small class="text-muted">@(Model.DayOff?.Name)</small>
+}
+@*@if (Model.RequestType == RequestType.Attendance_Change || Model.RequestType == RequestType.Work_Change)
+{
+    <br />
+    @if (Model.IsTransferEmployee)
+    {
+        <span class="text-muted">Transfer</span>
+    }
+    else
+    {
+        <span class="text-muted">@Model.Attendance?.Duration</span>
+    }
+}*@
+
+@if (Model.RequestType == RequestType.Attendance_Change || Model.RequestType == RequestType.Work_Change)
+{
+    <br />
+    @if (Model.IsTransferEmployee)
+    {
+        @(Model.Attendance?.Date.ToLocalFormat() ?? Model.WorkItem?.Date.ToLocalFormat())
+    }
+    else
+    {
+        <span class="text-muted">@(Model.Attendance?.Duration ?? Model.WorkItem?.DurationCheckin)</span>
+        <br />
+        @(Model.Attendance?.Date.ToLocalFormat() ?? Model.WorkItem?.Date.ToLocalFormat())
+    }
+}
+
+@if (Model.RequestType == RequestType.Document)
+{
+}

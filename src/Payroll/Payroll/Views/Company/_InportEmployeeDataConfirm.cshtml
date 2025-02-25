@@ -1,0 +1,155 @@
+﻿@{ 
+    var error = (bool)ViewBag.IsError;
+    int line = ViewBag.Line != null ? (int)ViewBag.Line : 0;
+    int col = ViewBag.Col != null ? (int)ViewBag.Col : 0;
+    var data = ViewBag.Data != null ? (List<BulkImportEmployeeVm>)ViewBag.Data : null;
+    var errorDict = ViewBag.ErroorDict != null ? (Dictionary<string, string>)ViewBag.ErroorDict : null;
+}
+
+<form asp-action="InportEmployeeDataUpdate" asp-controller="Company" data-ajax="true" data-ajax-method="POST"  data-ajax-update=".modal__container" data-ajax-success="" id="bulkUpdateEmplForm3" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input name="Id" id="Id" type="hidden" value="@ViewBag.Id" />
+    <input name="Data" id="Data" type="hidden" value="@ViewBag.DataString" />
+
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @if (error)
+            {
+                <span class="text-danger"><i class="fa fa-exclamation-triangle"></i> Error while Importing</span>
+            }
+            else
+            {
+                <span  class="text-success"><i class=" fa fa-check-circle"></i> Import data verification complete</span>
+            }
+        </h2>
+        @*<button class="modal__close" aria-label="Close modal" data-micromodal-close></button>*@
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+        @*@if (error && errorDict.Any())
+        {
+            <div class="form-group">
+                <p>An error occured in row @line and column @col</p>
+            </div>
+        }*@
+
+        @if (error && errorDict.Any())
+        {
+            <div class="form-group">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Row / Column (#)</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in errorDict)
+                        {
+                            <tr>
+                                <td>@item.Key</td>
+                                <td class="text-danger">@item.Value</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @*<span class="text-danger">@ViewBag.Error</span>*@
+            </div>
+
+            @*<div class="form-group">
+                <a class="btn btn-outline-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="InportEmployeeData" asp-controller="Company" asp-route-id="@ViewBag.Id">
+                    Import Data
+                </a>
+            </div>*@
+        }
+        else
+        {
+            <div class="form-group">
+                <h6 class="">@data.Count records found!. Lets try to import this data</h6>
+                <span>We will try to do actions defined as below</span>
+            </div>
+
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" for="chbxTerms" class="custom-control-input" disabled checked>
+                    <span class="custom-control-label" for="chbxTerms">
+                        Employees and Agreements will be created
+                    </span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" for="chbxTerms" class="custom-control-input" disabled checked>
+                    <span class="custom-control-label" for="chbxTerms">
+                        User Account will be created if contract period is Active
+                    </span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" for="chbxTerms" class="custom-control-input" disabled checked>
+                    <span class="custom-control-label" for="chbxTerms">
+                        User access grant will be provided
+                    </span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" for="chbxTerms" class="custom-control-input" disabled checked>
+                    <span class="custom-control-label" for="chbxTerms">
+                        Synchronize Employee and user records
+                    </span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">
+                    Create Data
+                </button>
+            </div>
+        }
+
+    </main>
+    @*<footer class="modal__footer">
+        <button type="button" class="modal__btn modal__btn-primary" onclick="UploadImage(this)">
+            Save
+        </button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>*@
+</form>
+
+<script>
+
+    function InportEmployeeDataUpdate () {
+
+        $.ajax(
+            {
+                url:  "@(Url.Action("AddFile"))",
+                data: formData,
+                processData: false,
+                contentType: false,
+                type: "POST",
+                xhr: function () {
+                    var xhr = new window.XMLHttpRequest();
+                    xhr.upload.addEventListener("progress", function (evt) {
+                        if (evt.lengthComputable) {
+                            var progress = Math.round((evt.loaded / evt.total) * 100);
+                            console.log('progress', progress);
+                            $(".step-bar").css("width", progress + "%"); //.attr("aria-valuenow", progress);
+                            $(".step-text").html(progress + "%");
+                        }
+                    }, false);
+                    return xhr;
+                },
+                success: function (data) {
+                    $("#progress").hide();
+                    $("#upload-status").show();
+                    sendNotification('success', 'File was just saved'); hideModal();
+                    hideModal();
+                    $("#cmpFiles-content").html(data);
+                },
+                error: handleModalPostFailure
+            }
+        );
+    }
+</script>

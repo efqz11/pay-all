@@ -1,0 +1,84 @@
+﻿@model Company
+@{
+    bool isBreakTime = ViewData["isBreak"] != null;
+}
+@if (isBreakTime)
+{
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <td colspan="3" class="border-0">Break Hours</td>
+                </tr>
+            </thead>
+            <tbody>
+
+
+                @for (int i = 0; i < Model.BreakTimes.Count(); i++)
+                {
+                    <tr>
+                        <td><input name="BreakTimes[@i].StartTime" value="@Model.BreakTimes[i].StartTime" class="form-control form-control-lg has-timepicker" /></td>
+                        <td><input name="BreakTimes[@i].EndTime" value="@Model.BreakTimes[i].EndTime" class="form-control form-control-lg has-timepicker" /></td>
+                        <td>
+                            <a class="text-danger float-right" asp-action="RemoveBreakTime" asp-route-id="@Model.BreakTimes[i].Id" asp-route-cmpId="@Model.BreakTimes[i].CompanyId" data-ajax-method="POST" data-ajax-failure="alert('unable to delete')" data-ajax="true" data-ajax-success="sendNotification('success', 'Break time was just removed');$(this).parents('tr').fadeOut().empty()" data-ajax-confirm="Are you sure you want to remove this break time?"><i class="ion-trash-b"></i></a>
+
+                            <input type="hidden" name="BreakTimes[@i].Id" value="@Model.BreakTimes[i].Id" />
+                            <input type="hidden" name="BreakTimes[@i].CompanyAccountId" value="@Model.BreakTimes[i].CompanyId" />
+                        </td>
+                    </tr>
+                }
+
+                <tr>
+                    <td colspan="3" class="text-center p-3">
+                        <button type="button" class="btn btn btn-primary btn-add-brekHours"><i class="fad fa-plus-circle"></i> Break Time</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+}
+else
+{
+
+        @*<label class="control-label">Shifts</label>*@
+        <table class="table table-sm table-work-hours">
+            <thead>
+                <tr>
+                    <td colspan="5" class="border-0">Work Hours</td>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.WorkTimes.Count(); i++)
+                {
+                    <tr>
+                        <td>
+                            <select name="WorkTimes[@i].ColorCombination" value="@Model.WorkTimes[i].ColorCombination" class="form-control form-control-lg color-chooser text-white sch-@Model.WorkTimes[i].ColorCombination">
+                                <option value="green" class="sch-green text-white">&nbsp;</option>
+                                <option value="blue" class="sch-blue text-white">&nbsp;</option>
+                                <option value="red" class="sch-red text-white">&nbsp;</option>
+                                @*<option value="blue" class="sch-yellow">Yellow</option>*@
+                                <option value="orange" class="sch-orange text-white">&nbsp;</option>
+                                <option value="purple" class="sch-purple text-white">&nbsp;</option>
+                                <option value="aqua" class="sch-aqua text-white">&nbsp;</option>
+                            </select>
+                        </td>
+                        <td><input name="WorkTimes[@i].ShiftName" value="@Model.WorkTimes[i].ShiftName" class="form-control form-control-lg"  placeholder="Name"/></td>
+                        <td width="20%"><input name="WorkTimes[@i].StartTime" value="@Model.WorkTimes[i].StartTime.ToString("hh\\:mm")" class="form-control form-control-lg has-timepicker" /></td>
+                        <td width="20%"><input name="WorkTimes[@i].EndTime" value="@Model.WorkTimes[i].EndTime.ToString("hh\\:mm")" class="form-control form-control-lg has-timepicker" /></td>
+                        <td>
+                            <a class="text-danger float-right" asp-action="RemoveWorkTime" asp-route-id="@Model.WorkTimes[i].Id" asp-route-cmpId="@Model.WorkTimes[i].CompanyId" data-ajax-method="POST" data-ajax-failure="alert('unable to delete')" data-ajax="true" data-ajax-success="sendNotification('success', 'Work time was just removed');$(this).parents('tr').fadeOut().empty()" data-ajax-confirm="Are you sure you want to remove this work time?"><i class="ion-trash-b"></i></a>
+
+                            <input type="hidden" name="WorkTimes[@i].Id" value="@Model.WorkTimes[i].Id" />
+                            <input type="hidden" name="WorkTimes[@i].CompanyAccountId" value="@Model.WorkTimes[i].CompanyId" />
+                        </td>
+                    </tr>
+                }
+
+
+                <tr>
+                    <td colspan="5" class="text-center p-3">
+                        <button type="button" class="btn btn btn-primary btn-add-workkHours"><i class="fad fa-plus-circle"></i> Work Time</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+}

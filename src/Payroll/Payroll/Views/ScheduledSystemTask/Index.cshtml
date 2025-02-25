@@ -1,0 +1,122 @@
+﻿@model List<ScheduledSystemTask>
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="text-lg-left">
+            <h4 class="display">Scheduled System Tasks</h4>
+            <p>Total @Model.Count Task(s) found</p>
+        </div>
+    </div>
+    <div class="col-md-8">
+        
+    </div>
+</div>
+
+<div class="clearfix"></div>
+
+<div class="row">
+
+    <table class="table table-hover data-container-table">
+        @*<thead>
+                <tr>
+                    <th></th>
+                    <th>Name</th>
+                    <th>Net Salary</th>
+                    <th>Net Salary Last</th>
+                    <th>State</th>
+                    <th></th>
+                </tr>
+            </thead>*@
+        <tbody>
+            @foreach (var item in Model.OrderByDescending(a => a.LastProcessedOn))
+            {
+                <tr>
+                    <td class="text-right" width="20px">
+                        <a asp-action="Events" asp-route-id="@item.Id" class="btn-link" role="tooltip" data-microtip-position="top" aria-label="Edit payrol"><i class="fad fa-search"></i></a>
+                    </td>
+                    <td>
+                        <h6 class="mb-1"><a role="tooltip" data-microtip-position="top" aria-label="View Master Sheet" asp-action="Events" asp-route-id="@item.Id"><b>@item.Name</b></a></h6>
+                        <small class="text-secondary">@item.Description</small>
+                    </td>
+                    <td>
+                        <p class="mb-0">@item.LastProcessedOn.ToSystemFormat(User, true)</p>
+                        <small class="text-muted">Last Processed On</small>
+                    </td>
+
+                    <td>@item.IsActive</td>
+                    <td>
+                        @item.CronExpression
+                    </td>
+                    <td width="20px"></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>
+
+@section scripts{
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script>
+        var limit = '@ViewBag.limit';
+        if (limit)
+        $('#limit').val(limit);
+
+        var empId = '@ViewBag.empId';
+        if (empId)
+        $('#empId').val(empId);
+
+        var sort = '@ViewBag.sort';
+        if (sort)
+        $('#sort').val(sort);
+
+        var type = '@ViewBag.type';
+        if (type)
+        $('#type').val(type);
+
+        function submitFIlterForm() { $('#rosterFilterForm').submit() }
+
+        $('input[name="date"]').on('apply.daterangepicker', function (ev, picker) {
+            submitFIlterForm();
+        });
+
+        $('#datefilter').daterangepicker({
+            autoUpdateInput: false,
+            locale: {
+                cancelLabel: 'Clear'
+            },
+            opens: 'bottom',
+
+            ranges: {
+                'This Week': [moment().startOf('week'), moment().endOf('week')],
+                'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        });
+
+
+        $('#datefilter').on('apply.daterangepicker', function (ev, picker) {
+            console.log(picker);
+
+            var date = picker.startDate.format('MM/DD/YYYY HH:mm:ss');
+            var end = picker.endDate.format('MM/DD/YYYY HH:mm:ss');
+            var url = GetAppRootPath() + '/Schedule?date=' + date + '&end=' + end;
+            $('#start').val(date);
+            $('#end').val(end);
+
+            $(this).val(picker.startDate.format('MMM DD') + ' - ' + picker.endDate.format('DD, YYYY'));
+
+        });
+
+
+    </script>
+}

@@ -1,0 +1,27 @@
+﻿@model Payroll.Model.Logs.EventLog
+@inject Payroll.Database.PayrollDbContext dbContext
+
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            View Event Log
+            <br />
+            <small>
+                @Model.TimeStamp.ToSystemFormat(User, true)
+        </small>
+    </h2>
+    <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+</header>
+
+<main class="modal__content" id="modal-1-content">
+    <div class="form-group">
+        @foreach (var item in Model.ActionDetails)
+        {
+            <p>@item</p>
+        }
+    </div>
+</main>
+<footer class="modal__footer">
+
+    <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+</footer>
+

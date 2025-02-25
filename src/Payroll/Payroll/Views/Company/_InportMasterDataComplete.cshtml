@@ -1,0 +1,53 @@
+﻿@using System.ComponentModel.DataAnnotations
+@{ 
+    var r = (int)ViewBag.TotalRowsEffected;
+}
+
+  <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            <span class="text-success"><i class=" fa fa-check-circle"></i> Import data successful</span>
+        </h2>
+</header>
+<main class="modal__content" id="modal-1-content">
+    <div class="form-group">
+        <h6 class="">@r records created or updated!</h6>
+        <span>Import data completed</span>
+    </div>
+
+    <div class="form-group">
+        <label class="custom-control custom-checkbox">
+            <input type="checkbox" for="chbxTerms" class="custom-control-input" disabled checked>
+            <span class="custom-control-label" for="chbxTerms">
+                Employees, job and relevant Contract are created
+            </span>
+        </label>
+    </div>
+    <div class="form-group">
+        <label class="custom-control custom-checkbox">
+            <input type="checkbox" for="chbxTerms" class="custom-control-input" disabled checked>
+            <span class="custom-control-label" for="chbxTerms">
+                Employments and Individuals are created
+            </span>
+        </label>
+    </div>
+    <div class="form-group">
+        <label class="custom-control custom-checkbox">
+            <input type="checkbox" for="chbxTerms" class="custom-control-input" disabled checked>
+            <span class="custom-control-label" for="chbxTerms">
+                Related constant data such as 'Location, Level, Nationality, Department and Emeregency Contact relation' data are created
+            </span>
+        </label>
+    </div>
+    <div class="form-group">
+        <label class="custom-control custom-checkbox">
+            <input type="checkbox" for="chbxTerms" class="custom-control-input" disabled checked>
+            <span class="custom-control-label" for="chbxTerms">
+                Synchronized Employments and user records
+            </span>
+        </label>
+    </div>
+
+    <div class="form-group btn-import-complete" style="display:none">
+        <a type="button" class="btn btn-primary" asp-action="Index" asp-controller="Employee">View Employees</a>
+    </div>
+</main>

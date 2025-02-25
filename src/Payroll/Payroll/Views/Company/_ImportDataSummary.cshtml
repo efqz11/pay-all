@@ -1,0 +1,71 @@
+﻿@model  List<BulkImportEmployeeVm>
+@{ 
+}
+
+<style>
+    table#tableUploadCOnfirm tbody tr td:first-child,
+    table#tableUploadCOnfirm tbody tr th:first-child {
+        text-align: left !important;
+    }
+    table#tableUploadCOnfirm tbody tr th{
+        text-align:center;
+    }
+    table#tableUploadCOnfirm thead tr td {
+        text-align: center;
+    }
+</style>
+
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            Import data Summary
+        </h2>
+        @*<button class="modal__close" aria-label="Close modal" data-micromodal-close></button>*@
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+        <div class="form-group">
+            <h6 class="">@Model.Count records updated!</h6>
+        </div>
+
+        <div class="form-group">
+            <table class="table table-sm" id="tableUploadCOnfirm">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Employee & Agreement</th>
+                        <th>User Account</th>
+                        <th>Access Grant</th>
+                        <th>Record Updated</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                    <tr>
+                        <td>@item.FirstName @item.LastName</td>
+                        @*<td><i class="fa @(item._ContractCreated ? "fa-check-circle text-success" : "fa-times-circle text-danger")"></i></td>
+                        <td><i class="fa @(item._UserCreated ? "fa-check-circle text-success" : "fa-times-circle text-danger")"></i></td>
+                        <td><i class="fa @(item._UserAccessGrantCreated ? "fa-check-circle text-success" : "fa-times-circle text-danger")"></i></td>
+                        <td><i class="fa @(item._EmployeeRecordUpdated ? "fa-check-circle text-success" : "fa-times-circle text-danger")"></i></td>*@
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @*<div class="form-group">
+            <button type="button" class="btn btn-primary" onclick="location.reload()">
+                Reload Page
+            </button>
+        </div>*@
+    </main>
+    <footer class="modal__footer">
+        <button type="button" class="btn btn-primary" onclick="location.reload()">
+            Reload Page
+        </button>
+        @*<button type="button" class="modal__btn modal__btn-primary" onclick="UploadImage(this)">
+            Save
+        </button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>*@
+    </footer>

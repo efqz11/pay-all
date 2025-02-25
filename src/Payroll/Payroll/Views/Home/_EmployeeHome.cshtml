@@ -1,0 +1,96 @@
+﻿@model HomeEmployeeVm
+@{ 
+    var width = 0;
+    string css = "";
+}
+<div class="row">
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="wrapper">
+                    <div class="top text-center">
+                        <h5 class="">@Model.DayOffs.Sum(x => x.TotalCollectedHours) Holidays left</h5>
+                        <p class="pb-0 mb-0">
+                            <a class="" asp-action="NewRequest" asp-controller="Request" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="ion ion-plus"></i> Request for Leave</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="wrapper">
+                    <div class="top text-center">
+                        <h5 class="">2 Upcoming Tasks</h5>
+                        <p class="pb-0 mb-0">
+                            <a class="" asp-action="AddOrUpdateUserTask" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure">Create New Task</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br />
+        <h5 class="head1 text-center">Performance</h5>
+
+        <a asp-action="GetEmployeeCard" asp-controller="Home" data-ajax="true" data-ajax-update="#employe-card" data-ajax-begin="" title="Click to make changes" class="hide" id="employe-card-refresh">
+        </a>
+
+        <div class="employe-card" id="employe-card">
+            <div class="loader loader-blue btn-loading" data-page="2" style="line-height: 85px;display:block;white-space: pre">
+                <div class="ball-beat"><div></div><div></div><div></div></div>
+            </div>
+        </div>
+
+        @*<div class="wrapper">
+            <a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="@RequestType.Document" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" title="Click to make changes" data-ajax-loading=".loader" class="">
+                <div class="bg-light border-0 p-3 pt-4 pb-4 text-center">
+                    <i class="ion fa fa-file-archive fa-3x mb-2"></i>
+                    <br />
+                    <h5 class="pb">Request off day</h5>
+                    <span class="text-muted">Request time off and check your balances</span>
+                </div>
+            </a>
+        </div>*@
+
+        <div class="row">
+            <div class="col-md-4">
+
+            </div>
+            @*<div class="col-md-6">
+            <div class="wrapper">
+                <a asp-action="RequestApprovals" asp-controller="Home" asp-route-type="@RequestType.Document" data-ajax="true" data-ajax-update="#home-admin-work-area" data-ajax-begin="clearHome(this)" title="Click to make changes" class="" style="" data-ajax-loading=".loader">
+                    <div class="text-center bg-light border-0 p-3" style="border-radius:5px">
+                        <i class="ion fa fa-file-archive fa-2x"></i> <div class="badge badge-danger" style="position:absolute">2</div>
+                        <br />
+                        <span>Document Request Applications</span>
+                    </div>
+                </a>
+            </div>*@
+        </div>
+    </div>
+    <div class="col-md-6">
+        <partial name="_Announcements" model="@Model.Announcements" />
+    </div>
+</div>
+
+
+
+
+<script>
+    $('#datefilter').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear'
+        },
+        opens: 'left',
+
+        ranges: {
+            'This Week': [moment().startOf('week'), moment().endOf('week')],
+            'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        }
+    });
+
+
+    $('#employe-card-refresh').click();
+</script>

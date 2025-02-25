@@ -1,0 +1,31 @@
+﻿@model PayrollPeriod
+
+<header class="modal__header">
+    <h2 class="modal__title" id="modal-1-title">
+        How do you like to export
+    </h2>
+
+    <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+</header>
+<main class="modal__content" id="modal-1-content">
+    <div class="form-group">
+        <span>Payroll &middot; @Model.Name</span>
+        <br /><small class="text-muted">@Model.StartDate.ToLocalFormat() &mdash; @Model.EndDate.ToLocalFormat()</small>
+    </div>
+    <div class="form-group-inline">
+        <label class="control-label" for="Email">Master Sheet Download</label>
+        <br />
+        <button class="btn btn-outline-primary" onclick="fnExportPrint()">PRINT</button>
+        <button class="btn btn-outline-dark" onclick="fnExportExcel('@Model.Name')" role="tooltip" data-microtip-position="top" aria-label="Download excel file">XLS</button>
+        <button class="btn btn-outline-dark" onclick="fnExportCsv('@Model.Name')">CSV</button>
+    </div>
+    <hr />
+    <label class="control-label" for="Email">Standard Sheets</label>
+    <br />
+    <a class="btn btn-outline-warning" asp-action="GenerateBankSheet" asp-route-payrolId="@(Model.Id)">Bank Sheet</a>
+    <a class="btn btn-outline-warning" asp-action="GeneratePensionSheet300" asp-route-payrolId="@(Model.Id)" role="tooltip" data-microtip-position="top" aria-label="Downlaod Pension Sheet 300">MPS 300</a>
+    <a class="btn btn-outline-warning" asp-action="GeneratePensionSheet101" asp-route-payrolId="@(Model.Id)" role="tooltip" data-microtip-position="top" aria-label="Downlaod Pension Sheet 101">MPS 101</a>
+</main>
+<footer class="modal__footer">
+    <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+</footer>

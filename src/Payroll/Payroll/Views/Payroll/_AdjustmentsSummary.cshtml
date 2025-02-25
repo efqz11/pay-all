@@ -1,0 +1,242 @@
+﻿@model PayrollVm
+@{ 
+    int totalX = Model.AllPayAdjustments.Count(a => Model.EmployeePayAdjustmentTotals.Any(x => x.PayAdjustmentId == a.Id));
+    decimal width = ((decimal)totalX / Model.AllPayAdjustments.Count()) * 100;
+    string css = "progress_" + (width <= 5 ? 5 : width <= 25 ? 25 : width <= 50 ? 50 : width <= 75 ? 75 : 100);
+}
+
+<div class="row">
+    <div class="col pr-0">
+        <h6 class="text-left mb-2">
+            Pay Components for Calculation Sheet (<b>@(width.ToString("N0"))%</b> Complete)
+        </h6>
+    </div>
+    <div class="col">
+        @*<div class="float-right mr-2 hide">
+            <select class="form-control form-control-sm" style="width:250px !important" asp-items="@(new SelectList(ViewBag.PayAdjustments, "Id", "Name"))" name="payAdjustmentId" id="payAdjustmentId" onchange="loadPayAdjustmentFieldValues();">
+                <option value="0">All Adjustments</option>
+            </select>
+        </div>*@
+    </div>
+</div>
+
+
+<div class="clearfix"></div>
+<div class="row">
+    <div class="col">
+
+        <table class="table table-hover table-payAdj">
+            <thead>
+                <tr>
+                    <th>Constant Additions</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.AllPayAdjustments.Where(x => x.VariationType == VariationType.ConstantAddition).OrderBy(a=> a.CalculationOrder))
+                {
+                    <tr>
+                        <td>
+                            <a class="btn-link" asp-controller="Payroll" asp-action="GetPayAdjustmentFieldValues" asp-route-id="@Model.PayrolPeriodId" asp-route-addId="@item.Id" asp-route-page="1" data-ajax="true" data-ajax-update="#tasks-schedule">
+                                @item.Name
+                            </a>
+                            <br />
+                            @if (Model.EmployeePayAdjustmentTotals.Any(x => x.PayAdjustmentId == item.Id))
+                            {
+                                <span style="font-weight:bold" class="text-success">@Model.EmployeePayAdjustmentTotals.First(x => x.PayAdjustmentId == item.Id).Total.ToSystemFormat(User)</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="cell-action text-center">
+                                @if (Model.EmployeePayAdjustmentTotals.Any(x => x.PayAdjustmentId == item.Id))
+                                {
+                                    <span class="btn btn-success"><b><i class="fa fa-check-circle"></i> Ready!</b></span>
+                                }
+                                else
+                                {
+
+                                    <a class="btn-recreate-table btn btn-danger mt-2 text-white" asp-action="UpdatePayAdjustmentFields" asp-route-addId="@(item.Id)" asp-route-id="@(Model.PayrolPeriodId)" data-ajax-begin="openLoadingModal('Recreating Table', 'Please wait while we re-create table for @item.Name')" data-ajax-method="POST" data-ajax-success="shideModal('@item.Name records were created successfully');" data-ajax-failure="hideFailedLoadingModalCustom('There was an error while creating table');" role="tooltip" data-microtip-position="top" aria-label="Create table to calculate @item.Name" data-ajax="true" data-ajax-confirm="Are you sure? This action will create new field values for adjustment '@item.Name'">
+                                        <span><i class="fa fa-exclamation-circle "></i> <b> Create</b></span>
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="col">
+        <table class="table table-hover table-payAdj">
+            <thead>
+                <tr>
+                    <th>Variable Additions</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.AllPayAdjustments.Where(x => x.VariationType == VariationType.VariableAddition).OrderBy(a => a.CalculationOrder))
+                {
+                    <tr>
+                        <td>
+                            <a class="btn-link" asp-controller="Payroll" asp-action="GetPayAdjustmentFieldValues" asp-route-id="@Model.PayrolPeriodId" asp-route-addId="@item.Id" asp-route-page="1" data-ajax="true" data-ajax-update="#tasks-schedule">
+                                @item.Name
+                            </a>
+                            <br />
+                            @if (Model.EmployeePayAdjustmentTotals.Any(x => x.PayAdjustmentId == item.Id))
+                            {
+                                <span style="font-weight:bold" class="text-success">@Model.EmployeePayAdjustmentTotals.First(x => x.PayAdjustmentId == item.Id).Total.ToSystemFormat(User)</span>
+                            }
+                            @*<a asp-action="PayAdjustment" asp-route-addId="@(item.Id)" asp-route-payrolId="@(Model.PayrolPeriodId)" class="btn-link">
+            @item.Name
+        </a>*@
+                            @*<br />*@
+                            @*<small>@(allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item2 ?? 0)/@empCount Employee(s)</small> &mdash; <small>@(allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item3 ?? 0)/@(empCount * totalfieldsInConfig) Field Values(s)</small>
+        <br />
+        <strong>@((allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item3 ?? 0).ToString("N2"))  &mdash; @((allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item4 ?? 0).ToString("N2")) <small>(avg)</small></strong>*@
+                        </td>
+                        <td>
+                            <div class="cell-action text-center">
+                                @if (Model.EmployeePayAdjustmentTotals.Any(x => x.PayAdjustmentId == item.Id))
+                                {
+                                    <span class="btn btn-success"><b><i class="fa fa-check-circle"></i> Ready!</b></span>
+                                }
+                                else
+                                {
+                                    <a class="btn-recreate-table btn btn-danger mt-2 text-white" asp-action="UpdatePayAdjustmentFields" asp-route-addId="@(item.Id)" asp-route-id="@(Model.PayrolPeriodId)" data-ajax-begin="openLoadingModal('Recreating Table', 'Please wait while we re-create table for @item.Name')" data-ajax-method="POST" data-ajax-success="shideModal('@item.Name records were created successfully');" data-ajax-failure="hideFailedLoadingModalCustom('There was an error while creating table');" role="tooltip" data-microtip-position="top" aria-label="Create table to calculate @item.Name" data-ajax="true" data-ajax-confirm="Are you sure? This action will create new field values for adjustment '@item.Name'">
+                                        <span><i class="fa fa-exclamation-circle "></i> <b> Create</b></span>
+                                    </a>
+                                }
+                                @*@if (!isReady)
+            {
+            if (allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item2 > 0)
+            {
+                <span class="btn btn-warning" role="tooltip" data-microtip-position="top" aria-label="Some employees are missing in calculation sheet for @item.Name"><b><i class="fa fa-question-circle"></i> Incomplete</b></span>
+            }
+            else
+            {
+                <a class="btn-recreate-table btn btn-danger mt-2 text-white" asp-action="UpdatePayAdjustmentFields" asp-route-addId="@(item.Id)" asp-route-payrolId="@(Model.PayrolPeriodId)" data-ajax-begin="showModal('modal-recreate-table');$('#modal-recreate-table').find('.d1').text('Please wait while we re-create table for @item.Name')" data-ajax-method="POST" data-ajax-success="createTableSuccess('@item.Name');" role="tooltip" data-microtip-position="top" aria-label="Create table to calculate @item.Name" data-ajax="true">
+                    <span><i class="fa fa-exclamation-circle "></i> <b> Create</b></span>
+                </a>
+            }
+        }
+        else
+        {
+            <span class="btn btn-success"><b><i class="fa fa-check-circle"></i> Ready!</b></span>
+        }*@
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="col">
+
+        <table class="table table-hover table-payAdj">
+            <thead>
+                <tr>
+                    <th>Variable Deduction</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.AllPayAdjustments.Where(x => x.VariationType == VariationType.VariableDeduction).OrderBy(a => a.CalculationOrder))
+                {
+                    <tr>
+                        <td>
+                            <a class="btn-link" asp-controller="Payroll" asp-action="GetPayAdjustmentFieldValues" asp-route-id="@Model.PayrolPeriodId" asp-route-addId="@item.Id" asp-route-page="1" data-ajax="true" data-ajax-update="#tasks-schedule">
+                                @item.Name
+                            </a>
+                            <br />
+                            @if (Model.EmployeePayAdjustmentTotals.Any(x => x.PayAdjustmentId == item.Id))
+                            {
+                                <span style="font-weight:bold" class="text-danger">@Model.EmployeePayAdjustmentTotals.First(x => x.PayAdjustmentId == item.Id).Total.ToSystemFormat(User)</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="cell-action text-center">
+                                @if (Model.EmployeePayAdjustmentTotals.Any(x => x.PayAdjustmentId == item.Id))
+                                {
+                                    <span class="btn btn-success"><b><i class="fa fa-check-circle"></i> Ready!</b></span>
+                                }
+                                else
+                                {
+                                    <a class="btn-recreate-table btn btn-danger mt-2 text-white" asp-action="UpdatePayAdjustmentFields" asp-route-addId="@(item.Id)" asp-route-id="@(Model.PayrolPeriodId)" data-ajax-begin="openLoadingModal('Recreating Table', 'Please wait while we re-create table for @item.Name')" data-ajax-method="POST" data-ajax-success="shideModal('@item.Name records were created successfully');" data-ajax-failure="hideFailedLoadingModalCustom('There was an error while creating table');" role="tooltip" data-microtip-position="top" aria-label="Create table to calculate @item.Name" data-ajax="true" data-ajax-confirm="Are you sure? This action will create new field values for adjustment '@item.Name'">
+                                        <span><i class="fa fa-exclamation-circle "></i> <b> Create</b></span>
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (Model.AllPayAdjustments.Where(x => x.VariationType == VariationType.ConstantDeduction).Any())
+    {
+    <div class="col">
+        <table class="table table-hover table-payAdj">
+            <thead>
+                <tr>
+                    <th>Constant Deduction</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.AllPayAdjustments.Where(x => x.VariationType == VariationType.ConstantDeduction).OrderBy(a => a.CalculationOrder))
+                {
+
+                    <tr>
+                        <td>
+                            <a class="btn-link" asp-controller="Payroll" asp-action="GetPayAdjustmentFieldValues" asp-route-id="@Model.PayrolPeriodId" asp-route-addId="@item.Id" asp-route-page="1" data-ajax="true" data-ajax-update="#tasks-schedule">
+                                @item.Name
+                            </a>
+                            <br />
+                            @if (Model.EmployeePayAdjustmentTotals.Any(x => x.PayAdjustmentId == item.Id))
+                            {
+                                <span style="font-weight:bold" class="text-danger">@Model.EmployeePayAdjustmentTotals.First(x => x.PayAdjustmentId == item.Id).Total.ToSystemFormat(User)</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="cell-action text-center">
+                                @if (Model.EmployeePayAdjustmentTotals.Any(x => x.PayAdjustmentId == item.Id))
+                                {
+                                    <span class="btn btn-success"><b><i class="fa fa-check-circle"></i> Ready!</b></span>
+                                }
+                                else
+                                {
+                                    <a class="btn-recreate-table btn btn-danger mt-2 text-white" asp-action="UpdatePayAdjustmentFields" asp-route-addId="@(item.Id)" asp-route-id="@(Model.PayrolPeriodId)" data-ajax-begin="openLoadingModal('Recreating Table', 'Please wait while we re-create table for @item.Name')" data-ajax-method="POST" data-ajax-success="shideModal('@item.Name records were created successfully');" data-ajax-failure="hideFailedLoadingModalCustom('There was an error while creating table');" role="tooltip" data-microtip-position="top" aria-label="Create table to calculate @item.Name" data-ajax="true" data-ajax-confirm="Are you sure? This action will create new field values for adjustment '@item.Name'">
+                                        <span><i class="fa fa-exclamation-circle "></i> <b> Create</b></span>
+                                    </a>
+                                }
+                                @*@if (!isReady)
+        {
+            if (allFieldCounts.FirstOrDefault(x => x.Item1 == item.Id)?.Item2 > 0)
+            {
+                <span class="btn btn-warning" role="tooltip" data-microtip-position="top" aria-label="Some employees are missing in calculation sheet for @item.Name"><b><i class="fa fa-question-circle"></i> Incomplete</b></span>
+            }
+            else
+            {
+                <a class="btn-recreate-table btn btn-danger mt-2 text-white" asp-action="UpdatePayAdjustmentFields" asp-route-addId="@(item.Id)" asp-route-payrolId="@(Model.PayrolPeriodId)" data-ajax-begin="showModal('modal-recreate-table');$('#modal-recreate-table').find('.d1').text('Please wait while we re-create table for @item.Name')" data-ajax-method="POST" data-ajax-success="createTableSuccess('@item.Name');" role="tooltip" data-microtip-position="top" aria-label="Create table to calculate @item.Name" data-ajax="true">
+                    <span><i class="fa fa-exclamation-circle "></i> <b> Create</b></span>
+                </a>
+            }
+        }
+        else
+        {
+            <span class="btn btn-success"><b><i class="fa fa-check-circle"></i> Ready!</b></span>
+        }*@
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    }
+</div>
+
+<script>
+</script>

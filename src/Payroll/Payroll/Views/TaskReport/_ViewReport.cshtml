@@ -1,0 +1,9 @@
+﻿@model TaskRunReport
+@{
+    ViewData["Title"] = "View Task Report";
+}
+
+
+<p>
+    @Html.Raw(@Model.Report.Replace("\n", "<br>"))
+</p>

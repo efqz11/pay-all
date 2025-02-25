@@ -1,0 +1,329 @@
+﻿@model List<WeeklyEmployeeShiftVm>
+@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    ViewData["Title"] = "Home Page";
+    var month = (int)ViewBag.month;
+    var year = (int)ViewBag.year;
+    var totalEmpls = (int?)ViewBag?.totalEmpls;
+    var comAcc = (CompanyAccount)ViewBag.comAcc;
+    var dayOffs = (List<DayOff>)ViewBag.dayOffs;
+    var _daysTotals = DateTime.DaysInMonth(year, month);
+    var start = new DateTime(year, month, 1);
+    var end = start.AddDays(_daysTotals);
+}
+
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link href="~/css/employee-card.css" rel="stylesheet" />
+<link href="~/css/card.css" rel="stylesheet" />
+<link href="~/css/payroll.css" rel="stylesheet" />
+
+<style>
+    .table-schedule td.holiday {
+        color: #4649c4;
+        padding: 4px;
+        background-color: #f6f6f6;
+    }
+    .bg-light-grey {
+        background-color: #f6f6f6;
+    }
+    .cell-attndance {
+        vertical-align: middle !important;
+        padding: 0 !important;
+        margin: 0;
+    }
+        .cell-attndance .item.pending {
+            opacity: 0.3
+        } .cell-attndance .item {
+            border-radius: 0;
+            will-change: transform;
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            transition: -webkit-transform .25s ease-out;
+            transition: transform .25s ease-out;
+            transition: transform .25s ease-out,-webkit-transform .25s ease-out;
+        }
+
+    .highlight {
+        background-color: #ccffcc;
+    }
+
+
+    .cell-attndance .item:not(.pending).hover {
+        -webkit-transform: scale(1.5);
+        transform: scale(1.5);
+        text-decoration: none;
+    }
+    .table-schedule td.active {
+        color: #ffffff;
+        padding: 4px;
+        background-color: #d5f3f7;
+    }
+
+
+        .table-schedule td.active h6,
+        .table-schedule td.active small {
+            color: #00bcd4 !important;
+        }
+/*    .table-schedule tr td:not(:first-child) {
+        border-left: 1px solid #dee2e6;
+    }*/
+</style>
+@*<input type="hidden" asp-for="PayrolPeriodId" />
+    <input type="hidden" asp-for="ActiveTab" />*@
+<input type="hidden" id="__AddJustmentID" />
+@*@Model.PayrollPeriod.CurrentStatus.cssClass*@
+
+@if (TempData["Msg"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <strong>Hello!</strong> @TempData["Msg"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+<div class="row mt-8 mb-3">
+
+    <div class="col-md-8">
+        <h2 class="">@FeatureMenus.GetFeatureMenuItem(FeatureMenus.MenuItem.AbsenceCalendar) Absence Timeline</h2>
+    </div>
+        <div class="col-md-4 text-right">
+            <span class="text-primary">
+                @Html.Raw(HttpContextAccessor.HttpContext.Session.GetString(SessionVariables.EmployeeSelectorSummary) ?? "(no filter)")
+                <a class="text-muted " data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="SelectEmployees" asp-controller="Base" asp-route-onsuccess="location.reload()" asp-route-update="none" style="">
+                    <i class="fa fa-angle-down"></i>
+                </a>
+            </span>
+        </div>
+    </div>
+
+<div class="mb-2 ml-1">
+    <span class="link-summary d-flex">
+        @foreach (var item in dayOffs)
+        {
+            <span class="src btn btn-light mr-2 active" data-target="@item.Color">
+                <span class="d-flex text-muted">
+                    <span class="square bg-@item.Color mr-2"></span> @item.Name
+                </span>
+            </span>
+        }
+        <span class="src btn btn-light mr-2 pending" data-target="pending">
+            <span class="d-flex text-muted">
+                <span class="square  mr-2"></span> Drafts
+            </span>
+        </span>
+    </span>
+</div>
+@*00 - @TempData["WorkingEmployeeId"]*@
+
+<table class="table table-schedule" id="tableAttendance">
+    <tbody>
+        <tr>
+            <td>
+                <b>Employee(s)</b>
+                <br />
+                @if (totalEmpls.HasValue && totalEmpls > 0)
+                {
+                    <div style="display:flex">
+                        <span>@Model?.Count() of @totalEmpls</span>
+                        @*<small>Show unscheduled  &nbsp;</small>
+
+                <div class="switch_box box_1">
+                    <input type="checkbox" class="switch_1 switch-schedule" value="False">
+                </div>*@
+                    </div>
+                }
+            </td>
+            <td colspan="@_daysTotals" class="bg-light-grey">
+                <div class="row mt-8 mb-3">
+                    <div class="col-md-8">
+
+                        <span class="link-summary">
+
+                            <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                                <div class="btn-group mr-2" role="group" aria-label="First group">
+                                    <a asp-action="absence" onclick="" asp-route-month="@(start.AddDays(-1).Month)" asp-route-year="@(start.AddDays(-1).Year)"><i class="fa fa-angle-left"></i></a>
+                                    <span type="button" id="datefilter" class="mr-3 ml-3"><i class="fad fa-calendar-alt"></i></span>
+                                    <a asp-action="absence" onclick="convertToLoadingTable('.table-schedule')" asp-route-month="@(end.AddDays(1).Month)" asp-route-year="@(end.AddDays(1).Year)" class=""><i class="fa fa-angle-right"></i></a>
+
+                                    <span class="ml-3">@start.ToString("MMMM yyyy")</span>
+                                </div>
+                            </div>
+
+
+                            @*<br />
+                            <small>@start.ToString("MMMM yyyy")</small>*@
+                        </span>
+                    </div>
+                    <div class="col-md-4 text-right">
+                        @*<span class="text-primary">
+                            @Html.Raw(HttpContextAccessor.HttpContext.Session.GetString(SessionVariables.EmployeeSelectorSummary) ?? "(no filter)")
+                            <a class="text-muted " data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="SelectEmployees" asp-controller="Base" asp-route-onsuccess="location.reload()" asp-route-update="none" style="">
+                                <i class="fa fa-angle-down"></i>
+                            </a>
+                        </span>*@
+                    </div>
+                </div>
+
+
+                @*<div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                    <div class="btn-group mr-2" role="group" aria-label="First group">
+                        <a asp-action="absence" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-month="@(start.AddDays(-1))" data-ajax="true" data-ajax-update="#weekly-schedule" class=""><i class="fa fa-angle-left"></i></a>
+                        <span type="button" id="datefilter" class=""><i class="fad fa-calendar-alt"></i></span>
+                        <a asp-action="absence" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-date="@(end.AddDays(1))" data-ajax="true" data-ajax-update="#weekly-schedule" class=""><i class="ion ion-arrow-right-c"></i></a>
+
+                        <span>@start.ToString("MMMM yyyy")</span>
+                    </div>
+                </div>
+
+
+                <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+
+                    <div class="btn-group mr-2" role="group" aria-label="Second group">
+                        <a asp-action="Schedules" data-ajax-method="GET" data-ajax="true" data-ajax-update="#weekly-schedule-table-container" data-ajax-begin="convertToLoadingTable('.table-schedule')" data-ajax-failure="HandleModalPostFailure" class="btn-sm btn btn-outline-warning"><i class="ion ion-levels"></i></a>
+                    </div>
+                    <div class="btn-group" role="group" aria-label="Third group">
+                        <a class="btn btn-sm btn-primary" asp-action="SelectDates" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="fad fa-plus-circle"></i> Add Work Schedule</a>
+                    </div>
+                </div>*@
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="form-group has-search mb-1">
+                    <span class="form-control-feedback"><i class="fad fa-search"></i></span>
+                    <input type="text" class="txt-search form-control txt-search-empl" name="query" placeholder="Search for employee...">
+                </div>
+            </td>
+            @for (var i = start; i < end; i = i.AddDays(1))
+            {
+                <td class="date @(i.Date == DateTime.Now.Date ? "active" : "") @(comAcc.DayOfWeekHolidays.Contains(((int)i.DayOfWeek)) ? "holiday" : "")" style="width:20px" id="@i.Date.ToString("yyyyMMdd")">
+                    <a asp-action="AttendanceDayView" asp-controller="Payroll" asp-route-date="@i" asp-route-id=".Id" data-ajax-begin="clearAttendanceDayView()" data-ajax="true" data-ajax-method="GET" data-ajax-update="#attendanceDayView" data-ajax-failure="handleModalPostFailure" data-ajax-success="setDateInTable('@i.Date.ToString("yyyyMMdd")')" id="" style="">
+                        <div class="text-center">
+                            <h6 class="text-muted mb-0 pt-1 font-weight-bold">@i.Day</h6>
+                            <small style="font-size:10px; padding-top:2px" class="text-muted">@i.ToString("ddd").Substring(0, 3)</small>
+                        </div>
+                    </a>
+                </td>
+            }
+        </tr>
+        @foreach (var item in Model)
+        {
+    <tr>
+        <td class="text-left font-weight-bold sticky-col first-col" style=" vertical-align: middle;display:flex">
+            <div class="image-container">
+                <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.Employee.Id">
+                    <img src="@Url.Content(item.Employee.Avatar ?? DefaultPictures.default_user)" height="35" class="mt-1 mr-2 rounded-circle" />
+                </a>
+            </div>
+            <a asp-controller="Employee" asp-action="Detail" asp-route-id="@item.Employee.Id">
+                <div class="name-display pt-1">
+                    <span class="">@item.Employee.EmpID &middot; @item.Employee.GetSystemName(User)</span>
+                    <br>
+                    <small class="text-dark" style="position: relative;top: -4px;">@item.Employee.Job?.JobID &middot; @item.Employee.JobTitle</small>
+                </div>
+            </a>
+        </td>
+
+        @for (var o = start; o < end; o = o.AddDays(1))
+        {
+
+        <td class="text-left cell-attndance @(o.Date == DateTime.Now.Date ? "active" : "")  @(comAcc.DayOfWeekHolidays.Contains(((int)o.DayOfWeek)) ? "holiday" : "")">
+            @if (item.DayOffs.Any(a => a.Start <= o && a.End >= o))
+            {
+                <div class="item item-3083 bg-@(item.DayOffs.First(a => a.Start <= o && a.End >= o).DayOffColor) @(item.DayOffs.First(a => a.Start <= o && a.End >= o).IsPending ? "pending bg-pending" : "")" onclick="$(this).next().click()" data-cell="@(item.DayOffs.First(a => a.Start <= o && a.End >= o).UniqeId.ToString())">
+                </div>
+                <a class="" asp-action="ViewRequest" asp-controller="Request" asp-route-id="@item.DayOffs.First(a => a.Start <= o && a.End >= o).RequestId" asp-route-type="@RequestType.Leave.ToString()" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="handleModalPostFailure"  style="display:none">
+                </a>
+            }
+        </td>
+        }
+    </tr>
+        }
+        </tbody>
+    </table>
+
+
+<a asp-action="AttendanceView" asp-route-id="Id" data-ajax-begin="clearHome(this)" data-ajax="true" data-ajax-method="GET" data-ajax-update="#attendance-tab" data-ajax-failure="handleModalPostFailure" id="_LoadAttendanceTab" data-ajax-complete="$('.tab-content').not('.active').find('> div').empty()" data-ajax-success="getAttendanceOverviewData()" style="display:none">
+</a>
+<div id="attendance-tab">
+</div>
+
+
+@section scripts {
+
+    @*<script src="~/js/payroll.js"></script>
+        <script src="~/js/adjustmentEval.js"></script>*@
+
+    <!-- Resources -->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+    <script>
+
+        InitializeTabs();
+        $('.item').on('mouseover', function () {
+            $('.item').removeClass('hover');
+            $('.item[data-cell="' + $(this).data('cell') + '"]').addClass('hover');
+        });
+        $('.item').on('mouseleave', function () {
+            $('.item').removeClass('hover');
+        });
+
+
+        $('.src').click(function (e) {
+            var isShown = $(this).hasClass('active');
+            if (isShown) {
+                $('.table-schedule').find('.cell-attndance .bg-' + $(this).data('target')).fadeOut();
+                $(this).removeClass('active');
+            } else {
+                $('.table-schedule').find('.cell-attndance .bg-' + $(this).data('target')).fadeIn();
+                $(this).addClass('active');
+            }
+            //var match = $('.table-schedule')
+            //    .find('.cell-attndance .bg-' + $(this).data('target'));
+
+
+            //if ($(this).data('target') === "all") {
+            //    $('.table-schedule').find('.item').show();
+            //    $('.src').removeClass('active');
+            //    return;
+            //}
+            //$('.table-schedule').find('.item').not(match).hide();
+            //$(match).show();
+
+            //$('.src').removeClass('active');
+            //$(this).addClass('active');
+        });
+
+
+        //$(function () {
+        //    var active = true;
+
+        //    $("td.cell-attndance").mousedown(function (ev) {
+        //        active = true;
+        //        $(".highlight").removeClass("highlight"); // clear previous selection
+        //        ev.preventDefault(); // this prevents text selection from happening
+        //        $(this).addClass("highlight");
+        //    });
+
+        //    $("td.cell-attndance").mousemove(function (ev) {
+        //        if (active) {
+        //            $(this).addClass("highlight");
+        //        }
+        //    });
+
+        //    $(document).mouseup(function (ev) {
+        //        active = false;
+        //    });
+        //});
+
+        //$(function () { $('#_LoadAttendanceTab').trigger('click'); });
+    </script>
+}

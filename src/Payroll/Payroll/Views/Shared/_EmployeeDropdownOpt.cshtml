@@ -1,0 +1,25 @@
+﻿@model List<Employee>
+@{
+    var isSmall = (ViewBag.Small != null);
+}
+<option value="0">Choose Employee</option>
+@foreach (var dept in Model.Where(t => t.Department != null).GroupBy(x => x.Department.Name))
+{
+    <optgroup label="@dept.Key">
+        @foreach (var emp in dept.ToList())
+        {
+            <option value="@emp.Id">@emp.GetSystemName(User)</option>
+        }
+    </optgroup>
+}
+
+
+@if (Model.Any(t => t.Department == null))
+{
+    <optgroup label="Not in department">
+        @foreach (var emp in Model.Where(t => t.Department == null))
+        {
+            <option value="@emp.Id">@emp.GetSystemName(User)</option>
+        }
+    </optgroup>
+}

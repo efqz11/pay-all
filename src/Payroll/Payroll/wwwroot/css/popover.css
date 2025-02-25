@@ -1,0 +1,294 @@
+.popover {
+  min-width: 320px;
+  margin-right: auto;
+  margin-left: auto;
+  box-shadow: 0 1px 15px rgba(27, 31, 35, 0.15) !important;
+  background-color: #fff;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px; }
+  .popover .popover-body {
+    padding: 0 16px 16px 16px !important; }
+  .popover .user-status-container {
+    word-break: break-word;
+    white-space: normal; }
+  .popover .rounded-1 {
+    border-radius: 6px !important;
+    overflow: hidden; }
+  .popover .avatar-user {
+    border-radius: 50% !important; }
+  .popover hr {
+    border-bottom-color: #eee; }
+  .popover .btn-sm {
+    padding: 3px 12px;
+    font-size: 12px;
+    line-height: 20px; }
+  .popover .btn {
+    color: #24292e;
+    background-color: #fafbfc;
+    border-color: rgba(27, 31, 35, 0.15);
+    box-shadow: 0 1px 0 rgba(27, 31, 35, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transition: background-color 0.2s cubic-bezier(0.3, 0, 0.5, 1); }
+    .popover .btn.selected, .popover .btn:active, .popover .btn[aria-selected=true] {
+      background-color: #edeff2;
+      box-shadow: inset 0 1px 0 rgba(225, 228, 232, 0.2);
+      transition: none; }
+    .popover .btn.hover, .popover .btn:hover, .popover .btn [open] > .btn {
+      background-color: #f3f4f6;
+      transition-duration: .1s; }
+
+.ml-n3 {
+  margin-left: -16px !important; }
+
+.mr-n3 {
+  margin-right: -16px !important; }
+
+.Label {
+  display: inline-block;
+  padding: 0 7px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  border-radius: 2em;
+  background-color: initial !important;
+  border: 1px solid #e1e4e8; }
+  .Label--purple {
+    color: #6f42c1;
+    border-color: #8a63d2; }
+
+/*// These are our margin and padding utility spacers. The default step size we
+// use is 8px. This gives us a key of:
+//    0 => 0px
+//    1 => 4px
+//    2 => 8px
+//    3 => 16px
+//    4 => 24px
+//    5 => 32px
+//    6 => 40px
+$spacer: 8px !default;
+
+// Our spacing scale
+$spacer-0: 0 !default; // 0
+$spacer-1: round($spacer / 2) !default; // 4px
+$spacer-2: $spacer !default; // 8px
+$spacer-3: $spacer * 2 !default; // 16px
+$spacer-4: $spacer * 3 !default; // 24px
+$spacer-5: $spacer * 4 !default; // 32px
+$spacer-6: $spacer * 5 !default; // 40px
+
+$black-fade-15: #808080;
+
+$border-black-fade: $black-fade-15 !default;
+// Black based on same hue as $gray-900
+$black: #1b1f23 !default;
+$white: #fff !default;
+
+$bg-white: #fff;
+$border-style: solid;
+
+
+.Popover {
+    position: absolute;
+    z-index: 100;
+}
+
+.popover {
+    position: relative;
+    width: 360px;
+    margin-right: auto;
+    margin-left: auto;
+    box-shadow: 0 1px 15px rgba(27,31,35,0.15) !important;
+}
+
+.Popover-message {
+    // Carets
+    &::before,
+    &::after {
+        position: absolute;
+        left: 50%;
+        display: inline-block;
+        content: "";
+    }
+
+    &::before {
+        top: -$spacer-3;
+        // stylelint-disable-next-line primer/spacing
+        margin-left: -9px;
+        // stylelint-disable-next-line primer/borders
+        border: $spacer-2 $border-style transparent;
+        border-bottom-color: $border-black-fade;
+    }
+
+    &::after {
+        top: -14px;
+        margin-left: -$spacer-2;
+        // stylelint-disable-next-line primer/borders
+        border: 7px $border-style transparent;
+        // stylelint-disable-next-line primer/borders
+        border-bottom-color: $bg-white;
+    }
+}
+
+// Bottom-oriented carets
+.Popover-message--bottom,
+.Popover-message--bottom-right,
+.Popover-message--bottom-left {
+    &::before,
+    &::after {
+        top: auto;
+        border-bottom-color: transparent;
+    }
+
+    &::before {
+        bottom: -$spacer-3;
+        border-top-color: $border-black-fade;
+    }
+
+    &::after {
+        bottom: -14px;
+        // stylelint-disable-next-line primer/borders
+        border-top-color: $bg-white;
+    }
+}
+
+// Top & Bottom: Right-oriented carets
+.Popover-message--top-right,
+.Popover-message--bottom-right {
+    right: -9px;
+    margin-right: 0;
+
+    &::before,
+    &::after {
+        left: auto;
+        margin-left: 0;
+    }
+
+    &::before {
+        right: 20px;
+    }
+
+    &::after {
+        right: 21px;
+    }
+}
+
+// Top & Bottom: Left-oriented carets
+.Popover-message--top-left,
+.Popover-message--bottom-left {
+    left: -9px;
+    margin-left: 0;
+
+    &::before,
+    &::after {
+        left: $spacer-4;
+        margin-left: 0;
+    }
+
+    &::after {
+        left: $spacer-4 + 1;
+    }
+}
+
+// Right- & Left-oriented carets
+.Popover-message--right,
+.Popover-message--right-top,
+.Popover-message--right-bottom,
+.Popover-message--left,
+.Popover-message--left-top,
+.Popover-message--left-bottom {
+    &::before,
+    &::after {
+        top: 50%;
+        left: auto;
+        margin-left: 0;
+        border-bottom-color: transparent;
+    }
+
+    &::before {
+        // stylelint-disable-next-line primer/spacing
+        margin-top: -($spacer-2 + 1);
+    }
+
+    &::after {
+        margin-top: -$spacer-2;
+    }
+}
+
+// Right-oriented carets
+.Popover-message--right,
+.Popover-message--right-top,
+.Popover-message--right-bottom {
+    &::before {
+        right: -$spacer-3;
+        border-left-color: $border-black-fade;
+    }
+
+    &::after {
+        right: -14px;
+        // stylelint-disable-next-line primer/borders
+        border-left-color: $bg-white;
+    }
+}
+
+// Left-oriented carets
+.Popover-message--left,
+.Popover-message--left-top,
+.Popover-message--left-bottom {
+    &::before {
+        left: -$spacer-3;
+        border-right-color: $border-black-fade;
+    }
+
+    &::after {
+        left: -14px;
+        // stylelint-disable-next-line primer/borders
+        border-right-color: $bg-white;
+    }
+}
+
+// Right & Left: Top-oriented carets
+.Popover-message--right-top,
+.Popover-message--left-top {
+    &::before,
+    &::after {
+        top: $spacer-4;
+    }
+}
+
+// Right & Left: Bottom-oriented carets
+.Popover-message--right-bottom,
+.Popover-message--left-bottom {
+    &::before,
+    &::after {
+        top: auto;
+    }
+
+    &::before {
+        bottom: $spacer-3;
+    }
+
+    &::after {
+        bottom: $spacer-3 + 1;
+    }
+}
+
+.Popover-message--large {
+
+}
+
+
+
+.Box {
+    background-color: #fff;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+}
+
+.mt-2 {
+    margin-top: 8px !important;
+}
+.mx-auto {
+    margin-right: auto !important;
+    margin-left: auto !important;
+}*/
+
+/*# sourceMappingURL=popover.css.map */

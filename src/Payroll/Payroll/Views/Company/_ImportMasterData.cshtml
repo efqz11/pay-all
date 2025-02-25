@@ -1,0 +1,152 @@
+﻿@using System.ComponentModel.DataAnnotations;
+
+@{
+    var dd = new BulkImportMasterVm();
+}
+
+<form asp-action="ImportMasterData" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#importSumm" data-ajax-success="$('.tab-link[data-tab=2]').click()" id="bulkUpdateEmplForm" data-ajax-failure="handleModalPostFailure" >
+    @Html.AntiForgeryToken()
+    <input name="Id" id="Id" type="hidden" value="@ViewBag.Id" />
+
+    @*<header class="modal__header">
+            <h2 class="modal__title" id="modal-1-title">
+                Import Employee Data
+            </h2>
+            <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        </header>*@
+        
+    <main class="" id="">
+        
+        
+        <div class="form-group">
+            <div class="alert alert-warning mt-1">
+                @*<h6 class=""><i class="fa fa-exclamation-triangle"></i> Read below information carefully!</h6>*@
+                <ul>
+                    <li>Look out for <b class="text-info">required*</b> fields and <b class="text-purple">optional</b> fields will be ignored if empty</li>
+                    <li>We will always attempt to read data from the <b>First Work Sheet</b> in the Excel file</li>
+                    <li>First row in the Excel sheet will be regarded as <b>excel column names</b></li>
+                    <li>If your having <b>issues with Date column</b>, try to change date formatting or go to Data > Text to Columns and change format</li>
+                    @* <li>Format all dates in <b>any format</b> and change format to <b>Date</b></li>
+                    <li>Make sure all column format is set to <b>General. This should remove 'cast object' error</b>. In case the error still persists, try to use <b>Data => Text to Columns wizard</b> to change formatting to text or date format</li>
+                    <li><b> Employees and Contracts</b> will be created. Contract may be active depending on the start and end dates.</li> *@
+                    @* <li>User account to these employees will also be created if their <b>emails(usernames) are unique.</b></li> *@
+                    @* <li>For all those user accounts created can login directly with email and organization. <b>OTP Code </b> will be sent to your email for verification</li>
+                    <li>Use <a href="https://excelribbon.tips.net/T012383_Separating_Names_into_Individual_Columns.html" target="_blank">this link to refere to excel formula </a> for <b>separating full name to first, middle and last name</b></li> *@
+                </ul>
+            </div>
+        </div> 
+        <div class="form-group">
+            <a class="btn btn-outline-warning" asp-action="DownloadImportTemplate" asp-route-jobs="2" asp-route-controller="Company"><i class="fad fa-file-excel"></i> Download the template file</a>
+            <small>(One record is added as an example)</small>
+
+             <p class="mt-3">OR</p>
+            <p> <input type="file" id="templateFile" class="form-control-file" /></p>
+
+            <button class="btn btn-primary" type="button" onclick="uploadBullk()" id="bulkUpdateImportBtn" style="display:none">
+                Upload & Verify Data
+            </button>
+        </div>
+
+        <table class="table table-responsive">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Field</th>
+                    <th>Data Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < dd.GetType().GetProperties().Length; i++)
+                {
+                    <tr>
+                        <th>@(i+1)</th>
+                        <th>
+                            @if (dd.GetType().GetProperties()[i].IsDefined(typeof(RequiredAttribute), false)){
+                                <span class="text-info">@dd.GetType().GetProperties()[i].Name@("*")</span>
+                            }
+                            else{
+                                <span class="@(dd.GetType().GetProperties()[i].Name == "EmpID" ? "text-purple" : "")">@dd.GetType().GetProperties()[i].Name</span>
+                            }
+                        </th>
+                        <td>
+                            @dd.GetType().GetProperties()[i].PropertyType.Name
+                        </td>
+                        <td>
+                            @if (dd.GetType().GetProperties()[i].IsDefined(typeof(DisplayAttribute), false))
+                            {
+                                <span class="text-weight-normal">
+                                    @if(!string.IsNullOrWhiteSpace(dd.GetType().GetProperties()[i].GetCustomAttributes(typeof(DisplayAttribute), false).Cast<DisplayAttribute>().Single().Description)){
+                                    @(dd.GetType().GetProperties()[i].GetCustomAttributes(typeof(DisplayAttribute), false).Cast<DisplayAttribute>().Single().Description)
+                                    }
+                                    else{
+                                        @(dd.GetType().GetProperties()[i].GetCustomAttributes(typeof(DisplayAttribute), false).Cast<DisplayAttribute>().Single().Name)
+                                    }
+                                </span>
+                            }
+                            @if (dd.GetType().GetProperties()[i].PropertyType.IsEnum)
+                            {
+                                <span class="text-weight-normal">Choose any of the values defined for this field</span>
+                                var values = Enum.GetValues(dd.GetType().GetProperties()[i].PropertyType);
+                                <br />
+                                @foreach (var item in values)
+                                {
+                                    <span class="badge badge-info" title="">@item </span>
+                                }
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="form-group">
+            <div class="alert alert-info mt-1">
+                <span class="">* required fields</span>
+            </div>
+        </div>
+    </main>
+</form>
+
+
+<script>
+
+
+    function uploadBullk() {
+        var formData = new FormData();
+
+        var file = document.getElementById("templateFile").files[0];
+        formData.append("file", file);
+
+        var id = $('form#bulkUpdateEmplForm #Id').val().trim()
+        formData.append("Id", id);
+
+
+        var token = $('form#bulkUpdateEmplForm input[name="__RequestVerificationToken"]').val().trim()
+        formData.append("__RequestVerificationToken", token);
+
+
+        $.ajax({
+            type: "POST",
+            url: $('form#bulkUpdateEmplForm').attr('action'),
+            data: formData,
+            processData: false,
+            contentType: false,
+            beforeSend: function (response) {
+                $('#bulkUpdateImportBtn').html(getLoaderSmWhiteHtml());
+            },
+            success: function (response) {
+
+                $('#importSumm').html(response);
+                $('.tab-link[data-tab=2]').click()
+
+            },
+            complete: function (response) {
+                $('#bulkUpdateImportBtn').html("Upload & Verify Data");
+            },
+            error: handleModalPostFailure,
+        });
+    }
+</script>
+
+

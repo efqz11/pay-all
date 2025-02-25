@@ -1,0 +1,114 @@
+﻿@model List<TaskRunReport>
+@inject Payroll.Database.AccountDbContext dbContext
+@{
+    ViewData["Title"] = "Task Run Report";
+    var i = 15;
+    ViewBag.Small = true;
+}
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link href="~/lib/RangePickerSlider/range_picker.css" rel="stylesheet" />
+
+
+<div class="row mt-2">
+    <div class="col-md-4">
+        <div class="text-lg-left">
+            <h4 class="display">All Tasks</h4>
+            <p>View all Task and Reports</p>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="filters float-right">
+            <form asp-action="Index" style="display: inline-flex;" id="rosterFilterForm">
+                <div class="form-group">
+                    <label class="control-label text-muted">Choose Task</label>
+                    <select name="type" id="type" class="form-control form-control-sm" asp-items=@(Html.GetEnumSelectList<TaskReportType>()) onchange="submitFIlterForm()">
+                        <option value="0">All Tasks</option>
+                    </select>
+                </div>
+
+                @*<div class="form-group ml-2">
+                        <label class="control-label text-muted">Employee</label>
+                        <select name="empId" id="empId" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                            <partial name="_EmployeeDropdownOpt" model="(List<Employee>)ViewBag.EmployeeIds" />
+                        </select>
+                    </div>*@
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Limit</label>
+                    <select name="limit" id="limit" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-5" id="">
+        <table class="table">
+            <tbody>
+                @foreach (var schedule in Model)
+                {
+                    <tr>
+                        <td class="">
+                            <h6>
+                                <a class="" data-ajax="true" data-ajax-update="#viewReport" data-ajax-begin="" asp-action="ViewReport" asp-route-id="@schedule.Id">
+                                    &mdash; @(((DateTime)dbContext.Entry(schedule).Property(AuditFileds.CreatedDate).CurrentValue).ToLocalFormat(true))
+                                    <br />
+                                    <span class="">@schedule.JobName</span>
+                                </a>
+
+                            </h6>
+                        </td>
+
+                        @*<td>
+                            <a class="btn btn-sm btn-danger" asp-action="RemoveContract" asp-route-id="@schedule" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', 'Line item was just removed');$(this).parents('tr').fadeOut()" data-ajax-confirm="Removing contract will also remove employee permissions and terminate employees?">&bull; Remove</a>
+                        </td>*@
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="col-md-7" id="viewReport">
+    </div>
+</div>
+
+@section scripts {
+
+
+    <script>
+        $(".has-datepicker").flatpickr({
+            dateFormat: "j-M-Y",
+            clearBtn: true
+        });
+        
+
+        var limit = '@ViewBag.limit';
+        if (limit)
+            $('#limit').val(limit);
+
+        var empId = '@ViewBag.empId';
+        if (empId)
+            $('#empId').val(empId);
+
+        @*var desgId = '@ViewBag.desgId';
+        if (desgId)
+            $('#desgId').val(desgId);*@
+
+        var type = '@ViewBag.type';
+        if (type)
+        $('#type').val(type);
+
+        function submitFIlterForm() { $('#rosterFilterForm').submit() }
+
+        $('input[name="date"]').on('apply.daterangepicker', function (ev, picker) {
+            submitFIlterForm();
+        });
+
+    </script>
+
+
+}

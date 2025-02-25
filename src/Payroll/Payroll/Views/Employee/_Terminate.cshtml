@@ -1,0 +1,42 @@
+﻿@model Payroll.Models.Employee
+
+@{
+    ViewData["Title"] = "Create Employee";
+}
+
+
+<form asp-action="TerminateEmployee" data-ajax="true" data-ajax-method="POST" data-ajax-update="#masterEmployeeArea" data-ajax-success="handleModalPostFailure" id="employeeDetailsCreateForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    @if (Model != null && Model.Id > 0)
+    {
+        <input asp-for="Id" type="hidden" />
+    }
+
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            Employee Termination
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+
+    <main class="modal__content" id="modal-1-content">
+       
+        <div class="form-group">
+            <label asp-for="DateOfTermination" class="control-label"></label>
+            <input asp-for="DateOfTermination" class="form-control has-datepicker" />
+            <span asp-validation-for="DateOfTermination" class="text-danger"></span>
+        </div>
+        <p>If termination date is set for future date, termination job will be created and scheduled</p>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>
+
+    <script>
+
+        $(".has-datepicker").flatpickr({
+            dateFormat: "j-M-Y"
+        });
+    </script>

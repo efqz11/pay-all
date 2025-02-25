@@ -1,0 +1,293 @@
+﻿@model Company
+@{
+
+}
+
+
+<ol class="progress-bar-tabs progress-bar-style-default">
+    <li data-step="1" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Location</div></li>
+    <li data-step="2" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Department</div></li>
+    <li data-step="3" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Team</div></li>
+    <li data-step="4" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Division</div></li>
+</ol>
+
+<partial name="_ShowAlertMessage" />
+
+<div class="row pt-3">
+    <div class="col-sm-12 col-md-7 content">
+        <form asp-action="UpdateDeptDivisionLocations" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" data-ajax-success="sendNotification('success', 'Company format settings were just saved')" id="form" data-ajax-failure="handleModalPostFailure" onsubmit="event.preventDefault(); saveForm();">
+            @Html.AntiForgeryToken()
+            <input asp-for="Id" type="hidden" value="@Model.Id" />
+
+            <div class="step" data-step="1">
+                <h4 class="pb-4 fs-unmask">
+                    Add Locations
+                    &nbsp;
+                    <a href="#" class="link-summary new"><i class="fad fa-plus-circle"></i> New</a>
+                </h4>
+                <p class="text-weight-normal">
+                    Tell us about your company locations or branches. Each employee will belong to any one location at a given time
+                </p>
+                <div class="form-group mb-4">
+                    <table class="table table-sm">
+                        <tbody>
+                            @foreach (var item in Model.Locations)
+                            {
+                                <tr>
+                                    <td>
+                                        <input type="hidden" name="Locations[i].Id" value="@item.Id" />
+                                        <input type="hidden" name="Locations[i].IsActive" class="a_state" value="@item.IsActive" />
+
+                                        <input type="text" class="form-control form-control-lg" name="Locations[i].Name" value="@item.Name" />
+                                    </td>
+
+                                    <td>
+                                        <a class="text-danger" onclick="remove(this)"><i class="fad fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                            }
+
+                            <tr>
+                                <td>
+                                    <input type="hidden" name="Locations[i].Id" value="" />
+                                    <input type="hidden" name="Locations[i].IsActive" class="a_state" value="True" />
+
+                                    <input type="text" class="form-control form-control-lg" name="Locations[i].Name" value="" />
+                                </td>
+
+                                <td>
+                                    <a class="text-danger" onclick="remove(this)"><i class="fad fa-trash"></i></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="step" data-step="2">
+                <h4 class="pb-4 fs-unmask">
+                    Add Departments
+                    &nbsp;
+                    <a href="#" class="link-summary new"><i class="fad fa-plus-circle"></i> New</a>
+                </h4>
+                <p class="text-weight-normal">
+                    Tell us about your departments in your company.
+                </p>
+                <div class="form-group mb-4">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Name</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Departments)
+                            {
+                                <tr>
+                                    <td width="100">
+                                        <input type="hidden" name="Departments[i].Id" value="@item.Id" />
+                                        <input type="hidden" name="Departments[i].IsActive" class="a_state" value="@item.IsActive" />
+
+                                        <input type="text" class="form-control form-control-lg" name="Departments[i].DeptCode" value="@item.DeptCode" />
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control form-control-lg" name="Departments[i].Name" value="@item.Name" />
+                                    </td>
+                                    <td>
+                                        <a class="text-danger" onclick="remove(this)"><i class="fad fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                            }
+                            <tr>
+                                <td width="100">
+                                    <input type="hidden" name="Departments[i].Id" />
+                                    <input type="hidden" name="Departments[i].IsActive" class="a_state" value="True" />
+
+                                    <input type="text" class="form-control form-control-lg" name="Departments[i].DeptCode" />
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-lg" name="Departments[i].Name" />
+                                </td>
+                                <td>
+                                    <a class="text-danger" onclick="remove(this)"><i class="fad fa-trash"></i></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+            <div class="step" data-step="3">
+                <h4 class="pb-4 fs-unmask">
+                    Add Teams
+                    &nbsp;
+                    <a href="#" class="link-summary new"><i class="fad fa-plus-circle"></i> New</a>
+                </h4>
+                <p class="text-weight-normal">
+                    Tell us about the different teams in your company. You can later assign on-boarding tasks to different teams and employee may be on different teams
+                </p>
+                <div class="form-group mb-4">
+                    <table class="table table-sm">
+                        <tbody>
+                            @foreach (var item in Model.Teams)
+                            {
+                                <tr>
+                                    <td>
+                                        <input type="hidden" name="Teams[i].Id" value="@item.Id" />
+                                        <input type="hidden" name="Teams[i].IsActive" class="a_state" value="@item.IsActive" />
+
+                                        <input type="text" class="form-control form-control-lg" name="Teams[i].Name" value="@item.Name" />
+                                    </td>
+                                    <td>
+                                        <a class="text-danger" onclick="remove(this)"><i class="fad fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                            }
+                            <tr>
+                                <td>
+                                    <input type="hidden" name="Teams[i].Id" />
+                                    <input type="hidden" name="Teams[i].IsActive" class="a_state" value="True" />
+
+                                    <input type="text" class="form-control form-control-lg" name="Teams[i].Name" />
+                                </td>
+                                <td>
+                                    <a class="text-danger" onclick="remove(this)"><i class="fad fa-trash"></i></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <a href="#" class="link-summary" onclick="skipStep(event)">Skip this step</a>
+            </div>
+            <div class="step" data-step="4">
+                <h4 class="pb-4 fs-unmask">
+                    Add Division
+                    &nbsp;
+                    <a href="#" class="link-summary new"><i class="fad fa-plus-circle"></i> New</a>
+                </h4>
+                <div class="form-group mb-4">
+                    <table class="table table-sm">
+                        <tbody>
+                            @foreach (var item in Model.Divisions)
+                            {
+                                <tr>
+                                    <td>
+                                        <input type="hidden" name="Divisions[i].Id" value="@item.Id" />
+                                        <input type="hidden" name="Divisions[i].IsActive" class="a_state" value="@item.IsActive" />
+
+                                        <input type="text" class="form-control" name="Divisions[i].Name" value="@item.Name" />
+                                    </td>
+
+                                    <td>
+                                        <a class="text-danger" onclick="remove(this)"><i class="fad fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                            }
+
+                            <tr>
+                                <td>
+                                    <input type="hidden" name="Divisions[i].Id" value="" />
+                                    <input type="hidden" name="Divisions[i].IsActive" class="a_state" value="True" />
+                                    <input type="text" class="form-control form-control-lg" name="Divisions[i].Name" value="" />
+                                </td>
+
+                                <td>
+                                    <a class="text-danger" onclick="remove(this)"><i class="fad fa-trash"></i></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <input type="hidden" name="Repeat.Id" value="" />
+                </div>
+
+                <a href="#" class="link-summary" onclick="skipStep(event)">Skip this step</a>
+            </div>
+
+            <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+                <button class="btn btn-lg btn-outline-primary btn-back mr-2" type="button">Back</button>
+                <button class="btn btn-lg btn-primary btn-next" type="button">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+    $('a.link-summary.new').click(function (e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        var table = $(this).parents('.step').find('table');
+        var lastTrClone = $(table).find('tbody tr:first:visible').clone();
+
+        console.log(e, table, lastTrClone);
+
+        $(lastTrClone).find('input[type="text"]').val("");
+        $(lastTrClone).find('.a_state').val('True');
+
+        $(table).find('tbody').append(lastTrClone);
+    });
+    //function cloneAndAdd(e) {
+    //    e.preventDefault();
+
+    //}
+
+    function remove(e) {
+        var tr = $(e).parents('tr');
+        $(tr).find('.a_state').val('False');
+        $(tr).fadeOut();
+    }
+
+    function saveForm() {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        var url = GetAppRootPath() + '/Company/UpdateDeptDivisionLocations';
+        var postData = $('#form').find('input').serializeArray();
+
+
+        var deptIndx = -1, locIndx = -1, divIndx = -1;
+        $.each(postData, function (i, e) {
+
+            if (e.name.indexOf("Departments") >= 0) {
+                if (e.name === "Departments[i].Id") {
+                    deptIndx++;
+                }
+                e.name = e.name.replace('[i]', '[' + deptIndx + ']');
+            }
+
+
+            if (e.name.indexOf("Locations") >= 0) {
+                if (e.name === "Locations[i].Id") {
+                    locIndx++;
+                }
+                e.name = e.name.replace('[i]', '[' + locIndx + ']');
+            }
+
+            if (e.name.indexOf("Divisions") >= 0) {
+                if (e.name === "Divisions[i].Id") {
+                    divIndx++;
+                }
+                e.name = e.name.replace('[i]', '[' + divIndx + ']');
+            }
+            if (e.name.indexOf("Teams") >= 0) {
+                if (e.name === "Teams[i].Id") {
+                    divIndx++;
+                }
+                e.name = e.name.replace('[i]', '[' + divIndx + ']');
+            }
+        });
+
+        console.log("postData ", postData);
+        $.post(url, postData, function (d) {
+        }).done(function (data) {
+            sendNotification('success', 'Company data was just saved');
+            $('#main-content').html(data);
+        }).fail(function () {
+            sendNotification('error', 'Error occured while saving, please check your entered values');
+        });
+    }
+</script>

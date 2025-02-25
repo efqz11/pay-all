@@ -1,0 +1,485 @@
+﻿@model PayrollPeriod
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+<div class="text-center">
+    <h1 class="display-4">@Model.Name</h1>
+    <p class="mb-1">payroll master sheet</p>
+    <small>@Model.PayrollPeriodStrings</small>
+</div>
+
+<div class="row" style="position: relative;top: -60px;">
+    <div class="col">
+        @if (TempData["PrevItem"] != null)
+        {
+            var prevItem = (PayrollPeriod)TempData["PrevItem"];
+            <a asp-action="detail" asp-route-id="@prevItem.Id"><i class="ion-chevron-left"></i> @prevItem.Name</a>
+        }
+    </div>
+
+    <div class="col text-right">
+        @if (TempData["NextItem"] != null)
+        {
+            var prevItem = (PayrollPeriod)TempData["NextItem"];
+            <a asp-action="detail" asp-route-id="@prevItem.Id">
+                @prevItem.Name <i class="ion-chevron-right"></i>
+            </a>
+        }
+    </div>
+</div>
+
+@{
+    var firstRow = Model.PayrollPeriodEmployees.FirstOrDefault() == null ? null : Model.PayrollPeriodEmployees.FirstOrDefault();
+    if (firstRow != null)
+    {
+        firstRow.VariationKeyValues = firstRow.VariationKeyValues.OrderBy(x => x.MultiOrder).ToList();
+    }
+}
+
+<div id="page-top-action-buttons" class="float-right pb-2">
+    <a class="btn btn-outline-primary" asp-action="PayAdjustment" asp-controller="Payroll" asp-route-payrolId="@(Model.Id)"><i class="fa fa-plus-circle"></i>  Add Adjustment</a>
+    <a class="btn-add btn btn-warning" asp-route-id="@Model.Id" asp-action="Recalculate" data-ajax-method="POST" data-ajax-begin="convertToLoadingTable('.table-master-data');showModal('modal-regenerate-payroll', false)" data-ajax-success="createTableSuccess(false)" data-ajax-confirm="Are you sure you wish to re-calculate and generate master data sheet. This will obselete all existing calculated records" data-ajax-failure="$('#modal-regenerate-payroll').find('.d1').text('There was an error while creating table');handleModalPostFailure" data-ajax="true"><i class="ion-android-refresh"></i> Re-Calculate</a>
+
+    <button class="btn-add btn btn-info" data-micromodal-trigger="modal-export"><i class="ion-android-mail"></i> Export</button>
+
+    <a class="btn-add btn btn-danger" asp-route-id="@Model.Id" asp-action="ClearAll" data-ajax-method="POST" data-ajax-loading=".loading" data-ajax-success="location.reload()" data-ajax-confirm="Are you sure you wish to clear all records. This action is irreversible and all data entered to this payrol will be removed" data-ajax-begin="convertToLoadingTable('.table-master-data')" data-ajax="true"><i class="ion-close"></i>  Clear All</a>
+</div>
+
+<div class="float-left pb-2">
+    <form asp-controller="PayAdjustment" asp-action="Search" class="" data-ajax-begin="convertToLoadingTable('.data-container-table')" data-ajax="true" data-ajax-method="POST" data-ajax-update="#masterEmployeeArea" data-ajax-success="recalculateTotals()">
+        <input type="text" class="txt-search form-control" name="query" placeholder="Type name to search" />
+    </form>
+</div>
+<div class="clearfix"></div>
+@if (Model?.PayrollPeriodEmployees == null || Model.PayrollPeriodEmployees.Count() <= 0)
+{
+    <div class="row justify-content-center text-center">
+        <div class="col-12 col-md-10 mt-5">
+
+            <i class="fa fa-braille fa-5x mb-2"></i>
+            <h2>
+                No Records
+            </h2>
+
+            <p class="text-muted">
+                There is no master data. Kindly add values to adjusment components using <strong>manage adjustments</strong> button below.
+            </p>
+
+            @*<a class="btn btn-lg btn-danger d-none d-md-inline-block mt-3" href="#" onclick="$('.btn-add').click()">Re-calculate Table</a>
+                <br />*@
+
+            <a class="btn btn-lg btn-primary" asp-action="PayAdjustment" asp-controller="Payroll" asp-route-payrolId="@(Model.Id)">Manage Adjustment</a>
+
+            <p class="text-muted mt-1">
+                <small>Recalculation will remove all old values previously created and new values will be populated</small>
+            </p>
+        </div>
+    </div> <!-- / .row -->
+}
+else
+{
+    <table class="table table-responsive table-hover table-master-data" id="table-master-data">
+        <thead>
+            <tr>
+                <th width="50%">ID | Name</th>
+                <th>Department</th>
+                @foreach (var item in firstRow.VariationKeyValues.Where(v => v.Type == VariationType.ConstantAddition || v.Type == VariationType.VariableAddition))
+                {
+                    <th>
+                        <a asp-action="PayAdjustment" asp-controller="Payroll" asp-route-addId="@item.KeyId" asp-route-payrolId="@(Model.Id)">@item.Key</a>
+                    </th>
+                }
+                <th>Gross Pay</th>
+                @foreach (var item in firstRow.VariationKeyValues.Where(v => v.Type == VariationType.ConstantDeduction || v.Type == VariationType.VariableDeduction))
+                {
+                    <th>
+                        <a asp-action="PayAdjustment" asp-controller="Payroll" asp-route-addId="@item.KeyId" asp-route-payrolId="@(Model.Id)">@item.Key</a>
+                    </th>
+                }
+                <th>Net Salary</th>
+            </tr>
+        </thead>
+        <tbody>
+            <partial name="_PayrolMasterSheet" model="@Model.PayrollPeriodEmployees" />
+            @*@if (Model.PayrollPeriodEmployees.Any())
+                {
+
+                    @foreach (var item in Model.PayrollPeriodEmployees)
+                    //.OrderBy(x=> x.Employee.Department.Name).ThenBy(x=>  x.Employee.Name))
+                    {
+                        <tr>
+                            <td width="30%">
+                                <a asp-action="Detail" asp-controller="Employee" asp-route-id="@item.EmployeeId">@item.EmpID | @item.Name</a>
+                            </td>
+                            <td>
+                                @(item.Employee?.Department?.Name ?? "NA")
+                           </td>
+                           @foreach (var add in firstRow.VariationKeyValues.Where(v => v.Type == VariationType.ConstantAddition || v.Type == VariationType.VariableAddition))
+                            {
+                                <td>
+                                    @item.VariationKeyValues.Where(x => (x.Type == VariationType.ConstantAddition || x.Type == VariationType.VariableAddition) && x.KeyId == add.KeyId)?.Sum(x => x.Value).ToString("N2")
+                                </td>
+                            }
+                            <td><b>@item.GrossPay.ToString("N2")</b></td>
+                            @foreach (var ddd in firstRow.VariationKeyValues.Where(v => v.Type == VariationType.ConstantDeduction || v.Type == VariationType.VariableDeduction))
+                            {
+                                <td>
+                                    @(item.VariationKeyValues.Where(x => (x.Type == VariationType.ConstantDeduction || x.Type == VariationType.VariableDeduction) && x.KeyId == ddd.KeyId)?.Sum(x => x.Value).ToString("N2"))
+                                </td>
+                            }
+                            <td><b>@item.NetSalary.ToString("N2")</b></td>
+                        </tr>
+                    }
+                }*@
+        </tbody>
+        <tfoot>
+            <tr>
+                <td width="30%">
+                    <b>Total</b>
+                </td>
+                <td></td>
+
+                @foreach (var add in firstRow.VariationKeyValues.Where(v => v.Type == VariationType.ConstantAddition || v.Type == VariationType.VariableAddition))
+                {
+                    <td></td>
+                }
+                <td></td>
+                @foreach (var ddd in firstRow.VariationKeyValues.Where(v => v.Type == VariationType.ConstantDeduction || v.Type == VariationType.VariableDeduction))
+                {
+                    <td></td>
+                }
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="text-center mb-2">
+        <div class="loader btn btn-primary btn-loading" data-page="2" style="line-height: 1px;display:none">
+            <div class="ball-beat"><div></div><div></div><div></div></div>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a class="btn btn-outline-primary btn-justified" asp-action="PayAdjustment" asp-controller="Payroll" asp-route-payrolId="@(Model.Id)">+ Add Adjustment</a>
+    </div>
+}
+
+
+<div class="modal micromodal-slide" id="modal-export" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-export-title" style="width: 100%;">
+            <header class="modal__header">
+                <h2 class="modal__title" id="modal-1-title">
+                    How do you like to export
+                </h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+            </header>
+            <main class="modal__content" id="modal-1-content">
+                <div class="form-group-inline">
+                    <label class="control-label" for="Email">Master Sheet Download</label>
+                    <br />
+                    <button class="btn btn-outline-primary" onclick="fnExportPrint()">PRINT</button>
+                    <button class="btn btn-outline-dark" onclick="fnExportExcel()" role="tooltip" data-microtip-position="top" aria-label="Download excel file">XLS</button>
+                    <button class="btn btn-outline-dark" onclick="fnExportCsv()">CSV</button>
+                </div>
+                <hr />
+                <label class="control-label" for="Email">Standard Sheets</label>
+                <br />
+                <a class="btn btn-outline-warning" asp-action="GenerateBankSheet" asp-route-payrolId="@(Model.Id)">Bank Sheet</a>
+                <a class="btn btn-outline-warning" asp-action="GeneratePensionSheet300" asp-route-payrolId="@(Model.Id)" role="tooltip" data-microtip-position="top" aria-label="Downlaod Pension Sheet 300">MPS 300</a>
+                <a class="btn btn-outline-warning" asp-action="GeneratePensionSheet101" asp-route-payrolId="@(Model.Id)" role="tooltip" data-microtip-position="top" aria-label="Downlaod Pension Sheet 101">MPS 101</a>
+                @*<label class="control-label" for="Email">Send Email</label>
+                    <input type="text" class="form-control" placeholder="Enter your email or multiple email like csv foramt" id="Emails" name="Emails" value="">*@
+            </main>
+            <footer class="modal__footer">
+                <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+            </footer>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal micromodal-slide" id="modal-regenerate-payroll" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-recreate-table-title" style="width: 100%;">
+            <header class="modal__header text-center">
+                <h2 class="modal__title" id="modal-1-title">
+                    Generating Payrol
+                </h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+            </header>
+            <main class="modal__content" id="modal-1-content">
+                <div class="text-center d1">
+                    <div class="loader loader-blue btn-loading mb-4" data-page="2" style="line-height: 1px;display:block">
+                        <div class="ball-beat"><div></div><div></div><div></div></div>
+                    </div>
+
+                    <span class="d1-span">Please wait until payrol is completed and master sheet is generated. This may take some time</span>
+                </div>
+                <div class="text-center d2" style="display:none">
+                    <span class="btn btn-success btn-lg mb-3"><b><i class="fa fa-check-circle"></i> Payrol Completed!</b></span>
+                    <br />
+                    <span class="d2-span"><b>Payrol</b> was successfully created for this period</span>
+                    <br />
+                    <small>@Model.PayrollPeriodStrings</small>
+                </div>
+            </main>
+            <footer class="modal__footer text-center">
+                <small>This window will close automatically</small>
+            </footer>
+        </div>
+    </div>
+</div>
+
+
+
+<iframe id="txtArea1" style="display:none"></iframe>
+
+
+@section scripts{
+    <script>
+        $(function () {
+            $('.calculated, .manual-entry').change(function (e) {
+                console.log('welcomesad ');
+            });
+
+            var canFetch = true;
+            var isBusy = false;
+            $(window).on("scroll", function () {
+                if (isBusy)
+                    return;
+                var page = $('.btn-loading').data('page');
+                var url = '@Url.Action("Detail")';
+                url = url.replace('&amp;', '&');
+                url += "?page=" + page;
+                var docHeight = $(document).height();
+                var winScrolled = $(window).height() + $(window).scrollTop(); // Sum never quite reaches
+                if ((docHeight - winScrolled) < 1) {
+                    console.log('scrolled to bottom of page');
+
+                    if (canFetch == false) return;
+                    $('.btn-loading').show();
+                    isBusy = true;
+                    $.post(url, function (data) {
+                        $('#table-master-data tbody').append(data);
+                        console.log('data updated');
+                        $('.table-master-data thead th').each(function (i) {
+                            if (i != 0)
+                                calculateColumn(i);
+                        });
+                    }).done(function (e) {
+                        }).always(function (data) {
+                            if ($.isEmptyObject(data) || data == undefined || data == null || data.trim() == "") {
+                            canFetch = false;
+                            $('.btn-loading').hide();
+                            $('.btn-loading').after('End of page.');
+                        } else {
+                            var newPage = (parseInt(page) + 1);
+                            console.log('newpage: ' + newPage);
+                            $('.btn-loading').data('page', newPage);
+                        }
+                        $('.btn-loading').hide();
+                        isBusy = false;
+                    });
+                }
+            })
+        });
+
+
+        function createTableSuccess(closeModal) {
+            $('#modal-regenerate-payroll').find('.d1').fadeOut(100);
+            $('#modal-regenerate-payroll').find('.d2').fadeIn(800);
+
+            if (!closeModal)
+                setTimeout(function () { location.reload(); }, 1500);
+            else {
+                setTimeout(function () { hideModal('modal-recreate-table'); }, 1500);
+            }
+        }
+
+    </script>
+    <script>
+        // export to csv
+        jQuery.fn.tableToCSV = function () { var t = function (t) { return t = t.replace(/"/g, '""'), '"' + t + '"' }; $(this).each(function () { var n = ($(this), $(this).find("caption").text()), e = [], i = []; $(this).find("tr").each(function () { var n = []; $(this).find("th").each(function () { var n = t($(this).text()); e.push(n) }), $(this).find("td").each(function () { var e = t($(this).text()); n.push(e) }), n = n.join(","), i.push(n) }), e = e.join(","), i = i.join("\n"); var o = e + i, a = "data:text/csv;charset=utf-8," + encodeURIComponent(o), c = document.createElement("a"); c.href = a; var h = (new Date).getTime(); "" == n ? c.download = h + ".csv" : c.download = n + "-" + h + ".csv", document.body.appendChild(c), c.click(), document.body.removeChild(c) }) };
+
+        $(function () {
+
+            // Add Total row, each column total
+            //var rowTotal = $('.table-master-data tbody').find('tr').length;
+            //var totals = new Array(rowTotal);
+            //var $dataRows = $('.table-master-data tbody').find('td');
+            //var newRow = "<tr><td><b>Total</b></td>";
+            $('.table-master-data thead th').each(function (i) {
+                if (i != 0)
+                    calculateColumn(i);
+            });
+        });
+
+        function fnExportPrint() {
+            var divToPrint = document.getElementById('table-master-data');
+            newWin = window.open("");
+            newWin.document.write(divToPrint.outerHTML);
+            newWin.print();
+            newWin.close();
+        }
+
+        function fnExportCsv() {
+            var html = document.querySelector("table").outerHTML;
+            filename = "master-data-table-" + '@Model.Name.GenerateSlug()' + ".csv";
+            var csv = [];
+            var rows = document.querySelectorAll("#table-master-data tr");
+
+            for (var i = 0; i < rows.length; i++) {
+                var row = [],
+                    cols = rows[i].querySelectorAll("td, th");
+
+                for (var j = 0; j < cols.length; j++) row.push(cols[j].innerText.replace(',',''));
+
+                csv.push(row.join(","));
+            }
+
+            // Download CSV
+            download_csv(csv.join("\n"), filename);
+        }
+
+        function download_csv(csv, filename) {
+
+            var csvFile;
+            var downloadLink;
+
+            // CSV FILE
+            csvFile = new Blob([csv], { type: "text/csv" });
+
+            // Download link
+            downloadLink = document.createElement("a");
+
+            // File name
+            downloadLink.download = filename;
+
+            // We have to create a link to the file
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+
+            // Make sure that the link is not displayed
+            downloadLink.style.display = "none";
+
+            // Add the link to your DOM
+            document.body.appendChild(downloadLink);
+
+            // Lanzamos
+            downloadLink.click();
+        }
+
+
+
+        function fnExportExcel() {
+            let tableData = document.getElementById('table-master-data').outerHTML;
+            let filename = "master-data-table-" + '@Model.Name.GenerateSlug()' + ".xls";
+            //tableData = tableData.replace(/<img[^>]*>/gi,""); //enable thsi if u dont want images in your table
+            tableData = tableData.replace(/<A[^>]*>|<\/A>/g, ""); //remove if u want links in your table
+            tableData = tableData.replace(/<input[^>]*>|<\/input>/gi, ""); //remove input params
+
+            tableData = tableData + '<br /><br />';
+             // Code witten By sudhir K gupta.If you found this helpful then please like my FB page - <br />https://facebook.com/comedymood<br />My Blog - https://comedymood.com'
+
+            //click a hidden link to which will prompt for download.
+            let a = document.createElement('a')
+            let dataType = 'data:application/vnd.ms-excel';
+            a.href = `data:application/vnd.ms-excel, ${encodeURIComponent(tableData)}`
+            a.download = filename;
+            a.click()
+
+            //var tab_text = "<table border='2px'><tr bgcolor='#87AFC6'>";
+            //var textRange; var j = 0;
+            //tab = document.getElementById('table-master-data'); // id of table
+
+            //for (j = 0; j < tab.rows.length; j++) {
+            //    tab_text = tab_text + tab.rows[j].innerHTML + "</tr>";
+            //    //tab_text=tab_text+"</tr>";
+            //}
+
+            //tab_text = tab_text + "</table>";
+            //tab_text = tab_text.replace(/<A[^>]*>|<\/A>/g, "");//remove if u want links in your table
+            //tab_text = tab_text.replace(/<img[^>]*>/gi, ""); // remove if u want images in your table
+            //tab_text = tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // reomves input params
+
+            //var ua = window.navigator.userAgent;
+            //var msie = ua.indexOf("MSIE ");
+
+            //if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer
+            //{
+            //    txtArea1.document.open("txt/html", "replace");
+            //    txtArea1.document.write(tab_text);
+            //    txtArea1.document.close();
+            //    txtArea1.focus();
+            //    sa = txtArea1.document.execCommand("SaveAs", true, "Say Thanks to Sumit.xls");
+            //}
+            //else                 //other browser not tested on IE 11
+            //    sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+
+            //return (sa);
+        }
+
+
+        function calculateColumn(index) {
+            var total = 0;
+            $('.table-master-data tbody tr').each(function () {
+                var value = parseFloat($('td', this).eq(index).text().trim().replace(',', ''));
+                console.log(parseFloat($('td', this).eq(index).text().trim().replace(',', '')));
+                if (!isNaN(value)) {
+                    total += value;
+                }
+            });
+            $('.table-master-data tfoot td').eq(index).html('<b>' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</b>');
+        }
+
+        function recalculateTotals() {
+            $('.table-master-data thead th').each(function (i) {
+                if (i != 0)
+                    calculateColumn(i);
+            });
+        }
+
+        /*
+        http://stackoverflow.com/questions/28948383/how-to-implement-debounce-fn-into-jquery-keyup-event
+        */
+
+        $('.txt-search').keyup(debounce(function () {
+            console.log('starting... ');
+            table_search($('.txt-search').val(), $('.table-master-data tbody tr'), '012');
+        }, 500));
+
+
+        //$('#input').keyup(function () {
+        //    table_search($('#input').val(), $('#table tbody tr'), '0');
+        //});
+
+
+
+        function table_search(search, tr, indexSearch = '0') {
+            //check if element don't exist in dom
+            var regEx = /^[0-9]*$/;
+            if (tr.length == 0 || !regEx.test(indexSearch)) {
+                return;
+            }
+            /*hide tr don't contain search in input*/
+            for (var i = 0; i < tr.length; i++) {
+                var resule = 'false';
+                for (var j = 0; j < indexSearch.length; j++) {
+                    if (tr.eq(i).children().length > indexSearch[j]) {
+                        if (tr.eq(i).children().eq(indexSearch[j]).text().toLowerCase().indexOf(search.toLowerCase()) != -1) {
+                            resule = 'success';
+                            break;
+                        }
+                    }
+                }
+                if (resule == 'success') {
+                    tr.eq(i).show();
+                } else {
+                    tr.eq(i).hide();
+                }
+            }
+        }
+    </script>
+}

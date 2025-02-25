@@ -1,0 +1,527 @@
+﻿@model ComparsonVm
+@{
+    ViewData["Title"] = "Home Page";
+
+    //Model.PayrollPeriodEmployees = Model.PayrollPeriodEmployees.OrderBy(x => x.PayrollPeriod.StartDate).ToList();
+    decimal perc = 0;
+    decimal calcChange = 0;
+    decimal previousTotal = 0;
+    List<Employee> Empls = (List<Employee>)ViewBag.Employees;
+    Dictionary<int, string> payAdjustments  = (Dictionary<int, string>)ViewBag.PayAdjustments;
+}
+
+<style>
+    tr.field-value-row {
+        font-size: 13px;
+        padding: 0px;
+        padding-left: 20px;
+        background-color: #f9f9f9;
+    }
+
+        tr.field-value-row td:first-child {
+            padding: 0px 22px 0px;
+        }
+
+        tr.field-value-row td {
+            padding-left: 20px;
+            padding: 0px 5px 0px;
+        }
+
+    .empCnt, .empls { display:none }
+</style>
+
+
+<div class="row">
+    <div class="col-md-6">
+        <div class=" form-inline form-group">
+            <label class="col-form-label">Choose Employee: </label>
+            <select name="empId" id="empId" asp-items="ViewBag.EmpId" onchange="reload(this)" class="form-control"></select>
+        </div>
+
+        <div class="form-inline form-group">
+            <label asp-for="SourcePeriodId" class="col-form-label">Period: </label>
+            <select asp-for="SourcePeriodId" asp-items="ViewBag.SourcePeriodId" onchange="reload(this)" class="form-control"></select>
+
+            &mdash;
+
+            <select asp-for="ComaprePeriodId" asp-items="ViewBag.ComaprePeriodId" onchange="reload(this)" class="form-control"></select>
+            &nbsp;
+            <button class="btn btn-primary btn-compare" onclick="reload(this)">Compare</button>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="text-lg-right">
+            <a asp-controller="payroll" asp-action="detail" asp-route-id="@Model.ComaprePeriodId">
+                <h4 class="display">Comparison</h4>
+            </a>
+            @*<p>Basic Salary: @Model.BasicSalary.ToString("N2")</p>*@
+            <small>Comparison view</small>
+
+        </div>
+    </div>
+</div>
+
+<div class="text-center">
+</div>
+<div class="clearfix"></div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h5 class="pb-1">
+            Pay period variants comparison @(Model.IsComparingPeriod ? "period-comparison*" : "")
+
+            <button class="btn btn-sm btn-outline-success float-right" role="tooltip" data-microtip-position="top" aria-label="Show or hide display of calculation table" onclick="$('.field-value-row').toggle()">Show/Hide Calculation Fields</button>
+        </h5>
+        @{ var i = 0; }
+
+        @if (Model.CompareDatas == null || Model.CompareDatas.Count <= 0)
+        {
+            <p>Kindly choose any filters from above to compare</p>
+        }
+        else
+        {
+            <div class="">
+                <div class="row">
+                    <div class="col">
+                        <table class="table table-bordered table-sm pay-components-table">
+                            <thead>
+                                <tr>
+                                    <th>Additions</th>
+                                    <th>Comp: (@ViewBag.ComaprePeriodName)</th>
+                                    <th>Current</th>
+                                    <th>Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @foreach (var item in Model.CompareDatas.Where(x => x.VariationType == VariationType.ConstantAddition || x.VariationType == VariationType.VariableAddition).OrderBy(x => x.MultiOrder))
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (item.VariationType == VariationType.ConstantAddition)
+                                            {
+                                                <i class="ion-ios-pricetags" role="tooltip" data-microtip-position="top" aria-label="Constant Addition"></i>
+                                            }
+                                            @item.Key
+                                        </td>
+                                        <td>
+                                            @item.CompareValue.ToString("N2")
+                                        </td>
+                                        <td>
+                                            @item.CurrentValue.ToString("N2")
+                                        </td>
+                                        <td>
+                                            @if (item.HasChanged)
+                                            {
+                                                @Html.Raw(@item.TrendText)
+                                            }
+                                        </td>
+                                    </tr>
+
+                                    @foreach (var payAdju in item.SecondCompareData)
+                                    {
+                                        <tr class="field-value-row">
+                                            <td>
+                                                @payAdju.Key
+                                            </td>
+                                            <td>
+                                                @try
+                                                {
+                                                    @Math.Round(decimal.Parse(payAdju.CompareValue), 2)
+                                                }
+                                                catch
+                                                {
+                                                    <text>@payAdju.CompareValue</text>
+                                                }
+                                            </td>
+                                            <td>
+                                                @try
+                                                {
+                                                    @Math.Round(decimal.Parse(payAdju.CurruretValue), 2)
+                                                }
+                                                catch
+                                                {
+                                                    <text>@payAdju.CurruretValue</text>
+                                                }
+                                            </td>
+                                            <td>
+                                                @Html.Raw(payAdju.TrendText)
+                                            </td>
+                                        </tr>
+
+                                    }
+                                }
+                                <tr>
+                                    <td><b>Gross Pay</b></td>
+                                    <td>
+                                        <b>
+                                            @((Model.GrossPayComaparison.CompareValue).ToString("N2"))
+                                        </b>
+                                    </td>
+                                    <td>
+                                        <b>@((Model.GrossPayComaparison.CurrentValue).ToString("N2"))</b>
+                                    </td>
+                                    <td>
+                                        <strong>
+                                            @Html.Raw(Model.GrossPayComaparison.TrendText)
+                                        </strong>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="jumbotron" style="padding: 2rem;">
+                            <h2 class="">
+                                MVR @((Model.GrossPayComaparison.CurrentValue).ToString("N2"))
+                                <small> @Html.Raw(Model.GrossPayComaparison.TrendText)</small>
+                            </h2>
+                            <span class="text-lead">
+                                MVR @((Model.GrossPayComaparison.CompareValue).ToString("N2")) last Period
+                            </span>
+                        </div>
+
+
+                        <p>Employee ID/Name: @ViewBag.EmployeeName</p>
+                        <p>Designation: @ViewBag.JobTitle</p>
+                    </div>
+
+                    <div class="col">
+                        <table class="table table-bordered table-sm pay-components-table">
+                            <thead>
+                                <tr>
+                                    <th>Deductions</th>
+                                    <th>Comp: (@ViewBag.ComaprePeriodName)</th>
+                                    <th>Current</th>
+                                    <th>Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.CompareDatas.Where(x => x.VariationType == VariationType.ConstantDeduction || x.VariationType == VariationType.VariableDeduction).OrderBy(x => x.MultiOrder))
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (item.VariationType == VariationType.ConstantDeduction)
+                                            {
+                                                <i class="ion-ios-pricetags" role="tooltip" data-microtip-position="top" aria-label="Constant Addition"></i>
+                                            }
+                                            @item.Key
+                                        </td>
+                                        <td>
+                                            @item.CompareValue.ToString("N2")
+                                        </td>
+                                        <td>
+                                            @item.CurrentValue.ToString("N2")
+                                        </td>
+                                        <td>
+                                            @if (item.HasChanged)
+                                            {
+                                                @Html.Raw(@item.TrendText)
+                                            }
+                                        </td>
+                                    </tr>
+
+
+                                    @foreach (var payAdju in item.SecondCompareData)
+                                    {
+                                        <tr class="field-value-row">
+                                            <td>
+                                                @payAdju.Key
+                                            </td>
+                                            <td>
+                                                @try
+                                                {
+                                                    @Math.Round(decimal.Parse(payAdju.CompareValue), 2)
+                                                }
+                                                catch
+                                                {
+                                                    <text>@payAdju.CompareValue</text>
+                                                }
+                                            </td>
+                                            <td>
+                                                @try
+                                                {
+                                                    @Math.Round(decimal.Parse(payAdju.CurruretValue), 2)
+                                                }
+                                                catch
+                                                {
+                                                    <text>@payAdju.CurruretValue</text>
+                                                }
+                                            </td>
+                                            <td>
+                                                @Html.Raw(payAdju.TrendText)
+                                            </td>
+                                        </tr>
+
+                                    }
+                                }
+                                <tr class="">
+
+                                    <td><b>Net Salary</b></td>
+                                    <td>
+                                        <b>
+                                            @((Model.NetSalaryComaparison.CompareValue).ToString("N2"))
+                                        </b>
+                                    </td>
+                                    <td>
+                                        <b>
+                                            @((Model.NetSalaryComaparison.CurrentValue).ToString("N2"))
+                                        </b>
+                                    </td>
+                                    <td>
+                                        <strong>@Html.Raw(Model.NetSalaryComaparison.TrendText)</strong>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+
+                        <div class="jumbotron" style="padding: 2rem;">
+                            <h2 class="font-weight-bold">
+                                MVR @((Model.NetSalaryComaparison.CurrentValue).ToString("N2"))
+                                <small> @Html.Raw(Model.NetSalaryComaparison.TrendText)</small>
+                            </h2>
+                            <span class="text-lead">
+                                MVR @((Model.NetSalaryComaparison.CompareValue).ToString("N2")) last Period
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
+            @if (ViewBag.EmployeeId <= 0)
+            {
+                <hr />
+
+                <div class="row">
+                    <div class="col-md-3 text-right">
+                    </div>
+                    <div class="col-md-6 text-center pb-4 ">
+                        <h3 class="text-center ">
+                            Pay Components
+                        </h3>
+
+                        <span onclick="$('.empCnt').toggle()" href="#" class="btn-link"> show/hide Employee counts</span> &middot;
+                        <span onclick="$('.empls').toggle()" href="#" class="btn-link"> show/hide Employees</span>
+                    </div>
+                    <div class="col-md-3 text-left">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-5 text-center">
+                        <h5 class="btn btn-info border-0">@ViewBag.ComaprePeriodName</h5>
+                    </div>
+                    <div class="col-md-2 text-center">
+
+                    </div>
+                    <div class="col-md-5 text-center">
+                        <h5 class="btn btn-info border-0">@ViewBag.SourcePeriodName</h5>
+                    </div>
+                </div>
+
+                @foreach (var item in Model.CompareDatas.Where(x => x.VariationType == VariationType.VariableAddition || x.VariationType == VariationType.VariableDeduction).OrderBy(x => x.MultiOrder))
+                {
+                    <h5 class="head1 text-center pb-2">@item.Key</h5>
+                    <div class="row mb-2">
+                        <div class="col-md-5 text-center">
+                            <h5>MVR @item.CompareValue.ToString("N0")</h5>
+                            <span class="empCnt">@item.CompareValueEmplCount Employee(s)</span>
+                            <span class="empls">@(Html.Raw("<br>" + string.Join("<br>", item.CompareValueEmployees?.Select(x => Empls.FirstOrDefault(a => a.Id == x)?.NameDisplay)?.ToArray())))</span>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            @if ((item.CompareValue - item.CurrentValue) > 0)
+                            {
+                                <i class="fa fa-chevron-right fa-2x"></i>
+                            }
+                            else
+                            {
+                                <i class="fa fa-chevron-left fa-2x"></i>
+                            }
+                            <br>
+                            MVR @Math.Abs(item.CompareValue - item.CurrentValue).ToString("N0")
+                        </div>
+                        <div class="col-md-5 text-center">
+                            <h5>MVR @item.CurrentValue.ToString("N0")</h5>
+                            <span class="empCnt">@item.CurrentValueEmplCount Employee(s)</span>
+                            <span class="empls">@(Html.Raw("<br>" + string.Join("<br>", item.CurrentValueEmployees?.Select(x => Empls.FirstOrDefault(a => a.Id == x)?.NameDisplay)?.ToArray())))</span>
+                        </div>
+                    </div>
+                    <hr />
+                }
+
+
+                <h5 class="head1 text-center pb-2">NET PAY</h5>
+                <div class="row mb-2">
+                    <div class="col-md-5 text-center">
+                        <h5>MVR @Model.NetSalaryComaparison.CompareValue.ToString("N0")</h5>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        @if ((Model.NetSalaryComaparison.CompareValue - Model.NetSalaryComaparison.CurrentValue) > 0)
+                        {
+                            <i class="fa fa-chevron-right fa-2x"></i>
+                        }
+                        else
+                        {
+                            <i class="fa fa-chevron-left fa-2x"></i>
+                        }
+                        <br>
+                        MVR @Math.Abs(Model.NetSalaryComaparison.CompareValue - Model.NetSalaryComaparison.CurrentValue).ToString("N0")
+                    </div>
+                    <div class="col-md-5 text-center">
+                        <h5>MVR @Model.NetSalaryComaparison.CurrentValue.ToString("N0")</h5>
+                    </div>
+                </div>
+                <hr />
+            }
+
+            var skip = 0;
+            var topOrder = Model.TopAndBottomList.Where(x => x.isAdd).OrderByDescending(x => x.TopAddAmnt).SelectMany(x => x.AddArray)
+                .OrderByDescending(c => c.Value).Select(a => a.Key).Distinct().ToList();
+            var btmOrder = Model.TopAndBottomList.Where(x => !x.isAdd).OrderByDescending(x => x.TopAddAmnt).SelectMany(x => x.AddArray)
+                .OrderByDescending(c => c.Value).Select(a => a.Key).Distinct().ToList();
+
+            <h4 class="head1 text-center pb-2 text-success">TOP LIST</h4>
+            @foreach (var emp in Model.TopAndBottomList.Where(x => x.isAdd))
+            {
+                <div class="row mb-4">
+                    <div class="col-md-5 text-right">
+                        <h5>@Empls.First(x => x.Id == emp.Id).NameDisplay</h5>
+                        <span>MVR @Math.Abs(emp.NetPay).ToString("N0")</span>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <h5>MVR @emp.TopAddAmnt.ToString("N0")</h5>
+                        @*<img src="@Url.Content(Empls.First(x => x.Id == emp.Id).PhotoLink)" class="image rounded-0 rounded-circle" height="45" />*@
+                    </div>
+                    <div class="col-md-5 text-center">
+                        @if (topOrder.Skip(skip).Any())
+                        {
+                            <h6 class="border-secondary">@topOrder.Skip(skip++).Take(1).First()</h6>
+                        }
+                        @if (skip == 3)
+                        {
+                            @if (topOrder.Skip(skip).Any())
+                            {
+                                <h6 class="border-secondary">@topOrder.Skip(skip++).Take(1).First()</h6>
+                            }
+                        }
+
+                        @*@for (int j = 0; j < emp.AddArray.Length; j++)
+                        {
+                            <h5>@emp.AddArray[j].Key</h5>
+                        }*@
+
+                    </div>
+                </div>
+            }
+
+            <hr />
+
+            <h4 class="head1 text-center pb-2 text-danger">BLACK LIST</h4>
+            @foreach (var emp in Model.TopAndBottomList.Where(x => !x.isAdd))
+            {
+                <div class="row mb-4">
+                    <div class="col-md-5 text-right">
+                        <h5>@Empls.First(x => x.Id == emp.Id).NameDisplay</h5>
+                        <span>MVR @Math.Abs(emp.NetPay).ToString("N0")</span>
+                        @*<div class="row">
+                            <div class="col-md-10">
+                                <h5>@Empls.First(x => x.Id == emp.Id).NameDisplay</h5>
+                                <span>MVR @Math.Abs(emp.NetPay).ToString("N0")</span>
+                            </div>
+                            <div class="col-md-2">
+                                <img src="@Url.Content(Empls.First(x => x.Id == emp.Id).PhotoLink ?? DefaultPictures.default_user)" class="image rounded-0 rounded-circle" height="35" />
+                            </div>
+                        </div>*@
+
+
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <h5>MVR @emp.TopAddAmnt.ToString("N0")</h5>
+                    </div>
+                    <div class="col-md-5 text-center">
+                        @if (btmOrder.Skip(skip).Any())
+                        {
+                            <h6>@btmOrder.Skip(skip++).Take(1).First()</h6>
+                        }
+                        @if (skip == 3)
+                        {
+                            @if (btmOrder.Skip(skip).Any())
+                            {
+                                <h6>@btmOrder.Skip(skip++).Take(1).First()</h6>
+                            }
+                        }
+
+                        @*@for (int j = 0; j < emp.AddArray.Length; j++)
+                        {
+                            <h5>@emp.AddArray[j].Key</h5>
+                        }*@
+
+                    </div>
+                </div>
+            }
+
+            @*<div class="row mb-2">
+                <div class="col-md-5 text-center">
+                    <h5>MVR @Model.NetSalaryComaparison.CompareValue.ToString("N0")</h5>
+                </div>
+                <div class="col-md-2 text-center">
+                    @if ((Model.NetSalaryComaparison.CompareValue - Model.NetSalaryComaparison.CurrentValue) > 0)
+                    {
+                        <i class="fa fa-chevron-right fa-2x"></i>
+                    }
+                    else
+                    {
+                        <i class="fa fa-chevron-left fa-2x"></i>
+                    }
+                    <br>
+                    MVR @Math.Abs(Model.NetSalaryComaparison.CompareValue - Model.NetSalaryComaparison.CurrentValue).ToString("N0")
+                </div>
+                <div class="col-md-5 text-center">
+                    <h5>MVR @Model.NetSalaryComaparison.CompareValue.ToString("N0")</h5>
+                </div>
+            </div>*@
+
+
+            <hr />
+            <h3 class="text-center pb-4">Pay adjustment comparison</h3>
+            <div style=""><canvas id="lineChart"></canvas></div>
+        }
+
+    </div>
+</div>
+
+
+
+@{ChartJSCore.Models.Chart chart = (ChartJSCore.Models.Chart)ViewData["chart"]; }
+
+@section scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+
+<script>
+    var ctx = document.getElementById("lineChart");
+    ctx.height = 800;
+    @if (Model.CompareDatas != null && Model.CompareDatas.Count > 0) {
+        @Html.Raw(chart.CreateChartCode("lineChart"));
+    }
+</script>
+
+<script>
+
+    /// Temp fix to routing issue
+    function GetAppRootPath() {
+        var url = window.location.href;
+        if (url.indexOf('hr') != -1)
+            return '/hr';
+        else return '';
+    }
+
+    function reload() {
+        convertToLoadingTable('.pay-components-table')
+        var url = GetAppRootPath() + "/comparison/index?source=" + $('#SourcePeriodId :selected').val() + "&compare=" + $('#ComaprePeriodId :selected').val() + "&empId=" + $('#empId :selected').val();
+        console.log(url);
+
+        location.href = url;
+    }
+</script>
+}

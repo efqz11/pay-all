@@ -1,0 +1,48 @@
+﻿@model Company
+@{
+    var i = 1;
+    var data = (IDictionary<int, int>)ViewBag.CountData;
+}
+
+<a class="btn btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateTeam" asp-controller="CompanyData" asp-route-cmpId="@Model.Id">
+    <i class="fad fa-plus-circle"></i> New Team
+</a>
+<table class="table data-container-table">
+    <thead>
+        <tr>
+            <td></td>
+            <th>#</th>
+            <th>Name</th>
+            <th>Employee(s)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Teams.OrderBy(x => x.Name))
+        {
+        <tr>
+            <td width="20" class="p-0">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" id="dropdownMenuReference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
+                        <i class="ion-ios-more"></i>
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
+                        <a class="dropdown-item" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateTeam" asp-controller="CompanyData" asp-route-id="@item.Id" asp-route-cmpId="@Model.Id">
+                            <i class="fal fa-edit"></i> Edit
+                        </a>
+
+                        <div class="dropdown-divider"></div>
+
+                        <a class="dropdown-item text-danger" asp-action="RemoveTeam" asp-controller="CompanyData" asp-route-id="@item.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@item.Name was just removed');$(this).parents('td').parent().fadeOut();" data-ajax-confirm="Are you sure you want to remove?"><i class="fal fa-trash-alt"></i> Remove</a>
+                    </div>
+                </div>
+            </td>
+            <td>@(i++)</td>
+            <td>@item.Name</td>
+            <td>
+                @(data.ContainsKey(item.Id) ? data[item.Id] : 0)
+            </td>
+        </tr>
+        }
+        <tr></tr>
+    </tbody>
+</table>

@@ -1,0 +1,203 @@
+﻿@model List<DayOff>
+
+<style>
+</style>
+
+
+<div>
+    <div class="layout-main-landing">
+        <div class="row">
+            <div class="layout-main-landing-header col-sm-12">
+                <div class="border-bottom pb-3 relative mb-5">
+                    <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                        @*<img class="zp-icon-image large content-block-with-icon__icon hidden-xs flex-self-start" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-map-288f54db.svg" alt="">*@
+                        <div class="content-block-with-icon__content">
+                            <h1 class="page-title margin-top-none margin-bottom-none">
+                                @FeatureMenus.GetFeatureMenuItem(FeatureMenus.MenuItem.TimeOff) Time Off
+                            </h1>
+                        </div>
+                    </div><div class="layout-landing-header-details"><p class="layout-landing-header-pricing margin-bottom-none"></p></div>
+                </div>
+            </div>
+        </div>
+        <div class="layout-main-landing-row row margin-bottom-20px">
+
+            <div class="layout-main-landing-column mb-3 col-md-8">
+
+                <h4 class="pb-3 fs-unmask">
+                    Time off policies
+                    &nbsp;
+                    <a data-ajax="true" data-ajax-update="#main-content" data-ajax-success="startStep()" asp-action="AddOrUpdate" asp-controller="DayOff" asp-route-cmpId="@ViewBag.Id" class="link-summary"><i class="fad fa-plus-circle"></i> New</a>
+                </h4>
+                <p class="text-weight-normal">
+                    Create any time off policies that suit your team's needs.
+                </p>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Policy</th>
+                            <th>Conditions</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <a class="" data-ajax="true" data-ajax-update="#main-content" data-ajax-begin="" data-ajax-success="InitializeTabs()" asp-action="Detail" asp-controller="DayOff" asp-route-id="@item.Id" asp-route-cmpId="@ViewBag.CompanyId">
+                                    <div class="d-flex">
+                                        <div class="square bg-@item.Color mr-2 mb-2"></div> <b>@item.Name
+                                        @if (item.IsActive)
+                                        {
+                                             <span>&middot; @(item.AccrualMethod == AccrualMethod.Fixed ? $"{item.TotalPerYear} hours(s)" : $"{item.HoursEarned} hours per {item.PerHoursWorked} hours worked")</span>
+                                        }
+                                        </b>
+                                    </div>
+                                    @item.AccrualMethod.GetDisplayName()
+                                </a>
+                                @if (!item.IsActive)
+                                {
+                                    <span class="Label--purple text-danger">Inactive</span>
+                                }
+
+                                @*<small>@item.Description</small>*@
+                            </td>
+                            <td style="width:300px">
+                                <small>
+                                    @*@if (item.ResetEveryYear)
+                                        {
+                                            <i class="ion ion-refresh"></i> @("Reset on year end")
+                                            <br />
+                                        }*@
+                                    @if (item.ExcludeForPublicHoliday)
+                                    {
+                                        <i class="fal fa-calendar-times"></i> @("Exclude public holiday & weekends")
+                                        <br />
+                                    }
+                                    @if (item.MustRequestBefore)
+                                    {
+                                        <i class="fad fa-clock"></i> @("Must Request " + Html.DisplayTextFor(x => item.MustRequestBeforeAlert))
+                                        <br />
+                                    }
+                                    @if (item.IsForSpecificGender)
+                                    {
+                                        <i class="fad fa-venus-double"></i> @("Applicable for gender: " + item.Gender)
+                                        <br />
+                                    }
+                                    @if (item.RequiredDocumentForConseqetiveDays)
+                                    {
+                                        <i class="fad fa-venus-double"></i> @("Require document after " + item.ConsquetiveDaysRequire + " consecutive days")
+                                        <br />
+                                    }
+                                    @if (item.RequiredDocuments)
+                                    {
+                                        <i class="fad fa-file-alt"></i> @(item.RequiredDocumentList)
+                                        <br />
+                                    }
+                                    @if (item.IsEmergency)
+                                    {
+                                        <i class="fad fa-exclamation-triangle"></i> @("Emergency Leave")
+                                        <br />
+                                    }
+                                    @if (item.RequireSubstitiute)
+                                    {
+                                        <i class="fad fa-user"></i> @("Require Substitute") @(item.RequireSubstitiuteOptional ? " (optional)" : "")
+                                        <br />
+                                    }
+                                    @if (item.CanRequestForBackDatedDays)
+                                    {
+                                        <i class="fad fa-history"></i> @("Send back dated request")
+                                        <br />
+                                    }
+                                    @if (!item.IsThereLimit)
+                                    {
+                                        <i class="fad fa-restore"></i> @("Accrural Enabled")
+                                        <br />
+                                    }
+                                    @*@if (item.IsApplicationAfterFirstYear)
+                                        {
+                                            <i class="fad fa-hourglass-half"></i> @("Applicable after 1st year")
+                                            <br />
+                                        }*@
+                                    @if (item.CanPlanAhead)
+                                    {
+                                        <i class="fad fa-calendar-check"></i> @("Can plan ahead")
+                                        <br />
+                                    }
+                                </small>
+                            </td>
+                            <td>
+                                @if (!item.IsActive)
+                                {
+                                    <a class="link-summary" data-ajax="true" data-ajax-update="#main-content" data-ajax-begin="" data-ajax-success="InitializeTabs()" asp-action="AddOrUpdate" asp-controller="DayOff" asp-route-id="@item.Id" asp-route-cmpId="@ViewBag.CompanyId">
+                                        Coninue setup
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+
+                    }
+                    <tr></tr>
+                </table>
+
+
+                <h4 class="pb-3 pt-4 fs-unmask">
+                    Paid Holiday
+                    &nbsp;
+                    <a class="link-summary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdatePublicHoliday" asp-controller="Company" asp-route-cmpId="@ViewBag.CompanyId">
+                        <i class="fad fa-plus-circle"></i> New
+                    </a>
+                </h4>
+                <p class="text-weight-normal">
+                    This policy includes all federal holidays and any custom holidays that your team observes. To make any changes to holiday pay, edit the policy below.
+                </p>
+
+                <div id="publicHoliday_table">
+                    <partial name="~/Views/Company/_PublicHolidays.cshtml" model="ViewBag.CompanyPublicHolidays" />
+                </div>
+
+                @*<div class="mt-2 mb-3">
+                    <div class="accordion-wrapper accordion-unstyled" role="tablist" aria-multiselectable="true">
+                        <div class="accordion-item">
+                            <div class="accordion-heading" role="button" data-parent="#undefined" data-toggle="collapse" data-target="#suggested-policies-accordion-body" aria-controls="suggested-policies-accordion-body" aria-expanded="true" onclick="$(this).next().toggleCLass('collapse')">
+                                <i class="fa fa-chevron-down" aria-hidden="true"></i>Suggested policies
+                            </div>
+                            <div id="suggested-policies-accordion-body" class="panel-collapse in" aria-expanded="true">
+                                <div class="accordion-body">
+                                    <div class="card-column-group">
+                                        <button class="gusto-button-link card card-default card-button" type="button">
+                                            <div class="">
+                                                <div class="card-header-icon"><img class="zp-icon-image medium" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-calendar-06a3c7eb.svg" alt=""></div>
+                                                <h4 class="card-title">Holiday pay</h4>
+                                            </div>
+                                            <div class="card-content-main">
+                                                <p>Used to give an entire team time off. You can choose which of the ten federal holidays to participate in, and Gusto Complete or Concierge customers can create custom holidays.</p>
+                                            </div>
+                                            <div class="mt-2"><div class="card-actions"><span class="btn btn-md btn-primary">Get Started</span></div></div>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@if (TempData["ProgressPercent"] != null)
+{
+    <script>
+
+        var dd = parseFloat('@TempData["ProgressPercent"]');
+        var stp = parseInt('@TempData["Step"]');
+
+        $('.nav-steps:eq(' + (stp - 1) + ')').find('svg').attr('data-prefix', 'fa');
+        $('.percentage-bar-foreground').css('width', dd + '%');
+        $('.percentage-bar-progress').text(dd + '% complete');
+    </script>
+}

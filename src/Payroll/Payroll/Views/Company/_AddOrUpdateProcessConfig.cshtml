@@ -1,0 +1,127 @@
+﻿@model RequestApprovalConfig
+
+<style>
+    .act-by {display:none}
+</style>
+<form asp-action="AddOrUpdateProcessConfig" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#reqProcess_table" data-ajax-success="sendNotification('success', 'Request process configuration was just @(Model == null || Model.Id == 0 ? "created" : "updated")'); hideModal()" id="departmentsForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    @if (Model != null && Model.Id > 0)
+    {
+        <input asp-for="Id" type="hidden" />
+    }
+    <input asp-for="CompanyId" type="hidden" />
+    <input asp-for="RequestType" type="hidden" />
+    <input asp-for="Step" type="hidden" />
+
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @(Model == null || Model.Id <= 0 ? "New Approval Process" : "Manage Approval Process")
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="row">
+            <div class="form-group col">
+                <partial name="~/Views/Request/_DisplayRequestTypeOnly.cshtml" model="@Model.RequestType" />
+            </div>
+            <div class="form-group col" style="display:@(Model.RequestType == RequestType.Leave ? "block" : "none")">
+                <select asp-for="DayOffId" class="form-control" asp-items="@ViewBag.DayOffId" style="width:100%"><option selected value="">Choose Leave</option></select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label">
+                Step @Model.Step of the approval process
+            </label>
+        </div>
+        <div class="row">
+            <div class="form-group col">
+                <label asp-for="RequestProceessConfigActionBy" class="control-label">Who will take action</label>
+                <select asp-for="RequestProceessConfigActionBy" class="form-control" asp-items="@Html.GetEnumSelectList<RequestProceessConfigActionBy>()"></select>
+            </div>
+            <div class="form-group col">
+                <div class="act-by act-by-@((int)RequestProceessConfigActionBy.EmployeesWithRole)">
+                    <label asp-for="EmployeeRoleId" class="control-label">Available Roles</label>
+                    <select asp-for="EmployeeRoleId" class="form-control" asp-items="@ViewBag.EmployeeRoleId" style="width:100%"></select>
+                </div>
+                <div class="act-by act-by-@((int)RequestProceessConfigActionBy.SpecificEmployee)">
+                    <label asp-for="EmployeeRoleId" class="control-label">Choose an Employee</label>
+                    <select asp-for="EmployeeId" class="form-control" asp-items="@ViewBag.EmployeeIds" style="width:100%"></select>
+                </div>
+            </div>
+        </div>
+
+        @*<div class="form-group">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" asp-for="IsApprovalByDepartmentHead" class="custom-control-input" onchange="onCheckChange(this);">
+                <span class="custom-control-label" for="chbxTerms">
+                    Is Approval by Department Head or Manager?
+                </span>
+            </label>
+        </div>
+        <div class="form-group">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" asp-for="IsApprovalByDefinedEmployees" class="custom-control-input" onchange="onCheckChange(this); $(this).parent().parent().next().toggle()">
+                <span class="custom-control-label" for="chbxTerms">
+                    Set list of employees who can take action?
+                </span>
+            </label>
+        </div>
+        <div class="form-group" style="@(!Model.IsApprovalByDefinedEmployees ? "display:none" : "" )">
+            <select asp-for="ApprovalByEmployeeIds" class="form-control" asp-items="@ViewBag.EmployeeIds" multiple style="width:100%"></select>
+        </div>*@
+
+
+        @*<div class="form-group">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" asp-for="IsAutomaticActiomAfterSubmission" class="custom-control-input" onchange="onCheckChange(this); $(this).parent().parent().next().toggle()">
+                <span class="custom-control-label" for="chbxTerms">
+                    Carry out automatic processing after certain time period
+                </span>
+            </label>
+        </div>*@
+
+
+        <div class="act-by act-by-@((int)RequestProceessConfigActionBy.AutoActionAfterHours)">
+            <div class="alert alert-info"> Carry out automatic processing after certain time period</div>
+            <div class="row">
+                <div class="form-group col">
+                    <label asp-for="AutoActionAfterHours" class="control-label">Take Action after X hours</label>
+                    <input asp-for="AutoActionAfterHours" as class="form-control" />
+                </div>
+                <div class="form-group col">
+                    <label asp-for="AutoAction" class="control-label">What action to take</label>
+                    <select asp-for="AutoAction" class="form-control">
+                        <option value="0">Choose</option>
+                        <option value="2">Approve</option>
+                        <option value="3">Rejected</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="AutoActionSummary" class="control-label">Automatic action remarks</label>
+                <textarea asp-for="AutoActionSummary" as class="form-control"></textarea>
+            </div>
+        </div>
+
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">
+            Save
+        </button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        @if (Model.Id > 0)
+        {
+            <a class="modal__btn modal__btn-danger float-right" asp-action="RemoveProcessConfig" asp-route-id="@Model.Id" asp-route-cmpId="@Model.CompanyId" asp-route-type="@Model.RequestType" asp-route-remove="self" data-ajax-method="POST" data-ajax="true" data-ajax-update="#reqProcess_table" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@Model.RequestType request approval step @Model.Step was just removed');hideModal();" data-ajax-confirm="Are you sure you want to remove @Model.RequestType request approval step @Model.Step?">Remove</a>
+        }
+    </footer>
+</form>
+
+
+<script>
+    loadMultipleEmpddSearch('#ApprovalByEmployeeIds');
+    $('#RequestProceessConfigActionBy').change(function () {
+        $('.act-by').hide();
+        $('.act-by-' + $(this).val()).show();
+    }).change();
+</script>

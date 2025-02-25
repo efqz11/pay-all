@@ -1,0 +1,127 @@
+﻿@model List<Schedule>
+
+
+<div class="row" id="created-schedules" style="width:100%">
+
+    @if (Model == null || Model.Any() == false)
+    {
+    <div class="p-5 text-center" style="width:100%">
+        <p class="text-lead mt-5">No schedules were found for the week @ViewBag.CurrentRangeDisplay</p>
+        <a class="btn btn-primary" asp-action="CreateSchedule" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="ion ion-plus"></i> Add Schedule</a>
+    </div>
+    }
+    else
+    {
+        <table class="table table-hover bg-white">
+            <thead>
+                <tr>
+                    <th class="text-left">
+                        Schedule
+                        @*<br />
+            <small>Show unscheduled <></small>*@
+                    </th>
+                    <th>For</th>
+                    <th>Recurring</th>
+                    <th>Employees</th>
+                    <th>Ignore Days</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                <tr>
+                    <td class="text-left">
+
+                        <a class="" asp-action="AddOrUpdateSchedule" asp-route-id="@item.Id" asp-route-start="True" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><b style="font-weight: 500;">item.Summary</b></a>
+
+                        <br />
+                        <small>Run Date: @item.Duration</small>
+                    </td>
+                    <td>@item.ScheduleFor</td>
+                    <td class="">
+                        <span class="btn btn-sm btn-@(item.Repeat == RecurringFrequency.Never ? "secondary" : "primary")">
+                            @(item.IsRepeating ? item.Repeat.ToString().ToUpper() : "NEVER")
+                        </span>
+                        @if (item.HasBackgroundJob ?? false)
+                        {
+                            <br />
+                            <small>Next run on: </small>
+                        }
+                    </td>
+                    <td>
+                        @(item.EmployeeIdsData != null ? String.Join(", ", item.EmployeeIdsData?.Select(x => x.Name)) : "")
+                    </td>
+                    <td>
+                        @(item.IgnoreDaysData != null ? String.Join(", ", item.IgnoreDaysData?.Select(x => x)) : "")
+                    </td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-primary" asp-action="RunSchedule" asp-route-id="@item.Id" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="ion ion-play"></i> Run</a>
+
+                        <a class="btn btn-sm btn-outline-danger" asp-action="RemoveSchedule" asp-route-id="@item.Id" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="ion ion-trash-b"></i> Remove</a>
+                    </td>
+                </tr>
+                }
+            </tbody>
+
+            @*<tbody>
+                @foreach (var item in Model)
+                {
+
+                    <tr>
+                        <td class="text-left font-weight-bold" style=" vertical-align: middle;display:flex">
+                            <img src="@Url.Content(item.Employee.PhotoLink ?? DefaultPictures.default_user)" height="40" class="mt-2 pr-2" />
+                            <div class="name-display pt-2">
+                                <span class="">@item.Employee.Name</span>
+                                <br>
+                                <small style="position: relative;top: -4px;">@item.Employee.Department.Name</small>
+                            </div>
+                        </td>
+                        @for (var start = (DateTime)ViewBag.WeekStart; start < (DateTime)ViewBag.WeekEnd; start = start.AddDays(1))
+                        {
+                        <td class="text-left cell-attndance">
+                            @if (item.Attendances.Any(x => x.Date == start.Date))
+                            {
+                                var attn = @item.Attendances.First(x => x.Date == start.Date);
+                                <div class="item @attn.ShiftName" onclick="$(this).next().click()">
+                                    <small>
+                                        <span>
+                                            @attn.ShiftName
+                                            &nbsp;&nbsp;
+                                            @attn.StatusString
+                                        </span>
+                                        <br />
+                                        @attn.Duration
+                                    </small>
+                                </div>
+                                <a asp-action="AddOrUpdateAttendance" asp-controller="Schedule" asp-route-id="@attn.Id" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" aria-label="Change attendance record" role="tooltip" data-microtip-position="top" class="hide" style="display:none">
+                                    XX
+                                </a>
+                            }
+                            else
+                            {
+                                <div class="item empty" onclick="$(this).next().click()">
+                                    <small>
+                                        Off
+                                        <br />
+                                        <span>&nbsp;</span>
+                                    </small>
+                                </div>
+                                <a class="text-muted" asp-action="CreateSchedule" asp-route-onDate="@start" asp-route-empId="@item.Employee.Id" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure" style="display:none"><i class="ion ion-plus"></i> Add </a>
+                            }
+                        </td>
+                        }
+                    </tr>
+                }
+            </tbody>*@
+        </table>
+    }
+</div>
+
+
+@*<script>
+    $('#MemberId').select2({
+        ////width:'300px'
+        //placeholder: "Choose days to exclude",
+    });
+</script>*@

@@ -1,0 +1,463 @@
+﻿
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fontawesome-iconpicker/3.2.0/css/fontawesome-iconpicker.min.css" />
+@model DayOff
+
+
+<div>
+    <div class="layout-main-landing">
+        <div class="row">
+            <div class="layout-main-landing-header col-sm-12">
+                <div class="relative ">
+                    <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                        @*<img class="zp-icon-image large content-block-with-icon__icon hidden-xs flex-self-start" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-map-288f54db.svg" alt="">*@
+                        <div class="content-block-with-icon__content">
+                            <h1 class="page-title margin-top-none margin-bottom-none">
+                                @(Model == null || Model.Id <= 0 ? "New Time Off" : "Manage Time Off")
+                            </h1>
+                        </div>
+                    </div><div class="layout-landing-header-details"><p class="layout-landing-header-pricing margin-bottom-none"></p></div>
+                </div>
+            </div>
+        </div>
+        <ol class="progress-bar-tabs progress-bar-style-default">
+            <li data-step="1" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Policy</div></li>
+            <li data-step="2" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Conditions</div></li>
+            <li data-step="3" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Accrual</div></li>
+        </ol>
+        <div class="layout-main-landing-row row margin-bottom-20px">
+            <div class="col-sm-12 col-md-7 content">
+                <form asp-action="AddOrUpdate" asp-controller="DayOff" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" data-ajax-success="sendNotification('success', 'Day off was just @(Model == null || Model.Id == 0 ? "created" : "updated")'); hideModal()" id="form" data-ajax-failure="handleModalPostFailure">
+                    @Html.AntiForgeryToken()
+                    @if (Model != null && Model.Id > 0)
+                    {
+                        <input asp-for="Id" type="hidden" />
+                    }
+                    <input asp-for="CompanyId" type="hidden" />
+
+                    <div class="step" data-step="1">
+                        <h4 class="pb-4 fs-unmask">Policy details</h4>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="Name" class="control-label">Name of Policy</label>
+                            <p class="text-weight-normal">This will be visible to other admins.</p>
+                            <div class="d-flex ">
+                                <select as class="form-control form-control-lg color-chooser w-25 bg-@Model.Color" asp-for="Color">
+                                    @foreach (var item in ViewBag.Colors)
+                                    {
+                                        <option value="@item.Text" class="bg-@item.Text"></option>
+                                    }
+                                </select>
+                                <input asp-for="Name" as class="form-control form-control-lg" />
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="Description" class="control-label"></label>
+                            <p class="text-weight-normal">
+                                Add a policy description or link to your employee handbook here. This will be visible to all employees actively enrolled in this policy.                            .
+                            </p>
+                            <textarea asp-for="Description" rows="3" class="form-control form-control-lg"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="step" data-step="2">
+                        <h4 class="pb-4 fs-unmask">Specific requirement</h4>
+
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="custom-control custom-checkbox custom-checkbox-large">
+                                                <input type="checkbox" asp-for="MustRequestBefore" class="date-chooser custom-control-input" onchange="onCheckChange(this); showNextTd(this)">
+                                                <span class="custom-control-label" for="chbxTerms">
+                                                    Must request before work start for the day?
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group" style="display:none">
+                                            <select asp-for="MustRequestBeforeAlert" asp-items="@(Html.GetEnumSelectList<AlertType>())" class="form-control form-control-lg"></select>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="custom-control custom-checkbox custom-checkbox-large">
+                                                <input type="checkbox" asp-for="IsForSpecificGender" class="date-chooser custom-control-input" onchange="onCheckChange(this); showNextTd(this)">
+                                                <span class="custom-control-label" for="chbxTerms">
+                                                    Apply for specific gender
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group" style="display:none">
+                                            <select asp-for="Gender" asp-items="@(Html.GetEnumSelectList<Gender>())" class="form-control form-control-lg"></select>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="custom-control custom-checkbox custom-checkbox-large">
+                                                <input type="checkbox" asp-for="RequireSubstitiute" class="date-chooser custom-control-input" onchange="onCheckChange(this); showNextTd(this)">
+                                                <span class="custom-control-label" for="chbxTerms">
+                                                    Require subtitute
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group col" style="display:none">
+                                            <select asp-for="RequireSubsituteEnum" asp-items="@(Html.GetEnumSelectList<RequireSubsitute>())" class="form-control form-control-lg"></select>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="custom-control custom-checkbox custom-checkbox-large">
+                                                <input type="checkbox" asp-for="RequiredDocumentForConseqetiveDays" class="date-chooser custom-control-input" onchange="onCheckChange(this); showNextTd(this)">
+                                                <span class="custom-control-label" for="chbxTerms">
+                                                    Require document after consequetive days?
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group col" style="display:none">
+                                            <input asp-for="ConsquetiveDaysRequire" as class="form-control form-control-lg" />
+                                        </div>
+                                    </td>
+                                </tr>
+
+
+                                <tr>
+                                    <td>
+
+                                        <div class="form-group">
+                                            <label class="custom-control custom-checkbox custom-checkbox-large">
+                                                <input type="checkbox" asp-for="RequiredDocuments" class="date-chooser custom-control-input" onchange="onCheckChange(this); showNextTd(this)">
+                                                <span class="custom-control-label" for="chbxTerms">
+                                                    Required documents
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group" style="display:none">
+                                            <p class="small">
+                                                Enter documents list in csv format.
+                                            </p>
+                                            <input asp-for="RequiredDocumentList" as class="form-control form-control-lg" />
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="custom-control custom-checkbox custom-checkbox-large">
+                                                <input type="checkbox" asp-for="IsEmergency" class="date-chooser custom-control-input" onchange="onCheckChange(this)">
+                                                <span class="custom-control-label" for="chbxTerms">
+                                                    Is this emergency leave? (can make changes later)
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="custom-control custom-checkbox custom-checkbox-large">
+                                                <input type="checkbox" asp-for="CanRequestForBackDatedDays" class="date-chooser custom-control-input" onchange="onCheckChange(this)">
+                                                <span class="custom-control-label" for="chbxTerms">
+                                                    Allow to send request for past dates
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label class="custom-control custom-checkbox custom-checkbox-large">
+                                                <input type="checkbox" asp-for="CanPlanAhead" class="date-chooser custom-control-input" onchange="onCheckChange(this)">
+                                                <span class="custom-control-label" for="chbxTerms">
+                                                    Can plan ahead?
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+
+                                            <label class="custom-control custom-checkbox custom-checkbox-large">
+                                                <input type="checkbox" asp-for="ExcludeForPublicHoliday" class="date-chooser custom-control-input" onchange="onCheckChange(this)">
+                                                <span class="custom-control-label" for="chbxTerms">
+                                                    Exclude public holidays and weekends when calculating?
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @*<div class="form-group" style="display:none">
+                                            <input asp-for="RequiredDocumentList" as class="form-control form-control-lg" />
+                                        </div>*@
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+
+
+
+                        <div class="row">
+
+                        </div>
+                    </div>
+                    <div class="step" data-step="3">
+                        <h4 class="pb-4 fs-unmask">Accrual details</h4>
+
+                        <div class="form-group mb-5">
+                            <label asp-for="IsThereLimit" class="control-label">Is there a limit to how much time employees can take off?</label>
+                            <p class="text-weight-normal">
+                                When an employee is dismissed, unlimited PTO will not be paid out while limited PTO will be paid out on their termination paycheck.
+                            </p>
+
+                            <label class="custom-control custom-radio custom-radio-large">
+                                <input type="radio" groupe="2" asp-for="IsThereLimit" class=" custom-control-input" onchange="$('.has_lmt').show()" value="True" data-val="true">
+                                <span class="text-large custom-control-label text-weight-normal">
+                                    Yes, there is a limit
+                                </span>
+                            </label>
+                            <label class="custom-control custom-radio custom-radio-large">
+                                <input type="radio" groupe="2" asp-for="IsThereLimit" class=" custom-control-input" onchange="$('.acm,.has_lmt').hide()" value="False" data-val="true">
+                                <span class="text-large custom-control-label text-weight-normal">
+                                    No, it's unlimited
+                                </span>
+                            </label>
+                        </div>
+
+                        <div class="form-group mb-5 has_lmt" style="display:none">
+                            <label asp-for="AccrualMethod" class="control-label">What is the accrual method?</label>
+
+                            @foreach (var item in Enum.GetValues(typeof(AccrualMethod)))
+                            {
+                                <label class="custom-control custom-radio custom-radio-large">
+                                    <input type="radio" group="1" asp-for="AccrualMethod" class=" custom-control-input" value="@((int)item)" data-val="true">
+                                    <span class="text-large custom-control-label text-weight-normal">
+                                        @(((AccrualMethod)Enum.Parse(typeof(AccrualMethod), item.ToString())).GetDisplayName())
+                                    </span>
+                                    <div class="small">@(((AccrualMethod)Enum.Parse(typeof(AccrualMethod), item.ToString())).GetDisplayAttribute().Description)</div>
+                                </label>
+                            }
+                        </div>
+
+                        <div class="form-group mb-5 acm acm-1">
+                            <label asp-for="TotalHoursPerYear" class="control-label">Total per year</label>
+                            <p class="text-weight-normal">The number of hours that will be earned each year</p>
+
+                            <div class="input-group mb-3">
+                                <input asp-for="TotalHoursPerYear" as class="form-control form-control-lg" value="@(Model.TotalHoursPerYear > 0 ? Model.TotalHoursPerYear : "")">
+                                <div class="input-group-append">
+                                    <span class="input-group-text" id="basic-addon2">hours</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-4 acm acm-1">
+                            <label asp-for="DayOffGrantEntititlementAt" class="control-label">Entitlement</label>
+                            <p class="text-weight-normal">Time can be earned proportionally on each pay period throughout the year or all at once. Payall suggests “throughout the year” as the best option since some states require all granted time to be paid out if an employee is terminated.</p>
+                            <select asp-for="DayOffGrantEntititlementAt" asp-items="@(Html.GetEnumSelectList<DayOffGrantEntititlementAt>())" class="form-control form-control-lg"></select>
+                        </div>
+
+                        <div class="form-group mb-4 acm acm-2">
+                            <label asp-for="DayOffGrantEntititlementAt" class="control-label">Do employees accrue time based on hours that the employee has worked or on all hours that the employee has been paid?</label>
+                            @foreach (var item in Enum.GetValues(typeof(AccureTimeBasedOn)))
+                            {
+                                <label class="custom-control custom-radio custom-radio-large">
+                                    <input type="radio" groupe="1" asp-for="AccureTimeBasedOn" class=" custom-control-input" onchange="" value="@item" data-val="true">
+                                    <span class="text-large custom-control-label text-weight-normal">
+                                        @(((AccureTimeBasedOn)Enum.Parse(typeof(AccureTimeBasedOn), item.ToString())).GetDisplayName())
+                                    </span>
+                                    <div class="small">@(((AccureTimeBasedOn)Enum.Parse(typeof(AccureTimeBasedOn), item.ToString())).GetDisplayAttribute().Description)</div>
+                                </label>
+                            }
+                        </div>
+                        <div class="form-group mb-4 acm acm-2">
+                            <label asp-for="IsOvertimeCountedTowardsTimeOff" class="control-label">
+                                Should overtime hours be counted towards time off accrual?
+                            </label>
+
+                            <label class="custom-control custom-radio custom-radio-large">
+                                <input type="radio" groupe="3" asp-for="IsOvertimeCountedTowardsTimeOff" class=" custom-control-input" value="True" data-val="true">
+                                <span class="text-large custom-control-label text-weight-normal">
+                                    Yes, include overtime hours
+                                </span>
+                            </label>
+                            <label class="custom-control custom-radio custom-radio-large">
+                                <input type="radio" groupe="3" asp-for="IsOvertimeCountedTowardsTimeOff" class=" custom-control-input" value="False" data-val="true">
+                                <span class="text-large custom-control-label text-weight-normal">
+                                    No, overtime hours do not count towards accrual
+                                </span>
+                            </label>
+                        </div>
+                        <div class="form-group mb-4 acm acm-2">
+                            <label class="control-label">
+                                The amount of time off hours that employees will accrue based on the actual number of hours worked.
+                            </label>
+
+
+                            <div class="row acm acm-2">
+                                <div class="col-md-3">
+                                    <div class="input-group ">
+                                        <input asp-for="HoursEarned" as class="form-control form-control-lg" value="@(Model.HoursEarned > 0 ? Model.HoursEarned : "")">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text" id="basic-addon2">hours</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <p class="mb-0 pt-2 ">
+                                        earned per
+                                    </p>
+                                </div>
+                                <div class="col-md-2">
+                                    &nbsp;
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="input-group ">
+                                        <input asp-for="PerHoursWorked" as class="form-control form-control-lg" value="@(Model.PerHoursWorked > 0 ? Model.PerHoursWorked : "")">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text" id="basic-addon2">hours</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <p class="mb-0 pt-2 ">worked</p>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        @*<div class="row">
+                            <div class="form-group col">
+                                <label class="control-label" asp-for="DayOffGrantEntititlementEvery"></label>
+                            </div>
+
+                            <div class="form-group col" style="display:none">
+                                <select asp-for="DayOffGrantEntititlementEvery" asp-items="@(Html.GetEnumSelectList<DayOffGrantEntititlementEvery>())" class="form-control form-control-lg"></select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col">
+                                <label class="control-label" asp-for="DayOffGrantEntititlementAt"></label>
+                            </div>
+
+                            <div class="form-group col" style="display:none">
+                                <select asp-for="DayOffGrantEntititlementAt" asp-items="@(Html.GetEnumSelectList<DayOffGrantEntititlementAt>())" class="form-control form-control-lg"></select>
+                            </div>
+                        </div>*@
+                    </div>
+
+
+                    <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+                        <button class="btn btn-lg btn-outline-primary btn-back mr-2" type="button">Back</button>
+                        <button class="btn btn-lg btn-primary btn-next" type="button">Submit</button>
+
+                        @if (Model.Id > 0)
+                        {
+                            <a class="modal__btn modal__btn-danger float-right" asp-action="Remove" asp-route-id="@Model.Id" asp-route-remove="self" data-ajax-method="POST" data-ajax="true" data-ajax-update="#dayOff_table" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', 'Day off was just removed');hideModal();" data-ajax-confirm="Are you sure you want to remove this day off?">Remove</a>
+                        }
+                    </div>
+
+                    @*<footer class="modal__footer">
+                        <button type="submit" class="modal__btn modal__btn-primary">
+                            Save
+                        </button>
+                        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+
+                    </footer>*@
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('.acm').hide();
+
+    if ('@Model.MustRequestBefore' === "True") {
+        $('#MustRequestBefore').change();
+    }
+    if ('@Model.IsForSpecificGender' === "True") {
+        $('#IsForSpecificGender').change();
+    }
+    if ('@Model.RequiredDocumentForConseqetiveDays' === "True") {
+        $('#RequiredDocumentForConseqetiveDays').change();
+    }
+    if ('@Model.RequiredDocuments' === "True") {
+        $('#RequiredDocuments').change();
+    }
+
+    $('.date-chooser').change(function (e) {
+        if ($(this).prop('checked') === true)
+            $(this).val(true);
+        else {
+            $(this).val(false);
+        }
+    });
+    $('[name="AccrualMethod"]').change(function (e) {
+        $('.acm').hide();
+        var _ = $('#AccrualMethod:checked').val();
+        console.log('accrual method changed to ' + _);
+        $('.acm-' + _).show();
+    });
+
+
+    $('.color-chooser').change(function (e) {
+        $(this).removeClass('sch-red sch-blue sch-green sch-aqua sch-orange sch-purple');
+
+        var val = $(this).find(":selected").val();
+        console.log(val);
+
+        $(this).attr('class', function (i, c) {
+            return c.replace(/(^|\s)bg-\S+/g, '');
+        });
+
+        $(this).addClass('bg-' + val);
+        $(this).val(val);
+    });
+
+    function showNextTd(e) {
+        $(e).parents('td').next().children().first().toggle();
+    }
+
+    //$('.iconpicker-element').iconpicker();
+
+    //$('.iconpicker-element').on('iconpickerSelected', function(e) {
+    //    $('.lead .picker-target').get(0).className = 'picker-target fa-3x ' +
+    //            e.iconpickerInstance.options.iconBaseClass + ' ' +
+    //            e.iconpickerInstance.getValue(e.iconpickerValue);
+    //    });
+</script>
+
+@*
+
+*@

@@ -1,0 +1,44 @@
+﻿@model RequestType
+@{
+    var aaa = "";
+    var text = Model.ToString();
+
+    @switch (Model)
+    {
+        case RequestType.Leave:
+            aaa = "fad fa-pennant";
+            break;
+        case RequestType.Overtime:
+            aaa = "fad fa-hourglass-half";
+            break;
+        case RequestType.Attendance_Change:
+            aaa = "ion ion-android-calendar";
+            text = "Attendance";
+            break;
+        case RequestType.Emp_DataChange:
+            aaa = "fad fa-user-edit";
+            text = "Data Change";
+            break;
+        case RequestType.Work_Change:
+            aaa = "fad fa-briefcase";
+            text = "Work";
+            break;
+        case RequestType.Work_Submission:
+            aaa = "fad fa-tasks";
+            text = "Submission";
+            break;
+        case RequestType.Holiday:
+            aaa = "fad fa-calendar";
+            break;
+        case RequestType.Document:
+            aaa = "fad fa-file-archive";
+            break;
+        default:
+            break;
+    }
+}
+
+<b>
+    <i class="@aaa"></i>
+    @text
+</b>

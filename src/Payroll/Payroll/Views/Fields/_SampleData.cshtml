@@ -1,0 +1,206 @@
+﻿@model List<PayrollPeriodPayAdjustment>
+@{
+    Layout = null;
+}
+
+
+<table class="table table-sm data-container-sample">
+    <thead class="table-dark">
+        <tr>
+            @foreach (var item in Model[0].PayrollPeriodPayAdjustmentFieldValues)
+            {
+            <th>
+                <span role="tooltip" data-microtip-position="top" aria-label="@item.CalculationIdentifier">@item.Key</span>
+                
+                @if (item.BaseType == BaseType.Calculated)
+                {
+                    <i class="ion-calculator text-primary" title="@item.Calculation"></i>
+                }
+                @if (item.IsAggregated)
+                {
+                    <i class="fa fa-signal"></i>
+                }
+                @if (item.IsReturn)
+                {
+                    <i class="ion-cube text-success" )" role="tooltip" data-microtip-position="top" aria-label="Values in this column will be considered as final for @Model[0].Adjustment"></i>
+                }
+            </th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @for (int i = 0; i < Model.Count; i++)
+        {
+            @Html.HiddenFor(m => Model[i].Id)
+
+        <tr>
+            @for (int j = 0; j < Model[i].PayrollPeriodPayAdjustmentFieldValues.Count; j++)
+            {
+                @if (Model[i].PayrollPeriodPayAdjustmentFieldValues[j].BaseType == BaseType.ComputedList)
+                {
+                    <td>@Model[i].PayrollPeriodPayAdjustmentFieldValues[j].ListSelect</td>
+                }
+
+                @if (Model[i].PayrollPeriodPayAdjustmentFieldValues[j].BaseType == BaseType.ManualEntry)
+                {
+
+                    if (Model[i].PayrollPeriodPayAdjustmentFieldValues[j].FieldType == FieldType.Number || Model[i].PayrollPeriodPayAdjustmentFieldValues[j].FieldType == FieldType.Decimal)
+                    {
+                        <td><input type="number" class="form-control-sm manual-entry" name="[@i].PayrollPeriodPayAdjustmentFieldValues[@j].ValueString" data-identifier="@Model[i].PayrollPeriodPayAdjustmentFieldValues[j].CalculationIdentifier" data-updateInputClass="@Model[i].PayrollPeriodPayAdjustmentFieldValues[j].UpdateInputClass" data-evalMethod="@Model[i].PayrollPeriodPayAdjustmentFieldValues[j].EvalMethod" /></td>
+                    }
+                    if (Model[i].PayrollPeriodPayAdjustmentFieldValues[j].FieldType == FieldType.Text)
+                    {
+                        <td><input type="text" class="form-control-sm manual-entry" name="[@i].PayrollPeriodPayAdjustmentFieldValues[@j].ValueString" data-identifier="@Model[i].PayrollPeriodPayAdjustmentFieldValues[j].CalculationIdentifier"/></td>
+                    }
+                    if (Model[i].PayrollPeriodPayAdjustmentFieldValues[j].FieldType == FieldType.Date)
+                    {
+                        <td><input type="date" class="form-control-sm manual-entry has-datepicker" name="[@i].PayrollPeriodPayAdjustmentFieldValues[@j].ValueString" data-identifier="@Model[i].PayrollPeriodPayAdjustmentFieldValues[j].CalculationIdentifier" data-updateInputClass="@Model[i].PayrollPeriodPayAdjustmentFieldValues[j].UpdateInputClass" data-evalMethod="@Model[i].PayrollPeriodPayAdjustmentFieldValues[j].EvalMethod" /></td>
+                    }
+                }
+
+                @if (Model[i].PayrollPeriodPayAdjustmentFieldValues[j].BaseType == BaseType.Calculated)
+                {
+                    <td>
+                        <input type="number" class="form-control-sm @(Model[i].PayrollPeriodPayAdjustmentFieldValues[j].IsEditable ? "manual-entry" : "") calculated" value="@Model[i].PayrollPeriodPayAdjustmentFieldValues[j].Value" name="[@i].PayrollPeriodPayAdjustmentFieldValues[@j].Value" data-identifier="@Model[i].PayrollPeriodPayAdjustmentFieldValues[j].CalculationIdentifier" data-updateInputClass="@Model[i].PayrollPeriodPayAdjustmentFieldValues[j].UpdateInputClass" data-evalMethod="@Model[i].PayrollPeriodPayAdjustmentFieldValues[j].EvalMethod" @(Model[i].PayrollPeriodPayAdjustmentFieldValues[j].IsEditable ? "" : "readonly") />
+                    </td>
+                }
+            }
+        </tr>
+        }
+    </tbody>
+</table>
+
+<script>
+    function GetFormatValue(fieldValue) {
+        var evalMethod = $(fieldValue).data('evalmethod');
+        var update = $(fieldValue).data('updateinputclass');
+        var idf = $(fieldValue).data('identifier');
+        console.log('data-evalmethod: ' + evalMethod);
+        console.log('data-updateinputclass: ' + update);
+        console.log('data-identifier: ' + idf);
+
+
+
+        var formula = evalMethod;
+        var prefix = "";
+        var formatValue = "";
+
+        do {
+            console.log('inside loop -> formula: -> ' + formula);
+            if (formula.indexOf("{") >= 0)
+                prefix = formula.substring(0, formula.indexOf("{"))
+            else
+                prefix = formula;
+            formatValue += prefix;
+
+            if (formula.indexOf("{") < 0)
+                formula = formula.replace(prefix, "");
+            else {
+                var cutoff = (formula.indexOf("{") > 0) ? formula.indexOf("{") - 1 : 0;
+                var firstInsider = formula
+                    .substr(formula.indexOf("{"), formula.indexOf("}") - cutoff).replace("}", "").replace("{", "");
+                var idfNow = firstInsider.replace("field.", "");
+
+                if (idfNow === idf)
+                    formatValue += $(fieldValue).val();
+                else {
+                    formatValue += $(fieldValue).parent().parent().find('input[data-identifier="' + idfNow + '"]').val() || 0;
+                }
+
+                if (formula.indexOf(prefix + "{" + firstInsider + "}") < 0)
+                    throw new Error("Formula evaluation has failed. please regenerate table or change config");
+                formula = formula.replace(prefix + "{" + firstInsider + "}", "");
+            }
+            prefix = "";
+        }
+        while (formula !== "");
+
+
+        console.log('final - eval: ' + formatValue);
+        console.log('final - evaluated: ' + eval(formatValue));
+
+        return formatValue;
+    }
+
+
+    $(document).on('keyup', '.manual-entry', function (e) {
+        var update = $(this).data('updateinputclass');
+        var evaluate = GetFormatValue($(this));
+        console.log('final - eval: ' + evaluate);
+        console.log('final - evaluated: ' + eval(evaluate));
+
+        
+        console.log($(this).parents('tr'));
+        var target = $(this).parent().parent().find('input[data-identifier="' + update + '"]');
+        if (target.length > 0) {
+            target.val(eval(evaluate));
+
+            console.log('target found ::');
+            console.log('has class .calculated = ' + $(target).hasClass("calculated"));
+            if ($(target).hasClass("calculated"))
+                $(target).trigger('change');
+        }
+    });
+
+
+    $('.calculated').change(function (e) {
+        console.log('.calculated - text change ....');
+        var evalMethod = $(this).data('evalmethod');
+        var update = $(this).data('updateinputclass');
+        var idf = $(this).data('identifier');
+        console.log('data-evalmethod: ' + evalMethod);
+        console.log('data-updateinputclass: ' + update);
+        console.log('data-identifier: ' + idf);
+
+
+        //var formula = evalMethod;
+        //var prefix = "";
+        //var formatValue = "";
+        //while (formula !== "") {
+        //    console.log('inside loop -> formula: -> ' + formula);
+        //    if (formula.indexOf("{") >= 0)
+        //        prefix = formula.substring(0, formula.indexOf("{"))
+        //    else
+        //        prefix = formula;
+        //    formatValue += prefix;
+
+        //    if (formula.indexOf("{") < 0)
+        //        formula = formula.replace(prefix, "");
+        //    else {
+        //        var firstInsider = formula
+        //            .substring(formula.indexOf("{"), formula.indexOf("}")).replace("}", "").replace("{", "");
+        //        var idfNow = firstInsider.replace("field.", "");
+        //        //console.log('searching idfNow: -> ' + idfNow);
+        //        //console.log('idf  -> ' + idf);
+        //        //console.log('idfNow === idf ' + (idfNow === idf));
+        //        if (idfNow === idf)
+        //            formatValue += $(this).val();
+        //        else {
+        //            //console.log($(this).parent().parent().find('input[data-identifier="' + idfNow + '"]'));
+        //            //console.log($(this).parent().parent().find('input[data-identifier="' + idfNow + '"]').val() || 0);
+        //            formatValue += $(this).parent().parent().find('input[data-identifier="' + idfNow + '"]').val() || 0;
+        //        }
+
+        //        formula = formula.replace(prefix + "{" + firstInsider + "}", "");
+
+        //        //console.log('inside loop -> formatValue: -> ' + formatValue);
+        //        //console.log('formatValue { index: ' + formula.indexOf("{"));
+        //        //console.log('befor going next iteration formula= ' + formula);
+        //    }
+        //    prefix = "";
+        //}
+
+        var formatValue = GetFormatValue($(this));
+
+        console.log('final - eval: ' + formatValue);
+        console.log('final - evaluated: ' + eval(formatValue));
+
+        try {
+            console.log($(this).parents('tr'));
+            $(this).parent().parent().find('input[data-identifier="' + update + '"]').val(eval(formatValue));
+        } catch (e) {
+            console.log('Unable to parse eval, failed with errors');
+            console.log(e);
+        }
+    });
+</script>

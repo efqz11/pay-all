@@ -1,0 +1,62 @@
+﻿@model DayOffToEmployeeVm
+
+<form asp-action="AddOrUpdate" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#masterEmployeeArea" data-ajax-begin="showModal()" data-ajax-success="sendNotification('info', 'Configure payrol period definition')" id="userForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            Update Employees DayOffs
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="row">
+            <div class="form-group col">
+                <label for="DayOffId" class="control-label">Choose Day off</label>
+                <select asp-for="DayOffId" class="form-control" asp-items="@ViewBag.DayOffsSelectList" onchange="SetUrl(); $('#btn-master').click()"></select>
+            </div>
+
+            <a class="btn btn-lg btn-sm" id="btn-master" data-ajax="true" data-ajax-update="#day-off-empls-result" data-ajax-begin="" asp-action="GetDayOffEmployees" asp-route-year="@DateTime.Now.Year" asp-route-dayOffId="1" style="display:none">
+                <i class="fa fa-user-shield"></i> Update For @DateTime.Now.Year
+            </a>
+
+            @*<div class="form-group col">
+                <label for="year" class="control-label">Choose Year</label>
+                <select asp-for="Year" class="form-control" asp-items="@ViewBag.YearsSElectList"></select>
+            </div>*@
+        </div>
+        <div id="day-off-empls-result"></div>
+
+        @*<div class="form-group">
+            <label asp-for="Website" class="control-label"></label>
+            <input asp-for="Website" as class="form-control" />
+            <span asp-validation-for="Website" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Hotline" class="control-label"></label>
+            <input asp-for="Hotline" as class="form-control" />
+            <span asp-validation-for="Hotline" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="ManagingDirector" class="control-label"></label>
+            <input asp-for="ManagingDirector" as class="form-control" />
+            <span class="text-danger" asp-validation-for="ManagingDirector"></span>
+        </div>*@
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>
+
+
+<script>
+    function SetUrl() {
+        var url = '@Url.Action("GetDayOffEmployees", "DayOff")';
+        url += "?dayOffId=" + $('#DayOffId').val();
+
+        $('#btn-master').attr('href', url)
+    }
+
+    $('#DayOffId').trigger('change');
+</script>

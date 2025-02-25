@@ -1,0 +1,103 @@
+﻿@model WorkTimeWorkItem
+@{ 
+    var wi = (_WorkTime)ViewBag.WorkItem;
+    var skip = 0;
+}
+<style>
+    .selected {
+        /*background-color: #28a745 !important;*/
+        color: white;
+        opacity: 1 !important;
+        box-shadow: 1px 10px 20px -10px rgba(0, 0, 0, 0.82);
+    }
+    .rq-type{cursor: pointer}
+    .rq-type div{opacity:0.7}
+    .rq-type div:hover,
+    .rq-type div:active,
+    .rq-type div:focus{
+        opacity:1;
+    }
+
+
+</style>
+    <form asp-action="AddWorkToShift" asp-controller="Roster" data-ajax="true" data-ajax-method="POST" data-ajax-update="#card-placeholder" data-ajax-begin="" id="addNewRequest_JumboTrons" data-ajax-failure="handleModalPostFailure" data-ajax-success="hideModal()">
+        @Html.AntiForgeryToken()
+        <input name="sId" type="hidden" value="@ViewBag.sId" />
+        <input name="wtId" type="hidden" value="@ViewBag.wtId" />
+        <input asp-for="WorkTimeId" type="hidden" />
+
+
+        <header class="modal__header">
+            <h2 class="modal__title" id="modal-1-title">
+                Choose Work to perform on @wi.Name
+            </h2>
+            <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        </header>
+        <main class="modal__content" id="modal-1-content">
+
+            <div class="form-group">
+                <label for="EmployeeIds" class="control-label">Choose Work</label>
+                <select name="WorkId" id="WorkId" asp-items="@ViewBag.WorkItems" class="form-control"></select>
+                <a class="btn btn-link" asp-action="AddOrUpdateWork" asp-route-controller="Schedule" data-ajax-method="GET" data-ajax-failure="HandleModalPostFailure" data-ajax-update=".modal__container" data-ajax="true"><i class="ion ion-plus"></i> Create new Task</a>
+            </div>
+
+            <div class="form-group">
+                <label for="EmployeeIds" class="control-label">Employees who can perform above task</label>
+                <select name="WorkableEmployeeIds" id="WorkableEmployeeIds" asp-items="@ViewBag.EmployeeIds" class="form-control" multiple></select>
+            </div>
+            <div class="row">
+                <div class="form-group col">
+                    <label for="EmployeeIds" class="control-label">Min employees</label>
+                    <input type="text" asp-for="MinEmployees" class="form-control" />
+                </div>
+
+                <div class="form-group col">
+                    <label for="EmployeeIds" class="control-label">Max Employees</label>
+                    <input type="text" asp-for="MaxEmployees" class="form-control" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" asp-for="IsForWholeWeek" value="true" class="custom-control-input" tabindex="5" onchange="onCheckChange(this);$('#only0on').toggle()" checked>
+                    <span class="custom-control-label" for="chbxTerms">
+                        Repeat for Whole week
+                    </span>
+                </label>
+            </div>
+
+            <div class="form-group" id="only0on" style="display:none">
+                <label for="EmployeeIds" class="control-label">Only on days</label>
+                <select name="OnDays" id="OnDays" asp-items="@ViewBag.Days" class="form-control" multiple></select>
+            </div>
+
+        </main>
+        <footer class="modal__footer">
+            <button type="submit" class="modal__btn modal__btn-primary"><i class="fas fa-file-import"></i> Save</button>
+            <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        </footer>
+    </form>
+
+
+<script>
+
+    $('#WorkableEmployeeIds').select2({
+        //width:'300px'
+        placeholder: "Select employees",
+        escapeMarkup: function (m) {
+            console.log(m);
+            return m;
+        }
+    });
+    $('#OnDays').select2({
+        width:'300px',
+        placeholder: "Select on days",
+    });
+
+
+    $('#WorkableEmployeeIds').on('select2:select', function (e) {
+        var data = e.params.data;
+        console.log(data);
+    });
+
+</script>

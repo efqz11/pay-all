@@ -1,0 +1,92 @@
+﻿@model Notification
+@inject Payroll.Database.AccountDbContext dbContext
+    
+
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+
+            @if (Model != null || Model.Id > 0)
+            {
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="GetMyNotifications" asp-controller="Notification">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+            }
+
+            Notification Action Summary
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+        <div class="form-group">
+            <partial name="_ShowAlertMessage" />
+        </div>
+
+        <div class="list-group list-group-noti">
+            <div class="list-group-item border-0 border">
+                <strong>
+                    @Model.NotificationType.Type
+                </strong>
+            </div>
+
+            <div class="list-group-item list-group-item-action border-0 border">
+                <div class="row">
+                    <div class="col-md-1 text-center icon" style="color:@Model.NotificationType.Color">
+                        <i class="@Model.NotificationType.Icon"></i>
+                    </div>
+                    <div class="col-md-11">
+                        <div>
+                            <a href="@Model.Url">
+                                @Html.Raw(Model.Summary)
+                            </a>
+                            <br />
+                            <small class="text-muted">@(Model.SentDate.ToSystemFormat(User, true))</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <table class="table table-details table-borderless table-sm">
+                <tbody>
+                    <tr>
+                        <td>Action</td>
+                        <td>@Model.NotificationActionTakenType</td>
+                    </tr>
+                    <tr>
+                        <td>When</td>
+                        <td>@Model.ActionTakenDate.ToSystemFormat(User, true)</td>
+                    </tr>
+                    <tr>
+                        <td>Who</td>
+                        <td>@Model.User.NameDisplay (@Model.User.UserName)</td>
+                    </tr>
+                    @if (!String.IsNullOrWhiteSpace(Model.Remarks))
+                    {
+                        <tr>
+                            <td>Remarks</td>
+                            <td>@Model.Remarks</td>
+                        </tr>
+                    }
+                    @if (Model.ChildNotifications.Any())
+                    {
+                        @foreach (var item in Model.ChildNotifications)
+                        {
+                            <tr>
+                                <td>Related</td>
+                                <td>
+                                    <a href="@item.Url" target="_blank">
+                                        @Html.Raw(item.Summary)
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>

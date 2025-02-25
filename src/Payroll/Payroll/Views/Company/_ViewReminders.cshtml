@@ -1,0 +1,13 @@
+﻿@model List<Reminder>
+
+
+@foreach (var item in Model)
+{
+    <div class="form-group">
+        
+            <span>Remind</span> <span class="badge-secondary p-1 rounded">employees of @(item.EmployeeRole.Role) role</span>
+        <span>about</span> <span class="badge-primary p-1 rounded">@item.About.GetDisplayName()</span>
+        <span>of</span> <span class="badge-secondary p-1 rounded">@item.Of.GetDisplayName().ToLower()</span><span class="badge-secondary p-1 rounded ml-2">@item.When @item.In.GetDisplayName() @item.BeforeOrAfter.GetDisplayName()</span>
+    </div>
+    <hr />
+}

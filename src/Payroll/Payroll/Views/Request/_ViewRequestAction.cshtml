@@ -1,0 +1,210 @@
+﻿@model Request
+@inject Payroll.Database.PayrollDbContext dbContext
+@{ 
+    DayOffEmployee dayOffEmployee = (DayOffEmployee)ViewBag.EmplDayOffForYear;
+    bool? requireFileUpload = (bool?)ViewBag.RequireFileUpload;
+    bool IsLastStep = (bool)ViewBag.IsLastStep;
+}
+<form asp-action="TakeRequestAction" asp-controller="Request" data-ajax="true" data-ajax-method="POST" data-ajax-update="" data-ajax-begin="" data-ajax-success="" id="viewRequserActionForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    <input type="hidden" asp-for="IsApproved" value="@Model.IsApproved"/>
+    <input type="hidden" name="IsLastStep" value="@IsLastStep"/>
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+
+            <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewRequest" asp-controller="Request" asp-route-id="@Model.Id">
+                <i class="fa fa-arrow-left"></i>
+            </a>
+
+            Take Action on @Model.RequestType Request
+            <br />
+            <small>@Model.CreationDate.ToLongDateString()</small>
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+
+        @*<div class="form-group">
+            <img src="@Url.Content(Model.Employee.PhotoLink ?? DefaultPictures.default_user)" height="30" /> @Model.Employee.Name
+        </div>*@
+        <div class="form-group">
+            Type:
+            <partial name="~/Views/Request/_DisplayRequestTypeOnly.cshtml" model="@Model.RequestType" />
+        </div>
+        <div class="form-group">
+            Status: @Html.Raw(Model.GetStatusString())
+        </div>
+        <div class="form-group alert alert-info">
+            @Html.Raw(ViewBag.Summary)
+        </div>
+
+
+        <div class="ta ta-approve">
+            <div class="form-group" style="display:@(IsLastStep ? "block" : "none")">
+                @if (Model.RequestType == RequestType.Leave)
+                {
+                    <span class="text-lead">@(Model.DayOff?.Name)</span>
+                    <p>
+                        Remaining days will be reduced by total days &middot; @dayOffEmployee.TotalRemainingHours <b>- @Model.TotalDays </b> = @(dayOffEmployee.TotalRemainingHours - Model.TotalDays)
+                    </p>
+
+                }
+                @if (Model.RequestType == RequestType.Overtime)
+                {
+
+                    <span class="text-lead">Overtime: @Model.Duration</span>
+                    <p class="mb-1">
+                        <span class="text-muted">This action will create new attendance records for duration of @Model.GetRequestedDuration() from @Model.Duration as overtime attendance. </span>
+                        @if (Model.AttendanceId.GetValueOrDefault() > 0)
+                        {
+                            <span class="text-muted">OT request has related attendance which has unclaimed @Model.Attendance.TotalHoursWorkedOutOfSchedule.GetHourMinString() worked hours.</span>
+                        }
+                    </p>
+
+                }
+                @if (Model.RequestType == RequestType.Leave)
+                {
+                    <p class="mb-1">
+                        <span class="text-muted">
+                            @(Model.Start?.Date != Model.End?.Date ? "Period form " : "On ") @Model.GetRequestedDuration()
+                            @Html.Raw(Model.GetTotalDaysStringInfo())
+                        </span>
+                    </p>
+                }
+                @if (Model.RequestType == RequestType.Attendance_Change || Model.RequestType == RequestType.Work_Change)
+                {
+                    <span class="text-lead">@(Model.RequestType == RequestType.Attendance_Change ? ("Work time: " + Model.Attendance?.Duration) : Model.WorkItem?.WorkName)</span>
+                    if (Model.IsTransferEmployee)
+                    {
+                        <p class="mb-1">
+                            <span class="text-muted">
+                                This action will transfer above @(Model.RequestType == RequestType.Attendance_Change ? "attendance" : "work item") record to
+                                <a href="@Url.Action("Detail", "Employee", new { id = Model.TransferredEmployeeId })" target="_blank">
+                                    @Model.TransferredEmployeeName
+                                </a>
+                            </span>
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="mb-1">
+                            <span class="text-muted">This action will create new clock-in records for @Model.GetNewCheckInCheckOutDuration(User) on date @(Model.Attendance?.Date.ToSystemFormat(User) ?? Model.WorkItem?.Date.ToSystemFormat(User))</span>
+                        </p>
+                    }
+                }
+                @if (Model.RequestType == RequestType.Document)
+                {
+                    <span class="text-lead">Documents Requested</span>
+                    <br />
+                    @foreach (var xxx in Model.DocumentsDataArray)
+                    {
+                        <span class="text-muted">@string.Concat(" · ", xxx)</span><br />
+                    }
+
+                    <div class="mt-1">
+                        <span class="text-lead">Reason</span>
+                        <br />
+                        <span class="mt-1 text-muted">· @Model.Reason</span>
+                    </div>
+
+                    @if (requireFileUpload.HasValue && requireFileUpload.Value)
+                    {
+                        <p class="text-danger mt-2"><i class="fa fa-exclamation-triangle"></i> Please upload all reqested documents</p>
+                    }
+                    //Documents ifquired
+                }
+
+            </div>
+            @if (ViewBag.AffectedAttendances != null && (int)ViewBag.AffectedAttendances > 0)
+            {
+                <div class="alert alert-warning"><b>@ViewBag.AffectedAttendances attendance records will be affected</b> due to approval of this leave thus these records will be marked as 'Employee On Leave'.</div>
+            }
+            <button class="btn btn-success" type="submit" onclick="$('#IsApproved').val('True');$('#viewRequserActionForm').attr('data-ajax-success','sendNotification(\'success\', \'@Model.RequestType was just appproved\');hideModal();$(\'tr.submitted-@Model.Id\').hide()')">
+                <i class="fas fa-check-circle"></i> Approve
+            </button>
+        </div>
+
+        @*@if (Model.RequestType == RequestType.Attendance_Change)
+        {
+            <small>
+                @Model.Attendance.DurationCheckin
+                <i class="fa fa-arrow-right"></i>
+                @Model.NewCheckInCheckOutDuration
+            </small>
+        }
+        @if (Model.RequestType == RequestType.Overtime)
+        {
+            <p class="mb-1">
+                @Model.GetRequestedDuration()
+                <br>
+                @Model.Duration
+            </p>
+        }
+        @if (Model.RequestType == RequestType.Document)
+        {
+            <span class="text-lead">@Html.Raw(string.Join("<br>", Model.DocumentsData))</span>
+            <br />
+
+            <small class="">
+                Requested Documents
+            </small>
+            //Documents Required
+        }*@
+
+        <hr />
+
+        <div class="ta ta-reject">
+            <div class="form-group">
+                <label asp-for="ActionTakenReasonSummary" class="control-label">Please enter reason for rejection</label>
+                <textarea type="text" asp-for="ActionTakenReasonSummary" class="form-control"></textarea>
+            </div>
+            <button class="btn btn-danger" type="submit" onclick="$('#viewRequserActionForm').attr('data-ajax-success','sendNotification(\'error\', \'@Model.RequestType was just rejected\');hideModal();$(\'tr.submitted-@Model.Id\').hide()')">
+                <i class="fas fa-times-circle"></i> Reject
+            </button>
+        </div>
+
+
+
+        <div class="form-group mt-2">
+            @*<small>* Mandatory document</small>
+            <br />*@
+            <small>Sent for approval about @(Model.SubmissionDate?.ConvertToTimeZone(User).GetTimeDifference()) ago</small>
+        </div>
+
+
+    </main>
+    <footer class="modal__footer"></footer>
+
+
+</form>
+
+
+<script>
+    var l = $("#IsApproved").val();
+    
+    $('.ta').hide();
+    switch (l) {
+        case "True":
+            $('.ta-approve').show();
+            break;
+        case "False":
+            $('.ta-reject').show();
+            break;
+        default:
+            $('.ta-approve').show();
+            $('.ta-reject').show();
+            break;
+    }
+    function removeTableRow(id) {
+
+        console.log('thisss...');
+        console.log('thisss... + ' + id);
+        console.log($(this));
+
+        
+        $('#requestHomeEmployee tbody').find('tr[data-id="' + id + '"]').fadeOut();
+    }
+</script>

@@ -1,0 +1,416 @@
+﻿@model Employee
+@{
+    ViewData["Title"] = Model.Name + " - Employee profile";
+
+    //Model.PayrollPeriodEmployees = Model.PayrollPeriodEmployees.OrderBy(x => x.PayrollPeriod.StartDate).ToList();
+    decimal perc = 0;
+    decimal calcChange = 0;
+    decimal previousTotal = 0;
+}
+
+<link href="~/css/jquery.orgchart-custom.css" rel="stylesheet" />
+<link href="~/css/step-progress.css" rel="stylesheet" />
+<link href="~/css/employee-grade.css" rel="stylesheet" />
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/tags.min.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link href="~/css/card.css" rel="stylesheet" />
+<link href="~/css/employee.css" rel="stylesheet" />
+<link href="~/css/calendar-icon.css" rel="stylesheet" />
+
+<style>
+    .card {
+        padding: 0px !important;
+    }
+    .card-header {
+        padding: 1.35rem 1.85rem !important;
+    }
+    .card-body {
+        padding: 10px !important;
+    }
+</style>
+
+<div class="row mt-2">
+    <div class="col-md-3">
+        <div class="text-center">
+            <img src="@Url.Content(Model.Avatar ?? DefaultPictures.default_user)" height="120" class="mt-2 rounded-circle" />
+        </div>
+        <div class="text-center">
+            <span class="tag  @Model.StatusCss">@Model.HrStatus</span>
+        </div>
+        @*<div class="text-center">
+                <a class="text-muted " data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="UploadImage" asp-route-id="@Model.Id" style="">
+                    Change photo
+                </a>
+            </div>*@
+        @*<div class=" form-group">
+                <label class="col-form-label">Choose Employee</label>
+                <select name="empId" id="empId" asp-items="@(TempData["EmpId"] as SelectList)" onchange="reload(this)" class="form-control"></select>
+            </div>*@
+
+        @*<h1>@((TempData["EmpId"] as SelectList).Count())</h1>*@
+        @*<div class="form-inline form-group">
+                <label asp-for="ItemId" class="col-form-label">Addition</label>
+                <select asp-for="ItemId" asp-items="ViewBag.ItemId" onchange="reload(this)" class="form-control"></select>
+                &nbsp;
+                <a class="btn btn-info btn-sm" asp-action="Index" asp-controller="Addition">Manage additions</a>
+            </div>*@
+    </div>
+    <div class="col-md-6">
+        <div class="">
+            <h4 class="display">
+                @*@(Model.NameDisplay)
+                    <span class="pro @Model.CssClass">@Model.Grade</span>
+
+                    <a class="btn btn-sm btn-outline-dark" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdate" asp-route-id="@Model.Id">
+                        <i class="ion-ios-compose-outline"></i> Edit
+                    </a>
+
+                    <br />*@
+                <small>
+                    @Model.EmpID &middot; @Model.GetSystemName(User) <a class="text-muted " data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-controller="Search" asp-action="SearchModal" asp-route-what="@EntityType.Employee" style="">
+                        <i class="fa fa-caret-down"></i>
+                    </a>
+                </small>
+            </h4>
+
+            <div class="text-muted" style="line-height:2.2">
+
+                <p class="mb-0"><i class="fad fa-user-tag"></i> @Model.JobTitle</p>
+                <p class="mb-0"><i class="fad fa-dot-circle"></i> @Html.DisplayFor(x => Model.JobType)</p>
+                <p class="mb-0"><i class="fad fa-sitemap"></i> @(Model.Department.Name ?? "No Department")</p>
+
+                <p class="mb-0"><i class="fad fa-map-marker-alt"></i> @(Model.Location?.Name ?? "No Location")</p>
+                @*<partial name="~/Views/Request/_DisplayRequestStatus.cshtml" model="@Model.Status" />*@
+            </div>
+            @*<small>@Model.IdentityType · @Model.IdentityNumber</small>*@
+            @*<small>@Model.IdentityType · @Model.IdentityNumber</small><br />
+                <small><span class="text-muted">Department</span> · @Model.Department.Name</small><br />
+                <small><span class="text-muted">Address</span> · @Model.Address</small><br />*@
+            @*@if (Model.DateOfJoined.HasValue)
+                {
+                    <small><span class="text-muted">Service Duration</span> · @(@Model.DateOfJoined.Value.GetTimeDifference(DateTime.Now))</small><br />
+                }*@
+
+            @*@if (Model.HasUserAccount)
+                {
+                    <small><span class="text-muted">User info</span> · @Model.UserName</small><br />
+                }*@
+            @*<small>Profile view</small>*@
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="list-group">
+            @*<div class="list-group-item border-0">
+                    @if (Model.Contracts?.Any(a => a.IsActive) ?? false)
+                    {
+                        <span style="display:flex">
+                            <a asp-action="Detail" asp-route-id="@Model.Contracts?.First(a=> a.IsActive).ReportingEmployeeId">
+                                <img src="@Url.Content(Model.Contracts?.First(a=> a.IsActive)?.ReportingEmployee?.PhotoLink ?? DefaultPictures.default_user)" height="35" class="mt-1 mr-2 rounded-circle" />
+                            </a>
+                            @Model.Contracts?.First(a => a.IsActive).ReportingEmployee?.Name
+                            <br>
+                            @Model.Contracts?.First(a => a.IsActive).ReportingEmployee?.Designation
+                        </span>
+                    }
+
+                </div>*@
+            <div class="list-group-item border-0"><i class="fal fa-envelope"></i> <a href="mailto:@Model.EmailWork"> @Model.EmailWork</a></div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.PhoneWork))
+            {
+                <div class="list-group-item border-0"><i class="fad fa-phone"></i> <a href="tel:@Model.PhoneWork"> @Model.PhoneWork</a></div>
+            }
+
+            @*@if (!string.IsNullOrWhiteSpace(Model.PhonePersonal))
+            {
+                <div class="list-group-item border-0"><i class="fad fa-phone"></i> <a href="tel:@Model.PhonePersonal"> @Model.PhonePersonal</a></div>
+            }*@
+
+        <div class="list-group-item border-0">
+            @if (Model.HasUserAccount)
+            {
+            <a asp-action="Detail" asp-controller="AppUser" asp-route-id="@Model.UserId">
+
+                <i class="fad fa-user-lock"></i>
+                @Model.UserName
+            </a>
+            }
+            @*<a class="" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="MapUser" asp-route-id="@Model.Id">
+                <i class="ion-ios-compose-outline"></i> Map
+            </a>*@
+
+            <a class="text-white btn btn-purple" data-ajax="true" data-ajax-method="POST" data-ajax-success="shideModal('Your browser will now refresh and login as Viewing @Model.GetSystemName(User)'); location.reload()" data-ajax-begin="showModal()" asp-controller="AppUser" asp-action="SwitchToEmployee" asp-route-id="@Model.Id">
+                <i class="fa fa-external-link"></i> Switch
+            </a>
+
+        </div>
+
+
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row">
+
+    <div class="col-md-3">
+        <partial name="_Sidebar" />
+    </div>
+    <div class="col-md-9">
+        <div id="employee-content">
+
+        </div>
+    </div>
+</div>
+
+<div class="text-center">
+</div>
+<div class="clearfix"></div>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+
+@section scripts {
+    <!-- Resources -->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
+    <script type="text/javascript" src="https://dabeng.github.io/OrgChart/js/jquery.mockjax.min.js"></script>
+    <script type="text/javascript" src="https://dabeng.github.io/OrgChart/js/jquery.orgchart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.7/dist/html2canvas.min.js"></script>
+    <script src="~/js/micro-charts.js"></script>
+    <script>
+
+        function setActiveTab(e) {
+            console.log('tab', e);
+            var newTab = $(e).parent();
+            $('#empl-sidebar').find('.list-group-item').not(newTab).removeClass('active');
+            $(newTab).addClass('active');
+        }
+
+
+        function clearHome() {
+
+            $("#employee-content").children().fadeOut();
+            var loader = getLoaderHtmlWithLineHeight(25);
+            $("#employee-content").empty();
+
+
+            $("#employee-content").append(loader).fadeIn();
+        }
+
+        $('.general_table').click();
+        //function reload() {
+        //    var url = GetAppRootPath() + "/employee/detail/" + $('#empId :selected').val();
+        //    console.log(url);
+
+        //    location.href = url;
+        //}
+
+
+        //function getPerformanceChart() {
+        //    $.get(GetAppRootPath() + '/employee/GetPerfromanceAndSalaryChart?start=' + start + '&end=' + end, function (data) {
+        //        console.log(data);
+        //        //chart.data = d.chartdata;
+        //        drawSalaryChart(data.salaryChart);
+        //    });
+        //}
+
+        function drawSalaryChart(data) {
+
+            // Create chart instance
+            var chart = am4core.create("chartdiv", am4charts.XYChart);
+            chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
+            chart.data = data;
+            chart.numberFormatter.numberFormat = "#a";
+
+            console.log('chart.data');
+            console.log(chart.data);
+
+
+            // Create axes
+            var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+            //dateAxis.renderer.minGridDistance = 50;
+
+            var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+            valueAxis.valueFormatString = "#,###,.##K";
+            valueAxis.renderer.minGridDistance = 30;
+
+            // Create series
+            var series = chart.series.push(new am4charts.ColumnSeries());
+            series.dataFields.valueY = "item2";
+            series.dataFields.dateX = "item1";
+            series.strokeWidth = 2;
+            series.minBulletDistance = 10;
+            //series.tooltipText = "{valueY}";
+            series.name = "Gross Salary";
+            series.tooltipText = "{name}\n[font-size: 14] MVR {valueY}[/]";
+            series.tooltip.pointerOrientation = "vertical";
+            series.tooltip.background.cornerRadius = 20;
+            series.tooltip.background.fillOpacity = 0.5;
+            series.tooltip.label.padding(12, 12, 12, 12)
+
+            //// as by default columns of the same series are of the same color,
+            //// we add adapter which takes colors from chart.colors color set
+            //series.columns.template.adapter.add("fill", function (fill, target) {
+            //    return chart.colors.getIndex(target.dataItem.index);
+            //});
+
+            var series2 = chart.series.push(new am4charts.ColumnSeries());
+            series2.dataFields.valueY = "item3";
+            series2.dataFields.dateX = "item1";
+            series2.strokeWidth = 4;
+            series2.minBulletDistance = 10;
+            series2.name = "Net Salary";
+            series2.tooltipText = "{name}\n[font-size: 14] MVR {valueY}[/]";
+            series2.tooltip.pointerOrientation = "vertical";
+            series2.tooltip.background.cornerRadius = 20;
+            series2.tooltip.background.fillOpacity = 0.5;
+            series2.tooltip.label.padding(12, 12, 12, 12)
+
+
+            // Add cursor
+            chart.cursor = new am4charts.XYCursor();
+            chart.cursor.yAxis = valueAxis;
+            chart.cursor.snapToSeries = series;
+
+            // Add legend
+            chart.legend = new am4charts.Legend();
+            chart.legend.position = "top";
+
+            hidelogos();
+
+
+        }
+
+
+        function InitTab_Schedules() {
+            console.log('InitTab_Schedules');
+
+            $('#datefilterSchedule').daterangepicker({
+                autoUpdateInput: false,
+                locale: {
+                    cancelLabel: 'Clear'
+                },
+                opens: 'bottom',
+
+                ranges: {
+                    'This Week': [moment().startOf('week'), moment().endOf('week')],
+                    'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                }
+            });
+
+
+            @* <a asp-action="Index" data-ajax-begin="convertToLoadingTable('.table-schedule')" asp-route-date="@(((DateTime)ViewBag.WeekEnd).AddDays(1))" data-ajax="true" data-ajax-update="#weekly-schedule" class="btn-sm btn btn-outline-secondary border-left-0"><i class="ion ion-arrow-right-c"></i></a> *@
+
+
+            $('#datefilterSchedule').on('apply.daterangepicker', function (ev, picker) {
+                console.log(picker);
+                //var days = picker.endDate.diff(picker.startDate, 'days');
+                //if (days <= 0)
+                //    $(this).parent().find('#textBtn').val(picker.startDate.format('ddd, MMM DD, YYYY'));
+                //else
+                //    $(this).parent().find('#textBtn').val(picker.startDate.format('MMM DD') + ' - ' + picker.endDate.format('DD, YYYY') + " (" + days + " days)");
+
+                // 1/10/2020 12:34:32 PM
+                var date = picker.startDate.format('MM/DD/YYYY HH:mm:ss');
+                var end = picker.endDate.format('MM/DD/YYYY HH:mm:ss');
+                var url = GetAppRootPath() + '/Employee/GetScheduleForDates/'+@Model.Id+'?start=' + date + '&end=' + end;
+
+                $.get(url, function (data) {
+                    $('#employee-content').html(data);
+                    InitTab_Schedules();
+                }).fail(function () {
+                    sendNotification('error', 'Failed to load schedules');
+                }).done(function () {
+
+                });
+
+                //$('#requestFilterForm').submit();
+            });
+
+        }
+
+
+        function init_empOrgChart() {
+            var nodeTemplate = function (data) {
+                console.log(data);
+                return `
+                ${data.avatar == undefined ? `` : `<img class="avatar" src="${data.avatar}">`}
+                <div class="title">${data.name}</div>
+                <div class="content">
+                    <p class=""><i class="fad fa-user-tag"></i> ${data.title}</p>
+                    ${data.department == undefined || data.department == "" ? `` : `<p class="department"><i class="fad fa-user-friends"></i> ${data.department}</p>`}
+                    ${data.location == undefined ? `` : `<p class="location"><i class="fad fa-map-marker-alt"></i> ${data.location}</p>`}
+                    ${data.division == undefined || data.division == "" ? `` : `<p class="division"><i class="fad fa-sitemap"></i> ${data.division}</p>`}
+                    ${data.empstate == "None" || data.empstate == undefined ? `` : `<p class="empstate"><i class="fad fa-dot-circle"></i> ${data.empstate}</p>`}
+                </div>
+                `;
+            };
+
+            var datasource = {
+                'name': 'Lao Lao',
+                'title': 'general manager',
+                'office': '白城',
+                'children': [
+                    { 'name': 'Bo Miao', 'title': 'department manager', 'office': '北京' },
+                    {
+                        'name': 'Su Miao', 'title': 'department manager', 'office': '北戴河',
+                        'children': [
+                            { 'name': 'Tie Hua', 'title': 'senior engineer', 'office': '北戴河' },
+                            { 'name': 'Hei Hei', 'title': 'senior engineer', 'office': '北戴河' }
+                        ]
+                    }
+                    //{ 'name': 'Yu Jie', 'title': 'department manager', 'office': '长春' },
+                    //{ 'name': 'Yu Li', 'title': 'department manager', 'office': '长春' },
+                    //{ 'name': 'Hong Miao', 'title': 'department manager', 'office': '长春' },
+                    //{ 'name': 'Yu Wei', 'title': 'department manager', 'office': '长春' },
+                    //{ 'name': 'Chun Miao', 'title': 'department manager', 'office': '长春' },
+                    //{ 'name': 'Yu Tie', 'title': 'department manager' }
+                ]
+            };
+
+            //$.get(GetAppRootPath() + '/employee/GetOrganChartEmpl/' + '@Model.Id', function (data) {
+
+
+                var oc = $('#chart-container').orgchart({
+                    'data': GetAppRootPath() + '/employee/GetOrganChartEmpl/@Model.Id', // datasource,
+                    'nodeTemplate': nodeTemplate,
+                    'exportButton': false,
+                    'pan': false,
+                    'zoom': false,
+                    'depth': 2,
+                    'nodeContent': 'title',
+                    'nodeID': 'id',
+                    //'createNode': function ($node, data) {
+                    //    var secondMenuIcon = $('<i>', {
+                    //        'class': 'oci oci-info-circle second-menu-icon',
+                    //        click: function () {
+                    //            $(this).siblings('.second-menu').toggle();
+                    //        }
+                    //    });
+                    //    // console.log(data);
+                    //    if (data.avatar !== undefined) {
+                    //        var secondMenu = '<div class="second-menu"><img class="avatar" src="' + data.avatar + '"></div>';
+                    //        $node.append(secondMenuIcon).append(secondMenu);
+                    //    }
+                    //}
+                });
+
+
+            setTimeout(function () {
+                $('ul.nodes div[id="@Model.Id"]').addClass('focused');
+            }, 700);
+        }
+    </script>
+}

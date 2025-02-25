@@ -1,0 +1,102 @@
+﻿@model List<EmployeePayComponent>
+@{ 
+    var i = 0;
+}
+<form asp-action="AddCompensation" data-ajax="true" data-ajax-method="POST" data-ajax-update="#change-form-wrapper" data-ajax-success="sendNotification('success', 'Employee compensations were just updated');" id="employeeDetailsCreateForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+
+            <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update="#change-form-wrapper" asp-action="Change" asp-controller="Employee" asp-route-id="@Model.First().EmployeeId">
+                <i class="fad fa-arrow-alt-left fa-2x"></i>
+            </a>
+
+            Update Pay Components
+        </h2>
+    </header>
+
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <h5>Constant Addition(s) & Deduction(s)</h5>
+        </div>
+        <table class="table table-hover">
+            <tbody>
+                @foreach (var item in Model.Where(a => a.PayAdjustment.VariationType.ToString().Contains("Constant")).OrderBy(a => a.PayAdjustment.Name))
+                {
+                    <tr>
+                        <input type="hidden" name="[@i].PayAdjustmentId" value="@item.PayAdjustmentId" />
+                        <input type="hidden" name="[@i].EmployeeId" value="@item.EmployeeId" />
+                        <input type="hidden" name="[@i].Id" value="@item.Id" />
+
+                        <td width="10px">
+                            <label class="custom-control custom-checkbox mb-0">
+                                <input type="checkbox" id="_@item.PayAdjustmentId" name="[@i].IsActive" value="@(item.IsActive ? "True" :"False")" class="custom-control-input" tabindex="5" onchange="onCheckChange(this); $(this).parent().parent().next().next().find('input').prop('disabled', !$(this).is(':checked')).focus().select()">
+                                <input type="hidden" name="[@i].IsActive" value="false" />
+                                <span class="custom-control-label" for="chbxTerms">
+                                </span>
+                            </label>
+                        </td>
+
+                        <td><label for="_@item.PayAdjustmentId">@item.PayAdjustment.Name</label></td>
+                        <td>
+                            <input type="number" name="[@i].Total" value="@item.Total" class="form-control form-control-sm" disabled/>
+                        </td>
+                    </tr>
+
+                    i++;
+                }
+            </tbody>
+        </table>
+        <hr />
+        <div class="form-group">
+            <h5>Variable Addition(s) & Deduction(s)</h5>
+            <p>Total will be calculated based on performance</p>
+        </div>
+        <table class="table table-hover">
+            <tbody>
+                @foreach (var item in Model.Where(a => a.PayAdjustment.VariationType.ToString().Contains("Variable")).OrderBy(a=> a.PayAdjustment.Name))
+                {
+                    <tr>
+                        <input type="hidden" name="[@i].PayAdjustmentId" value="@item.PayAdjustmentId" />
+                        <input type="hidden" name="[@i].EmployeeId" value="@item.EmployeeId" />
+                        <input type="hidden" name="[@i].Id" value="@item.Id" />
+
+                        <td width="10px">
+                            <label class="custom-control custom-checkbox mb-0">
+                                <input type="checkbox" name="[@i].IsActive" value="@(item.IsActive ? "True" :"False")" id="_@item.PayAdjustmentId" class="custom-control-input" tabindex="5" onchange="onCheckChange(this)">
+                                <input type="hidden" name="[@i].IsActive" value="false" />
+                                <span class="custom-control-label" for="chbxTerms">
+                                </span>
+                            </label>
+                        </td>
+
+                        <td><label for="_@item.PayAdjustmentId">@item.PayAdjustment.Name</label></td>
+                        <td class="text-right">
+                            <i class="fa fa-angle-@(item.PayAdjustment.VariationType == VariationType.VariableAddition ? "up" : "down") text-@(item.PayAdjustment.VariationType == VariationType.VariableAddition ? "success" : "danger")"></i>
+                        </td>
+                        @*<td>
+                            <input type="number" name="[@i].Total" value="@item.Total" class="form-control form-control-sm" />
+                        </td>*@
+                    </tr>
+
+                    i++;
+                }
+            </tbody>
+        </table>
+        <div class="form-group">
+            <label for="date" class="control-label">Effective Date</label>
+            <input name="date" id="date" type="text" class="form-control has-datepicker" />
+        </div>
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="btn btn-primary mr-2">Save</button>
+        <button type="button" class="btn btn-outline-primary" onclick="$('.modal__btn-back').click()">Back</button>
+    </footer>
+</form>
+
+
+
+<script>
+    initDatePicker();
+</script>

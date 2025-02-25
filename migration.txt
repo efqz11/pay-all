@@ -1,0 +1,16 @@
+
+cd ./Payroll.Models
+
+dotnet ef database update --startup-project ../Payroll --context PayrollDbContext
+
+dotnet ef database update --startup-project ../Payroll --context LogDbContext
+
+dotnet ef database update --startup-project ../Payroll --context AccountDbContext
+
+
+cd ./Gaadiya.Office.Data
+
+
+dotnet publish -c Release -r linux-x64 --self-contained false
+dotnet publish -c Release -r linux-x64 --no-self-contained
+

@@ -1,0 +1,220 @@
+﻿@model Announcement
+@{
+    ViewData["Title"] = "Report - Gender Profile";
+
+    var pie = (Dictionary<string, int>)ViewBag.Pie;
+    var ByDept = (List<Tuple<string, int, int, int, int, int, int, Tuple<int>>>)ViewBag.ByDept;
+    var fields = (string[])ViewBag.Fields;
+}
+
+
+<div id="area52">
+    <div class="layout-main-landing">
+        <div class="row">
+            <div class="layout-main-landing-header col-sm-12">
+                <div class="relative">
+                    <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                        <div class="content-block-with-icon__content">
+                            <h1 class="page-title margin-top-none margin-bottom-none">
+                                Years of Service
+                            </h1>
+                        </div>
+                    </div>
+
+                    <nav aria-label="Breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class=""><a class="gusto-link" asp-action="Index">Reports</a></li>
+                            <li class="active" aria-current="page">years of service</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <div class="layout-main-landing-row margin-bottom-20px">
+            <div class="row">
+
+                <div class="col-sm-12 col-md-6">
+
+                    <div id="chartdiv_pie" style="height:300px"></div>
+                </div>
+                <div class="col-sm-12 col-md-6">
+
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <td>Name</td>
+                                <td>Count</td>
+                                <td>Percentage</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in pie)
+                            {
+                                <tr>
+                                    <td>@item.Key</td>
+                                    <td>@item.Value</td>
+                                    <td>@((((decimal)item.Value / pie.Sum(a => a.Value)) * 100).ToString("N0"))%</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+
+            <hr />
+            <div class="row">
+                <div class="col-sm-12 col-md-12 ">
+
+
+                    <div id="chartdiv_bar" style="height:350px"></div>
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <td>Department</td>
+                                @foreach (var item in fields)
+                                {
+                                    <td>@item</td>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in ByDept)
+                            {
+                                <tr>
+                                    <td>@item.Item1</td>
+                                    <td>@item.Item2</td>
+                                    <td>@item.Item3</td>
+                                    <td>@item.Item4</td>
+                                    <td>@item.Item5</td>
+                                    <td>@item.Item6</td>
+                                    <td>@item.Item7</td>
+                                    <td>@item.Rest.Item1</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+
+
+                </div>
+            </div>
+        </div>
+</div>
+
+
+
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+
+@section scripts {
+    <!-- Resources -->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script src="~/js/micro-charts.js"></script>
+    <script>
+
+
+        var data = [];
+        @if (pie != null) {
+            foreach (var item in pie)
+            {
+                <text>
+            data.push({key: '@item.Key', value: '@item.Value'});
+                </text>
+            }
+        }
+
+        console.log('data', data);
+        drawActionPie(data, "chartdiv_pie");
+
+
+        var datadept = [];
+        @if (ByDept != null) {
+            foreach (var item in ByDept)
+            {
+                <text>
+            datadept.push({dept: '@item.Item1', 2: '@item.Item2', 3: '@item.Item3', 4: '@item.Item4', 5: '@item.Item5', 6: '@item.Item6', 7: '@item.Item7', 8: '@item.Rest.Item1'});
+                </text>
+            }
+        }
+
+        console.log('datadept', datadept);
+        drawBarChart(datadept, "chartdiv_bar");
+
+        function drawBarChart(data, chartDiv) {
+            am4core.ready(function() {
+
+                // Themes begin
+                am4core.useTheme(am4themes_animated);
+                // Themes end
+
+                // Create chart instance
+                var chart = am4core.create(chartDiv, am4charts.XYChart);
+
+                // Add data
+                chart.data = data
+
+                chart.legend = new am4charts.Legend();
+                chart.legend.position = "right";
+
+                // Create axes
+                var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+                categoryAxis.dataFields.category = "dept";
+                categoryAxis.renderer.grid.template.opacity = 0;
+
+                var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+                valueAxis.min = 0;
+                valueAxis.renderer.grid.template.opacity = 0;
+                valueAxis.renderer.ticks.template.strokeOpacity = 0.5;
+                valueAxis.renderer.ticks.template.stroke = am4core.color("#495C43");
+                valueAxis.renderer.ticks.template.length = 10;
+                valueAxis.renderer.line.strokeOpacity = 0.5;
+                valueAxis.renderer.baseGrid.disabled = true;
+                valueAxis.renderer.minGridDistance = 40;
+
+                // Create series
+                function createSeries(field, name) {
+                  var series = chart.series.push(new am4charts.ColumnSeries());
+                  series.dataFields.valueX = field;
+                  series.dataFields.categoryY = "dept";
+                  series.name = name;
+
+                      // Make it stacked
+                      series.stacked = true;
+
+                      // Configure columns
+                      series.columns.template.width = am4core.percent(60);
+                    series.columns.template.tooltipText = "[bold]{name}[/]\n[font-size:14px]{categoryY}: {valueX}";
+
+                  var labelBullet = series.bullets.push(new am4charts.LabelBullet());
+                  labelBullet.locationX = 0.5;
+                  labelBullet.label.text = "{valueX}";
+                  labelBullet.label.fill = am4core.color("#fff");
+                }
+
+                createSeries("2", '@fields[0]');
+                createSeries("3", '@fields[1]');
+                createSeries("4", '@fields[2]');
+                createSeries("5", '@fields[3]');
+                createSeries("6", '@fields[4]');
+                createSeries("7", '@fields[5]');
+                createSeries("8", '@fields[6]');
+
+                //createSeries("female", "Female");
+
+                //createSeries("other", "Other");
+
+
+                hidelogos();
+            }); // end am4core.ready()
+
+        }
+    </script>
+
+}

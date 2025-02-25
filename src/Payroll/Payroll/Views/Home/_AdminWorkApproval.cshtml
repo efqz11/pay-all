@@ -1,0 +1,95 @@
+﻿@model List<WorkItem>
+@inject Payroll.Database.PayrollDbContext dbContext
+
+<div class="row">
+    <div class="col-md-12">
+
+        <div class="row">
+            <div class="col">
+                <h6 class="text-left">
+                    Work Item Submissions
+                    <br />
+                    <small class="pt-1">Total @Model.Count() record(s) found</small>
+                </h6>
+            </div>
+            <div class="col">
+                <div class="float-right"><select class="form-control form-control-sm" style="width:250px !important" name="empId" id="empId"></select></div>
+            </div>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="p-4 mt-1 mb-2 text-success">
+                <h5><i class="fa fa-check-double fa-2x"></i>All requests are approved</h5>
+            </div>
+        }
+        else
+        {
+        <table class="table table-sm table-hover">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Employee</th>
+                    <th>Work</th>
+                    <th>Date</th>
+                    <th></th>
+                </tr>
+            </thead>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td width="1%"><img src="@Url.Content(item.Employee?.Avatar ?? DefaultPictures.default_user)" class="mt-1 rounded-circle" height="30" /></td>
+                    <td class="text-left">@item.Employee.NameDisplay <br /> <small>@item.Employee.Department.Name</small></td>
+                    <td>@item.WorkName</td>
+                    <td><span class="text-muted">@item.Date.ToLocalFormat()</span></td>
+                    <td><span class="text-danger">@item.WorkItemSubmissions.Count(x => x.Status == WorkItemStatus.Submitted) awaiting</span></td>
+                </tr>
+
+                @if (Model.Any() == false)
+                {
+                    <tr>
+                        <td colspan="3"><span class="text-lead"><i class="fa fa-clipboard-check"></i> Thet's great, there is nothing to show</span></td>
+                    </tr>
+
+                }
+
+                @foreach (var sub in item.WorkItemSubmissions.Where(x=> x.Status == WorkItemStatus.Submitted))
+                {
+                    <tr class="submitted-@sub.Id">
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <a asp-action="SubmitWork" asp-controller="Schedule" asp-route-id="@sub.Id" asp-route-wiId="@sub.WorkItemId" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" style="">
+                                @sub.Name
+                            </a>
+                        </td>
+                        <td>
+                            <small> sent for approval abt @(((DateTime)dbContext.Entry(sub).Property("ModifiedDate").CurrentValue).GetTimeDifference()) ago</small>
+                            @*<br />
+                            <span>@sub.Status</span>*@
+                        </td>
+                        <td>
+                            <a asp-action="WorkItemSubmissionsApproval" asp-controller="Home" asp-route-wiId="@sub.WorkItemId" asp-route-id="@sub.Id" asp-route-approve="1" data-ajax="true" data-ajax-method="GET" data-ajax-update=".modal__container" data-ajax-begin="showModal()" title="Send for Approval" class="btn btn-sm btn-outline-success" style="">
+                                <i class="fas fa-check-circle"></i> Approve
+                            </a>
+
+                            &mdash;
+
+                            <a asp-action="WorkItemSubmissionsApproval" asp-controller="Home" asp-route-wiId="@sub.WorkItemId" asp-route-id="@sub.Id" data-ajax="true" data-ajax-method="GET" data-ajax-update=".modal__container" data-ajax-begin="showModal()" title="Send for Approval" class="btn btn-sm btn-outline-danger" style="">
+                                <i class="fas fa-times-circle"></i> Reject
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+        </table>
+        }
+    </div>
+</div>
+
+
+<script>
+
+    loadEmpddSearch('#empId');
+
+</script>

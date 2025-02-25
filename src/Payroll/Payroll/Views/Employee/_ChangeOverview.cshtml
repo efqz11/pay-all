@@ -1,0 +1,268 @@
+﻿@model Employee
+@inject Payroll.Database.PayrollDbContext dbContext
+@{
+    var request = (Request)ViewBag.activeRequest;
+    var changeMethods = new Dictionary<string, string>();
+    changeMethods.Add("Personal Information", @Url.Action("AddOrUpdate", new { id = Model.Id }));
+    changeMethods.Add("Address Details", @Url.Action("AddOrUpdateAddressContact", new { id = Model.Id }));
+    changeMethods.Add("Emegency Contact Details", @Url.Action("AddOrUpdateEmergencyContact", new { id = Model.Id }));
+    changeMethods.Add("Bank Details", @Url.Action("AddOrUpdateBankDetails", new { id = Model.Id }));
+    //changeMethods.Add("Employment", @Url.Action("AddOrUpdateSocial", new { id = Model.Id }));
+    //changeMethods.Add("Pay", @Url.Action("UploadImage", new { id = Model.Id }));
+}
+<div class="row">
+    <div class="col-md-8">
+        <h2 class="">Change Employee</h2>
+        <p>Make changes to employee info here</p>
+    </div>
+    <div class="col-md-4 text-right">
+    </div>
+</div>
+
+<div class="clearfix"></div>
+
+@if (TempData["Message"] != null)
+{
+    <div class="form-group">
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            @TempData["Message"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </div>
+}
+
+<partial name="_ShowAlertMessage" />
+<table class="table">
+    <tbody>
+        <tr>
+            <td colspan="" class="border-0">
+                <div class="list-group-item border-0 border-bottom">
+                    <div class="text-left" style=" vertical-align: middle;display:flex">
+                        <div class="image-container">
+                            <a asp-controller="Employee" asp-action="Detail" asp-route-id="@Model.Id">
+                                <img src="@Url.Content(Model.Avatar ?? DefaultPictures.default_user)" height="50" class="" />
+                            </a>
+                        </div>
+                        <a asp-controller="Employee" asp-action="Detail" asp-route-id="@Model.Id">
+                            <div class="" style="    line-height: 1.5;">
+                                <h5 class="mb-1">@Model.GetSystemName(User)</h5>
+                                <small class="text-muted" style="position: relative;top: -5px;">@(Model.JobTitle ?? "No Designation")</small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <partial name="_DisplayRequestStatus" model="@Model.HrStatus" />
+                @if (Model.DateOfJoined.HasValue)
+                {
+                    <small>Joined on @Model.DateOfJoined.ToSystemFormat(User)</small>
+                }
+
+                <br />
+                @Html.DisplayFor(a => Model.EmployeeStatus)
+            </td>
+            <td class="border-0">
+                @if (User.IsHrManagerOrAdmin())
+                {
+                    <a class="btn btn-primary btn-add-new-empl" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="NewEmployeeProfile" asp-route-id="@Model.Id">
+                        <i class="fal fa-user-plus"></i> Add New Employee
+                    </a>
+                }
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <h5 class="mt-3">Master Data</h5>
+                <p>Basic information, Bank Account, Address, Contact and Social Accounts</p>
+                @if (request?.Status == WorkItemStatus.Submitted || request?.Status == WorkItemStatus.Draft)
+                {
+                    <p class="text-muted">
+                        <a class="link-summary" data-ajax-method="POST" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewRequest" asp-controller="Request" asp-route-id="@request.Id">
+                            <partial name="~/Views/Request/_DisplayRequestTypeOnly.cshtml" model="RequestType.Emp_DataChange" /> @request.NumberFormat
+                        </a> request submitted on @request.SubmissionDate.ToLocalFormat()
+                    </p>
+                }
+            </td>
+            <td class="align-middle">
+                <div class="">
+                    @if (User.IsHrManagerOrAdmin())
+                    {
+                        <a class="btn btn-primary" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddOrUpdate" asp-route-id="@Model.Id">
+                            <i class="fal fa-edit"></i> Edit
+                        </a>
+
+                        <div class="text-right float-right">
+                            <i class="fal fa-arrow-down" onclick="$('#otherLinks').toggle()"></i>
+                        </div>
+                    }
+                    else
+                    {
+                        if (request == null)
+                        {
+                            <a class="btn btn-warning" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddOrUpdate" asp-route-id="@Model.Id">
+                                <i class="fal fa-edit"></i> Make Changes
+                            </a>
+                        }
+                        if (request?.Status == WorkItemStatus.Draft)
+                        {
+
+                            <a class="btn btn-warning" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddOrUpdate" asp-route-id="@Model.Id">
+                                <i class="fal fa-edit"></i> Make Changes
+                            </a>
+
+                            <a class="btn btn-primary mt-2" data-ajax-method="POST" data-ajax="true" data-ajax-update="" data-ajax-begin="showModal()" asp-action="SendForApproval" asp-route-id="@Model.Id" data-ajax-confirm="Are you sure you wish to submit. This action cannot be undone?" data-ajax-success="shideModal('Request sent for approval')">
+                                <i class="fad fa-user-edit"></i> Send for Approval @request.NumberFormat
+                            </a>
+                        }
+                        else if (request?.Status == WorkItemStatus.Submitted)
+                        {
+                            <a class="btn btn-primary mt-2" data-ajax-method="POST" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewRequest" asp-controller="Request" asp-route-id="@request.Id">
+                                <i class="fad fa-user-edit"></i> View @request.NumberFormat
+                            </a>
+                        }
+                    }
+                </div>
+                <ul id="otherLinks" class="pt-3" style="display:none">
+                    @foreach (var item in changeMethods)
+                    {
+                        <li>
+                            <a class="gusto-link" data-ajax="true" data-ajax-success="setReloadFunctionOnModal()" data-ajax-update="#change-form-wrapper" href="@item.Value">
+                                @item.Key
+                            </a>
+                        </li>
+                    }
+                </ul>
+
+            </td>
+        </tr>
+        @if (User.IsHrManagerOrAdmin())
+        {
+            @if (!Model.EmployeePayComponents.Any() && !Model.Employments.Any())
+            {
+                <tr>
+                    <td>
+                        <h5 class="mt-3">Employee Replacement</h5>
+                        <p>Is this employee hired to replace someone?</p>
+                    </td>
+                    <td class="align-middle">
+                        <a class="btn btn-warning" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddEmployeeReplacement" asp-route-id="@Model.Id">
+                            <i class="fad fa-user-chart"></i> Yes! Replace With
+                        </a>
+                    </td>
+                </tr>
+            }
+            <tr>
+                <td>
+                    <h5 class="mt-3">Employment</h5>
+                    <p>Status of Employment, Job title, Placement and Manager</p>
+                </td>
+                <td class="align-middle">
+
+                    @if (Model.Job != null)
+                    {
+
+                        <p class="mb-1"><a class="link-summary" asp-action="Detail" asp-controller="Job" asp-route-id="@Model.JobId">@Model.Job.JobID &middot; @Model.Job.JobTitle</a></p>
+
+
+                        <p class="mb-1"><i class="fad fa-dot-circle"></i> @Model.EmploymentType.GetDisplayName() (@Model.EmploymentTypeOther.GetDisplayName())</p>
+                        <p class="mb-1">@Html.DisplayFor(x => Model.EmployeeStatus) @Model.WeeklyWorkingHours/@Model.DailyWorkingHours hours</p>
+
+                        @* <p class="mb-1"><a class="link-summary" asp-action="Detail" asp-controller="Job" asp-route-id="@Model.JobId">@Model.ReportingEmployee.GetSystemName(User)</a></p> *@
+                        <a class="btn btn-warning" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddEmployment" asp-route-id="@Model.Id">
+                            <i class="fad fa-edit"></i> Change
+                        </a>
+
+                        @* <p class="mb-1 text-muted"><small>You can change from employee profile</small></p> *@
+                    }
+                    else
+                    {
+                        <a class="btn btn-primary" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddEmployment" asp-route-id="@Model.Id">
+                            <i class="fal fa-plus-circle"></i> Add
+                        </a>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <h5 class="mt-3">Compensation</h5>
+                    <p>Enrollment in Pay Components (Additions and Deductions)</p>
+                </td>
+                <td class="align-middle">
+                    @if (Model.EmployeePayComponents.Any())
+                    {
+                        <p class="mb-1"><i class="fas fa-plus-hexagon"></i> @Model.EmployeePayComponents.Count(x => x.PayAdjustment.VariationType.ToString().Contains("Addition")) Addition(s)</p>
+                        <p class="mb-1"><i class="fas fa-minus-hexagon"></i> @Model.EmployeePayComponents.Count(x => x.PayAdjustment.VariationType.ToString().Contains("Deduction")) Deduction(s)</p>
+                        @* <p class="mb-1 text-muted"><small>You can change from employee profile</small></p> *@
+                        <a class="btn btn-outline-primary" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddOrUpdatePayComponents" asp-route-id="@Model.Id">
+                            <i class="fal fa-edit"></i> Change
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-primary" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddOrUpdatePayComponents" asp-route-id="@Model.Id">
+                            <i class="fal fa-plus-circle"></i> Add
+                        </a>
+                    }
+                </td>
+            </tr>
+
+            <tr>
+                <td td colspan="2">
+                    <h5 class="mt-3">Employer / Job ActionHistory</h5>
+                    <p>All the changes history overtime</p>
+                    <partial name="_JobActionHistory" model="@Model.JobActionHistories" />
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2"><h5 class="mt-3">Employer Actions</h5></td>
+            </tr>
+            <tr>
+                <td>
+                    <p>Employment Actions</p>
+                </td>
+                <td>
+                    <p>
+                        <a class="btn btn-primary" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddCompensation" asp-route-id="@Model.Id">
+                            Contract Extension <i class="fad fa-chevron-double-right"></i>
+                        </a>
+                    </p>
+                    <p class="mb-0">
+                        <a class="btn btn-primary" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddCompensation" asp-route-id="@Model.Id">
+                            Termination <i class="fad fa-chevron-double-right"></i>
+                        </a>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <p>Disciplinary Actions</p>
+                </td>
+                <td>
+                    <p>
+                        <a class="btn btn-primary" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddCompensation" asp-route-id="@Model.Id">
+                            Advise or Oral warning <i class="fad fa-chevron-double-right"></i>
+                        </a>
+                    </p>
+                    <p>
+                        <a class="btn btn-primary" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddCompensation" asp-route-id="@Model.Id">
+                            Written warning <i class="fad fa-chevron-double-right"></i>
+                        </a>
+                    </p>
+                    <p>
+                        <a class="btn btn-primary" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddCompensation" asp-route-id="@Model.Id">
+                            Warning <i class="fad fa-chevron-double-right"></i>
+                        </a>
+                    </p>
+                    <p>
+                        <a class="btn btn-primary" data-ajax="true" data-ajax-update="#change-form-wrapper" data-ajax-begin="" asp-action="AddCompensation" asp-route-id="@Model.Id">
+                            Suspension <i class="fad fa-chevron-double-right"></i>
+                        </a>
+                    </p>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+

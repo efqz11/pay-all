@@ -1,0 +1,110 @@
+﻿@model List<PayAdjustment>
+
+<style>
+</style>
+@{
+    var existing = Model.Select(x => x.Name.ToLower()).ToArray();
+}
+
+
+<div>
+    <div class="layout-main-landing">
+        <div class="row">
+            <div class="layout-main-landing-header col-sm-12">
+                <div class="border-bottom pb-3 relative mb-5">
+                    <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                        @*<img class="zp-icon-image large content-block-with-icon__icon hidden-xs flex-self-start" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-map-288f54db.svg" alt="">*@
+                        <div class="content-block-with-icon__content">
+                            <h1 class="page-title margin-top-none margin-bottom-none">
+                                Pay Components
+                            </h1>
+                        </div>
+                    </div><div class="layout-landing-header-details"><p class="layout-landing-header-pricing margin-bottom-none"></p></div>
+                </div>
+            </div>
+        </div>
+        <div class="layout-main-landing-row row margin-bottom-20px">
+
+            <div class="layout-main-landing-column mb-3 col-md-12">
+
+                <h4 class="pb-3 fs-unmask">
+                    Define the components included for your payroll
+                    @*&nbsp;
+                        <a data-ajax="true" data-ajax-update="#main-content" asp-action="AddOrUpdate" asp-controller="DayOff" asp-route-cmpId="@ViewBag.Id" class="link-summary"><i class="fad fa-plus-circle"></i> New</a>*@
+                </h4>
+                <p class="text-weight-normal">
+                    Create any type of pay component that suit your team's needs.
+                </p>
+
+                <table class="table">
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td width="100"><i class="fa-2x @PreConfigurePayComponents.Get(item.Name)"></i></td>
+                            <td>
+                                <p class="mb-1">@item.Name</p>
+                                <small>@item.VariationType.GetDisplayName()</small>
+                            </td>
+                            <td width="200">
+
+                                <a class="text-danger" asp-action="RemovePayComponent" asp-route-id="@item.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@item.Name was just removed');" data-ajax-update="#main-content" data-ajax-confirm="Are you sure you want to remove @item.Name"><i class="fal fa-trash-alt"></i> Remove</a>
+                            </td>
+                        </tr>
+                    }
+                    <tr></tr>
+                </table>
+
+
+                <div class="mt-2 mb-3">
+                    <div class="accordion-wrapper accordion-unstyled" role="tablist" aria-multiselectable="true">
+                        <div class="accordion-item">
+                            <div class="accordion-heading" role="button" data-parent="#undefined" data-toggle="collapse" data-target="#suggested-policies-accordion-body" aria-controls="suggested-policies-accordion-body" aria-expanded="true" onclick="$(this).next().toggleCLass('collapse')">
+                                <i class="fa fa-chevron-down" aria-hidden="true"></i> Suggested pay components
+                            </div>
+                            <div id="suggested-policies-accordion-body" class="panel-collapse in" aria-expanded="true">
+                                <div class="accordion-body">
+                                    <div class="card-column-group">
+                                        @foreach (var item in PreConfigurePayComponents.List.Where(x => !existing.Contains(x.title.ToLower())))
+                                        {
+                                            <div class="gusto-button-link card card-default card-button" type="button">
+                                                <div class="">
+                                                    <div class="card-header-icon">
+                                                        <i class="@item.icon fa-2x mb-3"></i>
+                                                    </div>
+                                                    <h4 class="card-title">@item.title</h4>
+                                                </div>
+                                                <div class="card-content-main">
+                                                    <p>@item.desc</p>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <div class="card-actions">
+                                                        <a data-ajax="true" data-ajax-update="#main-content" data-ajax-method="post" asp-action="AddPayComponent" asp-controller="Company" asp-route-id="@ViewBag.Id" asp-route-n="@item.title" class="btn btn-md btn-primary">Add</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@if (TempData["ProgressPercent"] != null)
+{
+    <script>
+
+        var dd = parseFloat('@TempData["ProgressPercent"]');
+        var stp = parseInt('@TempData["Step"]');
+
+        $('.nav-steps:eq(' + (stp - 1) + ')').find('svg').attr('data-prefix', 'fa');
+        $('.percentage-bar-foreground').css('width', dd + '%');
+        $('.percentage-bar-progress').text(dd + '% complete');
+    </script>
+}

@@ -1,0 +1,297 @@
+﻿@model HomeEmployeeVm
+@{
+
+    var startDate = (DateTime)ViewBag.Start;
+    var endDate = (DateTime)ViewBag.End;
+    var durationText = (string)ViewBag.DurationText;
+}
+
+<div class="card" style="">
+
+    <!--Card Header-->
+    <div class="card-header">
+        <div class="p-actions mb-0">
+            <span class="title float-left" style="position: relative;bottom: -2px;">My Work summary</span>
+
+
+            <div class="float-right">
+                <div class="btn-toolbar float-right" role="toolbar" aria-label="Toolbar with button groups">
+                    <div class="btn-group mr-2" role="group" aria-label="First group">
+                        <button type="button" class="btn-sm btn btn-outline-secondary border-right-0 src" data-target="office_task">
+                            <i class="fa fa-tasks"></i>
+                        </button>
+                        <button type="button" class="btn-sm btn btn-outline-secondary border-left-0 src" data-target="user_task">
+                            <i class="fa fa-user-tag"></i>
+                        </button>
+                    </div>
+
+                    <div class="btn-group mr-2" role="group" id="datefilter" aria-label="First group">
+                        <form asp-action="Tasks" asp-controller="Employee" id="taskFilterForm" data-ajax-begin="convertToLoadingTable('#table-rquests')" data-ajax="true" data-ajax-update="#employee-content">
+                            <input type="hidden" name="start" id="start" value="@startDate" />
+                            <input type="hidden" name="end" id="end" value="@endDate" />
+                        </form>
+
+                        <button type="button" class="btn-sm btn btn-outline-secondary border-right-0 " style="outline:none;border-top-left-radius: 0.2rem;border-bottom-left-radius: 0.2rem"><i class="fa fa-calendar-alt"></i></button>
+                        <button type="button" class="btn-sm btn btn-outline-secondary border-right-0 border-left-0" id="textBtn">@durationText</button>
+                        <button type="button" class="btn-sm btn btn-outline-secondary border-left-0" style="outline:none "><i class="fa fa-chevron-down"></i></button>
+                    </div>
+
+                    <div class="btn-group" role="group" aria-label="Third group">
+                        <a class="btn btn-sm btn-primary" asp-controller="Home" asp-action="AddOrUpdateUserTask" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure"><i class="fad fa-plus-circle"></i> Add Task</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div id="main-area">
+            <table class="table" id="table-tasks">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Task</th>
+                        <th>Details</th>
+                        <th colspan="2">Progress</th>
+                        <th>State</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    @foreach (var item in Model.WeekScheduleTasks.Where(x => x.Status != WorkItemStatus.Completed).OrderByDescending(x => x.DueDate))
+                    {
+                        <tr data-id="@item.Id" class="item-@item.Id @(item.IsEmployeeTask ? "user_task" : "office_task")">
+                            <td>
+                                @if (item.IsEmployeeTask)
+                                {
+                                    <i class="fa fa-user-tag"></i>
+                                }
+                                else
+                                {
+                                    <i class="fa fa-tasks"></i>
+                                }
+                            </td>
+                            <td>
+                                <a class="" asp-action="ViewWorkItem" asp-controller="Schedule" asp-route-id="@item.Id" asp-route-date="@item.Date" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure">
+                                    @if (item.Status == WorkItemStatus.Completed)
+                                    {
+                                        <strike>@item.WorkName</strike>
+                                    }
+                                    else
+                                    {
+                                        <span>@item.WorkName</span>
+                                        <br />
+                                        <small class="text-muted">@(item.Date.ToLocalFormat())</small>
+                                        @if (item.Work?.HasTime ?? false)
+                                        {
+                                            <small class="text-muted">@(item.Work.Duration)</small>
+                                        }
+                                    }
+                                </a>
+                            </td>
+                            <td>
+                                <small>
+                                    @if (item.Work?.MoreCredit > 0)
+                                    {
+                                        <span class="text-success"><i class="ion ion-arrow-up-c"></i> @(item.Work.MoreCredit.ToString("N0"))</span>
+                                        <span class="text-danger"> &middot; <i class="ion ion-arrow-down-c"></i> @(item.Work.LessDeduct.ToString("N0"))</span>
+                                        <span class="text-dark"> &middot; <i class=""></i> (@(item.Work.TotalRequiredCount.ToString("N0")))</span>
+                                        <br />
+                                        <span class="text-warning"><i class="fa fa-share"></i> @(item.Work.TotalRequiredCount - item.TotalApproved)</span>
+                                        <span class="text-success"> &middot; <i class="fa fa-check-double"></i> @(item.TotalApproved)</span>
+                                    }
+                                    @item.Work?.Details
+                                </small>
+                            </td>
+                            <td width="20%">
+                                @if (item.Work?.IsAdvancedCreate ?? false)
+                                {
+                                    <div class="progress-display mt-1">
+                                        <div class="progress-bar">
+                                            <span class="bar">
+                                                <span class="progress @item.GetCssStyleFromPercent(item.PercentSubmitted) p-0 pr-2 text-right" style="width:@item.PercentSubmitted%;height:7px;"><b></b></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="progress-display mt-2">
+                                        <div class="progress-bar">
+                                            <span class="bar">
+                                                <span class="progress @item.GetCssStyleFromPercent(item .PercentApproved) p-0 pr-2 text-right" style="width:@item.PercentApproved%;height:7px;"><b><b></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    @*<small>@(Model.TotalApproved + " approved submissions")</small>*@
+                                }
+                                else if(item.Work.Type == WorkType.ExpectClockInRecordsBefore)
+                                {
+                                    <span><i class="far fa-stopwatch"></i> Waiting</span>
+                                }
+                                else if (item.IsEmployeeTask && item.Status != WorkItemStatus.Completed)
+                                {
+                                    <a class="btn btn-sm btn-outline-success" asp-action="TaskCompleted" asp-controller="Home" asp-route-id="@item.Id" data-ajax-method="POST" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="" data-ajax-failure="HandleModalPostFailure" data-ajax-success="$('.item-@item.Id').fadeOut();sendNotification('success', 'Task was completed');" title="Set @item.WorkName complete">
+                                        <i class="fas fa-check-circle"></i> Mark as completed
+                                    </a>
+                                    @*<a class="btn btn-outline-danger" asp-action="ViewWorkItem" asp-controller="Schedule" asp-route-id="@item.Id" asp-route-date="@item.Date" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure">
+                                            <i class="fas fa-times-circle"></i>
+                                        </a>*@
+                                }
+                            </td>
+                            <td>
+                                @if (item.Work?.IsAdvancedCreate ?? false)
+                                {
+                                    <b>@(item.PercentApproved + "%")</b>
+                                    @*<span>R:@item.RemainingSubmissions :S:@item.TotalSubmitted :A:@item.TotalApproved/ :TT:@item.Work.TotalRequiredCount</span>*@
+                                }
+                            </td>
+                            <td>
+
+                                @if (item.WorkStartTime > DateTime.Now)
+                                {
+                                    <small class="text-info">
+                                        <i class="fa fa-hourglass-start"></i> Starting in @item.WorkStartTime.GetTimeDifference()
+                                        <br>
+                                        @item.WorkStartTime.ToLocalFormat(includeTime: true)
+                                    </small>
+                                }
+                                else if (item.DueDate != null && item.DueDate > DateTime.Now)
+                                {
+
+                                    <small class="text-danger"><i class="ion ion-android-stopwatch"></i> Due in @item.DueDate?.GetTimeDifference()</small>
+                                }
+                                else
+                                {
+                                    <small class="text-muted">
+                                        <i class="fa fa-ban"></i> Overdue & Expired
+                                    </small>
+                                }
+                            </td>
+                        </tr>
+                    }
+
+
+
+
+                    @foreach (var item in Model.WeekScheduleTasks.Where(x => x.Status == WorkItemStatus.Completed).OrderByDescending(x => x.DueDate))
+                    {
+                        <tr data-id="@item.Id" class="item-@item.Id @(item.IsEmployeeTask ? "user_task" : "office_task")">
+                            <td>
+                                @if (item.IsEmployeeTask)
+                                {
+                                    <i class="fa fa-user-tag"></i>
+                                }
+                                else
+                                {
+                                    <i class="fa fa-tasks"></i>
+                                }
+                            </td>
+                            <td colspan="2">
+                                <a class="" asp-action="ViewWorkItem" asp-controller="Schedule" asp-route-id="@item.Id" asp-route-date="@item.Date" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure">
+                                    <strike>@item.WorkName</strike>
+                                </a>
+                            </td>
+                            <td width="20%">
+                                @if (item.IsEmployeeTask && item.Status != WorkItemStatus.Completed)
+                                {
+                                    <a class="btn btn-sm btn-outline-success" asp-action="ViewWorkItem" asp-controller="Schedule" asp-route-id="@item.Id" asp-route-date="@item.Date" data-ajax-method="GET" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" data-ajax-failure="HandleModalPostFailure">
+                                        <i class="fas fa-check-circle"></i> Mark as completed
+                                    </a>
+                                }
+                            </td>
+                            <td></td>
+                            <td>
+                                @if (item.Status == WorkItemStatus.Completed)
+                                {
+                                    <small><i class="fa fa-clipboard-check"></i> Completed</small>
+                                }
+                                else if (item.WorkStartTime > DateTime.Now)
+                                {
+                                    <small class="text-info"><i class="fa fa-hourglass-start"></i> Starting in @item.WorkStartTime.GetTimeDifference() &mdash; @item.WorkStartTime.ToLocalFormat(includeTime: true)</small>
+                                }
+                                else if (item.DueDate != null && item.DueDate < DateTime.Now)
+                                {
+
+                                    <small class="text-muted">
+                                        <i class="fa fa-ban"></i> Completed
+                                    </small>
+                                }
+                                else
+                                {
+                                    <small class="text-danger"><i class="fa fa-ban"></i> Task was <b>completed</b> on @item.DueDate.ToLocalFormat(includeTime: true)</small>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                @if (Model.WeekScheduleTasks.Any() == false)
+                {
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-center text-lead" >No Tasks found during @startDate.GetDuration(endDate, User, false)</td>
+                        </tr>
+                    </tfoot>
+                }
+            </table>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+
+<script>
+    $('#datefilter').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear'
+        },
+        opens: 'left',
+
+        ranges: {
+            'This Week': [moment().startOf('week'), moment().endOf('week')],
+            'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        }
+    });
+
+    var start = '@startDate.ToString("MM/dd/yyyy")';
+    var end = '@endDate.ToString("MM/dd/yyyy")';
+    console.log(start, end, 'start-end');
+    console.log(start !== "" && end !== "");
+    if (start !== "" && end !== "") {
+        $('#datefilter').data('daterangepicker').setStartDate(start);
+        $('#datefilter').data('daterangepicker').setEndDate(end);
+    }
+
+
+    $('#datefilter').on('apply.daterangepicker', function (ev, picker) {
+        console.log(picker);
+        var days = picker.endDate.diff(picker.startDate, 'days');
+        if (days <= 0)
+            $(this).find('#textBtn').val(picker.startDate.format('ddd, MMM DD, YYYY'));
+        else
+            $(this).find('#textBtn').val(picker.startDate.format('MMM DD') + ' - ' + picker.endDate.format('DD, YYYY') + " (" + days + " days)");
+
+        // 1/10/2020 12:34:32 PM
+        $('#start').val(picker.startDate.format('MM/DD/YYYY HH:mm:ss'));
+        $('#end').val(picker.endDate.format('MM/DD/YYYY HH:mm:ss'));
+
+        $('#taskFilterForm').submit();
+    });
+
+    $('input[name="datefilter"]').on('cancel.daterangepicker', function (ev, picker) {
+        $(this).val('');
+    });
+
+     $('.src').click(function (e) {
+        var match = $('#table-tasks')
+            .find('tr.' + $(this).data('target'));
+
+        $('#table-tasks tbody tr').not(match).hide();
+         $(match).show();
+        $('.src').removeClass('active');
+        $(this).addClass('active');
+    });
+</script>

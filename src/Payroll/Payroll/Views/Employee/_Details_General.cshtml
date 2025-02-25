@@ -1,0 +1,323 @@
+﻿@model Employee
+@{
+    Layout = "_LayoutCard";
+    ViewBag.CardHeader = "General Information and Contacts";
+}
+
+
+<style>
+    #iosxx > div {
+        /*font-size: 14px;*/
+        line-height: 2.3;
+    }
+
+        #iosxx > div h5 {
+            margin-bottom: 15px
+        }
+
+        #iosxx > div p {
+            /*font-size: 13px;*/
+            line-height: 2;
+            color: #6c757d !important;
+        }
+</style>
+
+
+<h5 class="head1">Hi, I'm @Model.GetSystemName(User) <i class="fa @(Model.Gender == Gender.Female? "fa-female" :Model.Gender == Gender.Male ? "fa-male" : "")"></i></h5>
+
+<div class="tab-wrapper bnb">
+    <ul class="tabs scroll">
+        @*<li class="tab-link active" data-tab="1">Employment and Job</li>*@
+        <li class="tab-link active" data-tab="1">Personal</li>
+        <li class="tab-link" data-tab="2">HR Info</li>
+        <li class="tab-link" data-tab="3">Bank Accounts</li>
+        <li class="tab-link" data-tab="4">Emergency Contact</li>
+        <li class="tab-link" data-tab="5">Address</li>
+        <li class="tab-link" data-tab="6">Manager</li>
+        <li class="tab-link" data-tab="7">Direct Reports</li>
+    </ul>
+</div>
+<div class="content-wrapper bnb p-0" id="iosxx">
+    @*<div id="tab-1" class="tab-content active">
+            <a class="btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdate" asp-route-id="">
+                <i class="fad fa-plus-circle"></i> Add new Employment
+            </a>
+        </div>*@
+
+    <div id="tab-1" class="tab-content active">
+
+        <a class="btn btn-warning" asp-action="Change" asp-controller="Employee" asp-route-id="@Model.Id">
+            <i class="fad fa-edit"></i> Make Changes
+        </a>
+
+        <p>
+            IdentityType &middot; @Model.IdentityType
+            <br>
+            IdentityNumber &middot; @Model.IdentityNumber
+            <br>
+            Initials &middot; @Model.Initial
+            <br>
+            First Name &middot; @Model.FirstName
+            <br>
+            last Name &middot; @Model.LastName
+            <br>
+            Gender &middot; @Model.Gender
+            <br>
+            DOB &middot; @Model.DateOfBirth.ToLocalFormat()
+
+            <br>
+            Personal Email &middot; @Model.EmailPersonal
+            <br>
+            Personal Phone &middot; @Model.PhonePersonal
+
+            <br>
+            Nationality &middot; @(Model.Nationality?.Name ?? "Not Defined")
+        </p>
+    </div>
+
+    <div id="tab-2" class="tab-content">
+        <p>
+            EmpID &middot; @Model.EmpID
+            <br>
+            Work Phone &middot; @Model.PhoneWork
+            <br>
+            Work Phone Ext &middot; @Model.PhoneWorkExt
+            <br>
+            Employment Type &middot; @Model.EmploymentType
+            <br>
+            Employmee State &middot; @Model.EmployeeStatus
+            <br>
+            Other &middot; @Model.EmploymentTypeOther
+
+            <br>
+            Deaprtment &middot; @(Model.Department?.Name ?? "NA")
+            @if (Model.DateOfJoined.HasValue)
+            {
+                <br>
+                @("Joined On " + @Model.DateOfJoined.ToLocalFormat() + "(" + @Model.DateOfJoined.Value.GetTimeDifference(DateTime.Now) + ")")
+            }
+            <br>
+            JobType &middot; @Model.JobType
+            <br />
+        </p>
+    </div>
+
+    <div id="tab-3" class="tab-content">
+        <p>
+            @Html.DisplayNameFor(a => Model.BankAccountNumber) &middot; @Model.BankAccountNumber
+            <br>
+            @Html.DisplayNameFor(a => Model.BankAccountName) &middot; @Model.BankAccountName
+            <br>
+            @Html.DisplayNameFor(a => Model.BankName) &middot; @Model.BankName
+            <br>
+            @Html.DisplayNameFor(a => Model.BankAddress) &middot; @Model.BankAddress
+            <br>
+            @Html.DisplayNameFor(a => Model.BankSwiftCode) &middot; @Model.BankSwiftCode
+            <br>
+            @Html.DisplayNameFor(a => Model.BankIBAN) &middot; @Model.BankIBAN
+        </p>
+    </div>
+
+    <div id="tab-4" class="tab-content">
+        @*Emergency Contact*@
+        @if (!string.IsNullOrWhiteSpace(@Model.EmergencyContactName))
+        {
+            <p>
+                Contact Name &middot; @Model.EmergencyContactName
+                <br />
+                Contact No. &middot; <a href="tel:@Model.EmergencyContactNumber">@Model.EmergencyContactNumber</a>
+                <br />
+                Relation. &middot; @(Model?.EmergencyContactRelationship?.Name ?? "Not Defined")
+            </p>
+        }
+        else
+        {
+            <p>No Contacts entered</p>
+        }
+
+    </div>
+
+    <div id="tab-5" class="tab-content">
+        @if (Model.EmployeeAddresses.Any())
+        {
+            <div class="row">
+                <div class="col">
+                    <p><b>@Model.EmployeeAddresses.First().AddressType.GetDisplayName()</b></p>
+                    @if (!string.IsNullOrWhiteSpace(@Model.EmployeeAddresses.First().Street1))
+                    {
+                        <p>
+                            @Html.DisplayNameFor(a => @Model.EmployeeAddresses.First().Street1) &middot; @Model.EmployeeAddresses.First().Street1
+                            <br />
+                            @Html.DisplayNameFor(a => @Model.EmployeeAddresses.First().City) &middot; @Model.EmployeeAddresses.First().City
+                            <br />
+                            @Html.DisplayNameFor(a => @Model.EmployeeAddresses.First().State) &middot; @Model.EmployeeAddresses.First().State
+                            <br />
+                            @Html.DisplayNameFor(a => @Model.EmployeeAddresses.First().ZipCode) &middot; @Model.EmployeeAddresses.First().ZipCode
+                        </p>
+                    }
+                </div>
+                <div class="col">
+                    <p><b>@Model.EmployeeAddresses.Last().AddressType.GetDisplayName()</b></p>
+                    @if (!string.IsNullOrWhiteSpace(@Model.EmployeeAddresses.Last().Street1))
+                    {
+                        <p>
+                            @Html.DisplayNameFor(a => @Model.EmployeeAddresses.Last().Street1) &middot; @Model.EmployeeAddresses.Last().Street1
+                            <br />
+                            @Html.DisplayNameFor(a => @Model.EmployeeAddresses.Last().City) &middot; @Model.EmployeeAddresses.Last().City
+                            <br />
+                            @Html.DisplayNameFor(a => @Model.EmployeeAddresses.Last().State) &middot; @Model.EmployeeAddresses.Last().State
+                            <br />
+                            @Html.DisplayNameFor(a => @Model.EmployeeAddresses.Last().ZipCode) &middot; @Model.EmployeeAddresses.Last().ZipCode
+                        </p>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <p>No Address entered</p>
+        }
+        @*Address*@
+        @*@if (!string.IsNullOrWhiteSpace(@Model.Street) && !string.IsNullOrWhiteSpace(@Model.Address))
+        {
+            <p>
+                @Model.Street
+                <br>
+                @Model.Address
+                <br>
+                Pin Code &middot; @Model.ZipCode
+            </p>
+        }
+        else
+        {
+            <p>No Address found</p>
+        }*@
+
+    </div>
+
+
+    <div id="tab-6" class="tab-content">
+        @*@if (Model.Employments.Any(x => x.RecordStatus == RecordStatus.Active && x.ReportingEmployee != null))
+        {
+
+            <div class="text-left" style=" vertical-align: middle;display:flex">
+                <div class="image-container">
+                    <a asp-controller="Employee" asp-action="Detail" asp-route-id="@Model.Employments.First(x => x.RecordStatus == RecordStatus.Active).ReportingEmployeeId">
+                        <img src="@Url.Content(Model.Employments.First(x => x.RecordStatus == RecordStatus.Active).ReportingEmployee?.Avatar ?? DefaultPictures.default_user)" height="35" class="" />
+                    </a>
+                </div>
+                <a asp-controller="Employee" asp-action="Detail" asp-route-id="@Model.Employments.First(x => x.RecordStatus == RecordStatus.Active).ReportingEmployeeId">
+                    <div class="" style="    line-height: 1.5;">
+                        <span class="">@Model.Employments.First(x => x.RecordStatus == RecordStatus.Active).ReportingEmployee.GetSystemName(User)</span>
+                        <br>
+                        <small class="text-muted" style="position: relative;top: -5px;">@(Model.Employments.First(x => x.RecordStatus == RecordStatus.Active).ReportingEmployee.JobTitle ?? "No Designation")</small>
+                    </div>
+                </a>
+            </div>
+        }*@
+        @if (Model.ReportingEmployee != null)
+        {
+
+            <div class="text-left" style=" vertical-align: middle;display:flex">
+                <div class="image-container">
+                    <a asp-controller="Employee" asp-action="Detail" asp-route-id="@Model.ReportingEmployeeId">
+                        <img src="@Url.Content(Model.ReportingEmployee?.Avatar ?? DefaultPictures.default_user)" height="35" class="" />
+                    </a>
+                </div>
+                <a asp-controller="Employee" asp-action="Detail" asp-route-id="@Model.ReportingEmployeeId">
+                    <div class="" style="    line-height: 1.5;">
+                        <span class="">@Model.ReportingEmployee.GetSystemName(User)</span>
+                        <br>
+                        <small class="text-muted" style="position: relative;top: -5px;">@(Model.ReportingEmployee.JobTitle ?? "No Designation")</small>
+                    </div>
+                </a>
+            </div>
+        }
+        else
+        {
+            <p>No Manager Assigned</p>
+        }
+    </div>
+
+
+    <div id="tab-7" class="tab-content">
+        @if (Model.EmployeeDirectReports.Any())
+        {
+            foreach (var emp in Model.EmployeeDirectReports)
+            {
+
+                <div class="text-left" style=" vertical-align: middle;display:flex">
+                    <div class="image-container">
+                        <a asp-controller="Employee" asp-action="Detail" asp-route-id="@emp.Id">
+                            <img src="@Url.Content(emp.Avatar ?? DefaultPictures.default_user)" height="35" class="" />
+                        </a>
+                    </div>
+                    <a asp-controller="Employee" asp-action="Detail" asp-route-id="@emp.Id">
+                        <div class="" style="line-height: 1.5;">
+                            <span class="">@emp.GetSystemName(User)</span>
+                            <br>
+                            <small class="text-muted" style="position: relative;top: -5px;">@(emp.JobTitle ?? "No Designation")</small>
+                        </div>
+                    </a>
+                </div>
+                <hr class="border-0" />
+            }
+        }
+        else
+        {
+            <p>Not Direct report employee(s)</p>
+        }
+
+    </div>
+</div>
+
+
+
+
+
+
+
+
+@*<div class="row">
+        <div class="col">
+            <div class="form-group">
+                <label><small class="text-muted">EmpID</small> <br />@Model.EmpID</label>
+            </div>
+
+            <div class="form-group">
+                <label><small class="text-muted">Name</small> <br />@Model.Name</label>
+            </div>
+
+            <div class="form-group">
+                <label><small class="text-muted">Designation</small> <br />@Model.Designation</label>
+            </div>
+
+            <div class="form-group">
+                <label><small class="text-muted">Date of Birth</small> <br />@Model.DateOfBirth</label>
+            </div>
+
+
+            <div class="form-group">
+                <label><small class="text-muted">Job Type</small> <br />@Model.JobType</label>
+            </div>
+
+        </div>
+        <div class="col">
+            <div class="form-group">
+                <label><small class="text-muted">@Model.IdentityType</small> <br />@Model.IdentityNumber</label>
+            </div>
+
+            <div class="form-group">
+                <label><small class="text-muted">Account</small> <br />@Model.BankAccountNumber - @Model.BankAccountName</label>
+            </div>
+
+            <div class="form-group">
+                <label><small class="text-muted">Bank</small> <br />@Model.BankName</label>
+            </div>
+
+            <div class="form-group">
+                <label><small class="text-muted">Address</small> <br />@Model.Address <br />@Model.Street</label>
+            </div>
+        </div>
+    </div>*@
+

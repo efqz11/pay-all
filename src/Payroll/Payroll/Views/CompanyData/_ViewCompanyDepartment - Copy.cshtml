@@ -1,0 +1,105 @@
+﻿@model Company
+@{ 
+    var i = 1;
+}
+
+<div class="row">
+    <div class="col">
+
+        <h5>Departments and Line Managers</h5>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Head Count</th>
+                    <th>Manger(s)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Departments.OrderBy(x => x.DisplayOrder))
+                {
+                    <tr>
+                        <td>@(i++)</td>
+                        <td>@item.Name <br /><small>@item.DeptCode</small></td>
+                        <td>
+                            @item.TotalHeadCount
+                            @*@if (item.LineManager != null)
+                            {
+                                @(item.LineManager?.Name)
+                            }
+                            else
+                            {
+                                <span>No department head</span>
+                                <br />
+                                <a href="#">Assign someone</a>
+                            }*@
+                        </td>
+                        <td>
+                            @if (item.DepartmentHeads.Any())
+                            {
+                                @foreach (var man in item.DepartmentHeads)
+                                {
+                                    <div class="text-left font-weight-bold" style=" vertical-align: middle;display:flex">
+                                        <img src="@Url.Content(man.Employee?.Avatar ?? DefaultPictures.default_user)" height="20" class="mr-2 rounded-circle" />
+                                        <div class="name-display">
+                                            <span class="">@man.Employee.NameDisplay</span>
+
+                                            <a class="" data-ajax="true" data-ajax-update=".modal__container"asp-action="RemoveManager" data-ajax-method="POST" asp-controller="Department" asp-route-id="@man.Id" asp-route-cmpId="@Model.Id" data-ajax-confirm="Are you sure you wish to remove @man.Employee.NameDisplay as Manager to @item.Name?" data-ajax-success="$(this).parent().parent().fadeOut()">
+                                                <i class="fa fa-trash-alt text-danger"></i> 
+                                            </a>
+
+                                            @*<br />
+        <smalL>@man.Employee.JobTitle</smalL>*@
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <a class="btn btn-sm btn-info" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdateManager" asp-controller="Department" asp-route-deptId="@item.Id" asp-route-cmpId="@Model.Id">
+                                    <i class="fa fa-plus-circle"></i>  New Manger
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+                <tr></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="col">
+        <table class="table table-borderless">
+            <tbody>
+                <tr>
+                    <td class="">
+                        <h6>Download Template</h6>
+                        <span class="text-muted">Use the template file here to fill up employee and work agreement data</span>
+                        <br />
+                        <div class="alert alert-info mt-1">
+                            <p><i class="fa fa-info-circle"></i> <b>Some fields can only have set values</b></p>
+                            <p class="mb-1">Gender: @Gender.Male.ToString() &brvbar; @Gender.Female.ToString() &brvbar; @Gender.Other.ToString()</p>
+                            <p class="mb-1">IdentityType: @IdentityType.NationalID.ToString() &brvbar; @IdentityType.Passport.ToString() &brvbar; @Gender.Other.ToString()</p>
+                            <p class="mb-1">AgreementType: @ContractType.CONTRACT.ToString() &brvbar; @ContractType.FULL_TIME.ToString() &brvbar; @ContractType.PART_TIME.ToString() &brvbar; @ContractType.PROBATION.ToString()</p>
+                        </div>
+                    </td>
+                    <td>
+                        <a class="" asp-action="DownloadImportTemplate" asp-route-controller="Company">Download template file (.xlsx)</a>
+                        <p class="text-muted">One record is added as an example.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="">
+                        <h6>Bulk Update Emloyees</h6>
+                        <span class="text-muted">Upload completed template file above and click Import!</span>
+                    </td>
+                    <td>
+                        <a class="btn btn-outline-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="InportEmployeeData" asp-controller="Company" asp-route-id="@Model.Id">
+                            Import Data
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

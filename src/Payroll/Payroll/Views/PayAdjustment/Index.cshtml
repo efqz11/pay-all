@@ -1,0 +1,183 @@
+﻿@model List<PayAdjustment>
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<style>
+    #overlay-back {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        opacity: 0.6;
+        filter: alpha(opacity=60);
+        z-index: 5;
+        display: none;
+    }
+
+    #overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10;
+        display: none;
+    }
+
+    .new-row {
+        background-color: #ffffca;
+    }
+</style>
+<div class="text-lg-left">
+
+    <h2 class="">@FeatureMenus.GetFeatureMenuItem(FeatureMenus.MenuItem.PayComponents) Pay Components</h2>
+    @*<h4 class="display head-title">
+        Pay Adjustments
+        <a class="text-info" asp-action="PayAdjustment" asp-route-Controller="WhatIs" data-ajax="true" data-ajax-update=".modal__container" data-ajax-failure="handleModalPostFailure" data-ajax-begin="showModal()"><i class="fa fa-question-circle"></i></a>
+    </h4>*@
+    <p>Total @Model.Count master Adjustments(s)</p>
+    <small><span class="src btn-outline-success btn-sm btn " data-target="variableaddition">@Model.Count(x => x.VariationType == VariationType.VariableAddition) Variable Addition(s)</span> · <span class="src btn-outline-danger btn-sm btn " data-target="variablededuction">@Model.Count(x => x.VariationType == VariationType.VariableDeduction) Variable Deduction(s)</span> · <span class="src btn-outline-primary btn-sm btn" data-target="constantaddition">@Model.Count(x => x.VariationType == VariationType.ConstantAddition) Constant Addition(s)</span> · <span class="src btn-outline-primary btn-sm btn" data-target="constantdeduction">@Model.Count(x => x.VariationType == VariationType.ConstantDeduction) Constant Deduction(s)</span></small>
+</div>
+
+<form method="post" data-ajax="true" data-ajax-method="POST" data-ajax-update=".data-container" id="masterFormPayAdjustments" data-ajax-success="sendNotification('success', 'Maste Pay adjustments list was jsut updated');itializeSortable();$('#masterFormPayAdjustments').data('submitted', false)" data-ajax-begin="convertToLoadingTable('#tblMasterPayAdjustments')" asp-action="Index">
+    <div class="float-right pb-2">
+        <a class="btn-add btn btn-outline-primary" asp-action="Create" data-ajax-method="POST" data-ajax-update=".data-container" data-ajax="true"><i class="fad fa-plus"></i> Add Record</a>
+
+        <button class="btn-save btn btn-primary">Save All</button>
+    </div>
+    <div class="data-container">
+        <partial name="_Listing" model="Model" />
+    </div>
+</form>
+
+    @section scripts {
+
+        @*// _LISTING*@
+        <script>
+            $(document).on('click', '.cell-type .dropdown-menu > a', 'click', function (event) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                console.log('inside', $(this));
+
+
+                var data = $(this).data('id');
+                var text = $(this).text();
+                var vax = text.replace(/\s/g, '');
+
+                var cellType = $(this).parents('.cell-type');
+                console.log('text ' + text);
+                console.log(cellType);
+                $(cellType).find('button[type="button"]').removeClass('btn-success btn-danger');
+                $(cellType).find('button[type="button"]').addClass((data === 2 || data === 1) ? "btn-success" : "btn-danger");
+                $(cellType).find('#cell-value').text(text);
+                $(cellType).find('input').val(vax);
+
+                var ddToggle = $(cellType).find('.dropdown-toggle-split');
+                $(ddToggle).dropdown('toggle');
+                // console.log(cellVal);
+                //$(cellVal).attr('class', 'btn-sm btn ' + ((data === 2 || data === 1) ? "btn-success" : "btn-danger"));
+                //$(cellVal).val(text);
+            });
+
+            $(document).on('click', 'a.btn-view-fields', 'click', function (event) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                console.log('inside', $(this));
+                $(this).parent().parent().next().toggle();
+
+                $(this).toggleClass('is-shown');
+            });
+
+            $('.change-variant').click(function (e) {
+                $(this).siblings('select').click();
+            });
+        </script>
+
+
+        <script>
+
+            $(function () {
+                itializeSortable();
+            });
+
+            function itializeSortable() {
+                $("#tblMasterPayAdjustments").sortable({
+                    items: 'tbody tr',
+                    cursor: 'move',
+                    axis: 'y',
+                    dropOnEmpty: false,
+                    handle: ".handle",
+                    start: function (e, ui) {
+                        prevAdjustmentIdOrder = $('#tblMasterPayAdjustments input:hidden.pay-adj-Id').map(function (e) {
+                            return $(this).val();
+                        }).get();
+                        console.log(prevAdjustmentIdOrder);
+                        ui.item.addClass("selected");
+                    },
+                    stop: function (e, ui) {
+                        neORder = [];
+                        ui.item.removeClass("selected");
+                        var postData = $(this).find("tr").map(function (index) {
+                            return {
+                                CalculationOrder: index,
+                                Id: $(this).find('input:hidden.pay-adj-Id').val()
+                            }
+                        }).get();
+                        console.log('postData');
+                        console.log(postData);
+                        convertToLoadingTable('#tblMasterPayAdjustments')
+
+                        $(this).find("tr").map(function (index) {
+                            if ($(this).find('input.calc-order').length > 0) {
+                                $(this).find('input.calc-order').val(index);
+                            }
+                            //if (index > 0) {
+                            //    $(this).find("td").eq(2).html(index);
+                            //}
+                        });
+
+                        var url = GetAppRootPath() + "/PayAdjustment/UpdateOrder";
+                        $.post(url, { modelsJson: JSON.stringify(postData) }, function (data) { })
+                            .done(function () { location.reload(); });
+                    }
+                });
+            }
+        </script>
+
+        <script>
+            $(document).on('click', '.btn-validate', function (e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                var btn = $(this);
+
+                console.log('validating');
+                var url = GetAppRootPath() + "/fields/validate?payAdjustmentId=" + $(btn).data("adjustment-id");
+                $.get(url, function (e) { })
+                    .done(function (d) {
+                        console.log(d); $(btn).removeClass("btn-danger btn-success btn-light");
+                        $(btn).html(d.message);
+                        sendNotification(d.result === true ? "success" : "error", d.messageText);
+                        if (d.result === true)
+                            $(btn).addClass("btn-success");
+                        else
+                            $(btn).addClass("btn-danger");
+                    })
+            });
+
+            $('.src').click(function (e) {
+                var match = $('.data-container')
+                    .find('tr.' + $(this).data('target'));
+
+                $('.data-container table tbody tr').not(match).hide();
+                $(match).not('.fields-row').show();
+                $('.src').removeClass('active');
+                $(this).addClass('active');
+            });
+
+        </script>
+    }

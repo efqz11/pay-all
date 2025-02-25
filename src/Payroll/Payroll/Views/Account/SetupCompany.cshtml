@@ -1,0 +1,112 @@
+﻿@model CompanyAccount
+@{
+    ViewData["Title"] = "Home Page";
+    Layout = "_LayoutSteps";
+    int nextStep = 0;
+
+    int.TryParse(Model.NextStep ?? "2", out nextStep);
+}
+
+<style>
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .mb-4 {
+        margin-bottom: 2rem !important;
+    }
+
+    .small {
+        font-size: 88%;
+    }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.css" />
+<link rel="stylesheet" href="~/css/schedules.css" />
+
+
+<article id="main-content" class="app-module__mainContent___vq83C" tabindex="-1">
+</article>
+@*<h2>&nbsp;</h2>*@
+
+@*
+    <article id="main-content" class="app-module__mainContent___vq83C" tabindex="-1"><div><div class="layout-main-landing"><div class="row"><div class="layout-main-landing-header col-sm-12"><div class="border-bottom pb-3 relative mb-4"><div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row"><img class="zp-icon-image large content-block-with-icon__icon hidden-xs flex-self-start" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-map-288f54db.svg" alt=""><div class="content-block-with-icon__content"><h1 class="page-title margin-top-none margin-bottom-none">Add Company Addresses</h1></div></div><div class="layout-landing-header-details"><p class="layout-landing-header-pricing margin-bottom-none"></p></div></div></div></div><div class="layout-main-landing-row row margin-bottom-20px"><div class="layout-main-landing-column mb-3 col-md-6">
+        <h4 class="h-5 text-weight-semibold margin-bottom-none"></h4>
+        <strong>Why do we need to ask for this?</strong>
+        <div class="pt-2 mb-3">We need to know where your employees are located in order to calculate and file your taxes accurately. Please enter every address where you have employees physically working in the United States, including remote employees and employees who work from home.</div>
+        <a class="btn btn-primary" data-ajax="true" data-ajax-update="#main-content" asp-action="AddOrUpdate" asp-controller="Company" asp-route-id="@Model.Id" ><span class="gwb_2CP_q">Add Company Addresses</span></a>
+
+        <br><a class="link-summary-underline">I’m not sure what my address is</a></div>
+
+        <div class="layout-main-landing-column mb-2 col-md-6 overview-requirements"><h4 class="h-5 text-weight-semibold margin-bottom-none"></h4>
+        <h4 class="h-5">What to have ready:</h4>
+        <ul class="pt-1 list-icon">
+            <li class="list-item"><i class="far fa-check text-success" aria-hidden="true"></i> Physical address</li>
+            <li class="list-item"><i class="far fa-check text-success" aria-hidden="true"></i> Filing address</li>
+            <li class="list-item"><i class="far fa-check text-success" aria-hidden="true"></i> Mailing address</li>
+            <li class="list-item"><i class="far fa-check text-success" aria-hidden="true"></i> Company phone number</li>
+        </ul>
+        <div>
+            <h4 class="h-5">Need help?</h4>
+            <ul class="pt-2 help-center-details  list-bulleted">
+            <li class="list-item"> <a class="gusto-link" href="https://support.gusto.com/account-setup-maintenance/enter-account-info/company-details/1066221001/Add-company-addresses.htm" target="_blank" data-bypass="true" rel="noopener noreferrer">Get Started: Add Company Addresses</a></li>
+            </ul>
+        </div>
+
+        <div class="requirements__children"></div></div></div></div></div></article>
+*@
+
+
+@*<link href="~/css/schedules.css" rel="stylesheet" />
+    <link href="~/css/step-progress.css" rel="stylesheet" />
+
+    <div class="row">
+        <div class="col-md-8">
+            <div id="change-form-wrapper">
+                @if (ViewBag.NewEmployee != null)
+                {
+                    <partial name="_AddOrUpdate" model="Model" />
+                }
+                else
+                {
+                    <partial name="_ChangeOverview" model="Model" />
+                }
+            </div>
+        </div>
+        <div class="col-md-4"></div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.css"  />
+
+
+    @section scripts {
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js" ></script>
+    }*@
+
+@section scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+    <script src="~/js/step-validator.js"></script>
+    @* <partial name="_ValidationScriptsPartial" /> *@
+
+
+
+
+
+
+
+    @if (nextStep > 0)
+    {
+        <script>
+            var _stp = parseInt('@nextStep');
+            if (_stp != '')
+            {
+                gotoNextStep(_stp);
+            }
+        </script>
+    }
+    else
+    {
+        <script>
+                gotoNextStep(1);
+        </script>
+    }
+}

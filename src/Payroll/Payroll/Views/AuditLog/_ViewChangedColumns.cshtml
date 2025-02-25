@@ -1,0 +1,46 @@
+﻿@model AuditLog
+@inject Payroll.Database.PayrollDbContext dbContext
+@{
+    var changedColumns = (List<string>)ViewBag.ChangedColumns;
+    var newValues = (Dictionary<string, object>)ViewBag.NewValues;
+    var oldValues = (Dictionary<string, object>)ViewBag.OldValues;
+}
+<form asp-action="AddOrUpdateAttendance" asp-controller="Schedule" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__Container" data-ajax-begin="showModal()" data-ajax-success="sendNotification('success', 'Attendance record was just saved');hideModal()" id="addUpdateConnectionForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            Change Log Summary
+            <br />
+            <small>
+                @changedColumns.Count() columns changed
+            </small>
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+
+    <main class="modal__content" id="modal-1-content">
+        <table class="table">
+            <thead>
+                <tr>
+                    <td>Column</td>
+                    <td>Old Value</td>
+                    <td>New Value</td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var col in changedColumns)
+                {
+                    <tr>
+                        <td>@col</td>
+                        <td>@oldValues[col]</td>
+                        <td>@newValues[col]</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </main>
+    <footer class="modal__footer">
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>
+

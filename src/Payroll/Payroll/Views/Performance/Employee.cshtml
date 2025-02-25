@@ -1,0 +1,218 @@
+﻿@model List<PayrollPeriodEmployee>
+@inject Payroll.Database.PayrollDbContext dbContext
+@{
+    ViewData["Title"] = "Perofmance";
+    var i = 15;
+    ViewBag.Small = true;
+    var emp = (Employee)ViewBag.Employee;
+
+}
+<style>
+    .table tbody tr:not(.separator) td {
+        border-top: 1px solid #f9fcff;
+    }
+
+
+    .chartdiv {
+        width: 200px;
+        height: 20px;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .chartdivSmall {
+        width: 40px;
+        height: 40px;
+        vertical-align: middle;
+        display: inline-block
+    }
+</style>
+
+<link href="~/css/employee-grade.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link href="~/lib/RangePickerSlider/range_picker.css" rel="stylesheet" />
+
+
+<div class="row mt-2">
+    <div class="col-md-4">
+        <div class="text-lg-left">
+            <h4 class="display">Performance Report for <a href="#">@emp.NickName</a></h4>
+            <div class="text-left font-weight-bold" style="display:flex">
+                <div class="image-container">
+                    <a asp-controller="Employee" asp-action="Detail" asp-route-id="@emp.Id">
+                        <img src="@Url.Content(emp.Avatar ?? DefaultPictures.default_user)" height="35" class="mt-1 mr-2 rounded-circle" />
+                    </a>
+                </div>
+                <a asp-controller="Employee" asp-action="Detail" asp-route-id="@emp.Id">
+                    <div class="name-display pt-1">
+                        <span class="">@emp.Name</span>
+                        <br>
+                        @*@(Model.Employees.FirstOrDefault(a => a.id == item.Employee.Id)?._PatternStartIndex) - @(Model.Employees.FirstOrDefault(a => a.id == item.Employee.Id)?._PatternEndIndex)*@
+                        <small class="text-muted" style="position: relative;top: -4px;">@(emp.JobTitle ?? "No Designation") &middot; @emp.Department.Name</small>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="filters float-right">
+            <form asp-action="Index" style="display: inline-flex;" id="rosterFilterForm">
+                <div class="form-group">
+                    <label class="control-label text-muted">Contract Type</label>
+                    <select name="type" id="type" class="form-control form-control-sm" asp-items=@(Html.GetEnumSelectList<ContractType>()) onchange="submitFIlterForm()">
+                        <option value="0">All Types</option>
+                    </select>
+                </div>
+                @*<div class="form-group ml-2">
+                    <label class="control-label text-muted">Designation</label>
+                    <select name="desgId" id="desgId" class="form-control form-control-sm" asp-items="@ViewBag.DesgnationIds" onchange="submitFIlterForm()">
+                        <option value="0">All Positions</option>
+                    </select>
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Employee</label>
+                    <select name="empId" id="empId" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                        <partial name="_EmployeeDropdownOpt" model="(List<Employee>)ViewBag.EmployeeIds" />
+                    </select>
+                </div>*@
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Limit</label>
+                    <select name="limit" id="limit" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Sort</label>
+                    <select name="sort" id="sort" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                        <option value="None">None</option>
+                        <option value="Recent">Recent</option>
+                        <option value="Expiring">Expiring</option>
+                        <option value="Long">Long</option>
+                        <option value="Short">Short</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-12" id="">
+
+        <table class="table table-performance">
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="separator" data-id="@item.Id">
+                        <td rowspan="4">
+                            <h6 class="mb-1"><a role="tooltip" data-microtip-position="top" aria-label="View Master Sheet" asp-action="View" asp-route-id="@item.PayrollPeriod.Id"><b>@item.PayrollPeriod.Name</b></a></h6>
+                            <span class="text-secondary">@item.PayrollPeriod.StartDate.ToLocalFormat(false) &mdash; @item.PayrollPeriod.EndDate.ToLocalFormat(false)</span>
+
+                            <br />
+
+                            @if (item.IsGraded)
+                            {
+                                <span class="pro @item.CssClass" style="top: 0px">@item.Grade</span>
+                                <strong>
+                                    @item.PercentStr
+                                </strong>
+                            }
+                        </td>
+
+                        <td><span class="text-danger font-weight-bold">Late Minutes</span></td>
+                        <td>
+                            <span><i class='fa fa-circle fa-sm text-danger' title=''></i> @item.LateMins mins<span class="text-muted"></span></span>
+                        </td>
+                        <td>
+                            <div id="chartdiv_late_@item.Id" class="chartdiv"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="text-info font-weight-bold">Worked Hours</span></td>
+                        <td>
+                            <span>
+                                <span><i class='fa fa-business-time text-info' title=''></i> @item.WorkedHours.ToString("N2") hours </span>
+                            </span>
+                        </td>
+                        <td>
+                            <div id="chartdiv_workhours_@item.Id" class="chartdiv"></div>
+                        </td>
+                        <td class="p-0">
+                            <div id="chartdiv_workhours_pie_@item.Id" class="chartdivSmall"></div>
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td><span class="text-warning font-weight-bold">Overtime Hours</span></td>
+                        <td>
+                            <span>
+                                <span><i class='fa fa-hourglass-half text-warning' title=''></i> @item.OvertimeHours.ToString("N2") hours </span>
+                            </span>
+                        </td>
+                        <td>
+                            <div id="chartdiv_overtime_@item.Id" class="chartdiv"></div>
+                        </td>
+                        <td></td>
+                    </tr>
+
+                    <tr>
+                        <td><span class="text-dark font-weight-bold">Absent Days</span></td>
+                        <td>
+                            <span>
+                                <span><i class='fa fa-circle text-dark' title=''></i> @item.AbsentDays days </span>
+                            </span>
+                        </td>
+                        <td>
+                            <div id="chartdiv_absent_@item.Id" class="chartdiv"></div>
+                        </td>
+                        <td></td>
+                    </tr>
+                    
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section scripts {
+
+    <!-- Resources -->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+
+    <script src="~/js/micro-charts.js"></script>
+
+    <script>
+
+        var data = null;
+        $.get(GetAppRootPath() + '/performance/GetChartForEmployee?emp='+ '@emp.Id').done(function (d) {
+            data = d.data;
+            console.log('data RAW', d);
+            Populate(d.data);
+        });
+
+        function Populate(data) {
+
+            // loop each payroll period
+            $('table.table-performance tr.separator').each(function (i, e) {
+                var _id = $(e).data('id');
+                var _data = $(data).map(function (e) { return $(this).id == _id });
+
+                for (var i = 0; i < data.length; i++) {
+                    if (data[i].id === _id) {
+                        DrawPerformanceValues(data[i].chart, _id)
+                    }
+                }
+
+                //console.log('_id', _id);
+                //console.log('_data', _data);
+            });
+
+            hidelogos();
+        }
+
+    </script>
+
+}

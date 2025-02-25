@@ -1,0 +1,245 @@
+﻿@model Employee
+@{
+    ViewData["Title"] = Model.Name + " - Employee profile";
+
+    //Model.PayrollPeriodEmployees = Model.PayrollPeriodEmployees.OrderBy(x => x.PayrollPeriod.StartDate).ToList();
+    decimal perc = 0;
+    decimal calcChange = 0;
+    decimal previousTotal = 0;
+}
+<link href="~/css/employee-grade.css" rel="stylesheet" />
+
+
+
+<div class="row mt-2">
+    <div class="col-md-3">
+        <div class="text-center">
+            <img src="@Url.Content(Model.Avatar ?? DefaultPictures.default_user)" height="150" class="mt-2 rounded-circle" />
+        </div>
+        <div class="text-center">
+            <a class="text-muted " data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="UploadImage" asp-route-id="@Model.Id" style="">
+                Change photo
+            </a>
+        </div>
+        @*<div class=" form-group">
+                <label class="col-form-label">Choose Employee</label>
+                <select name="empId" id="empId" asp-items="@(TempData["EmpId"] as SelectList)" onchange="reload(this)" class="form-control"></select>
+            </div>*@
+
+        @*<h1>@((TempData["EmpId"] as SelectList).Count())</h1>*@
+        @*<div class="form-inline form-group">
+                <label asp-for="ItemId" class="col-form-label">Addition</label>
+                <select asp-for="ItemId" asp-items="ViewBag.ItemId" onchange="reload(this)" class="form-control"></select>
+                &nbsp;
+                <a class="btn btn-info btn-sm" asp-action="Index" asp-controller="Addition">Manage additions</a>
+            </div>*@
+    </div>
+    <div class="col-md-6">
+        <div class="">
+            <h4 class="display">
+                @(Model.NameDisplay)
+                <span class="pro @Model.CssClass">@Model.Grade</span>
+
+                <a class="btn btn-sm btn-outline-dark" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AddOrUpdate" asp-route-id="@Model.Id">
+                    <i class="ion-ios-compose-outline"></i> Edit
+                </a>
+
+                <br />
+                <small>@Model.EmpID &middot; @Model.Name</small>
+                <br />
+                <small style="font-size:14px">@Model.JobTitle</small>
+            </h4>
+
+            <small>@Model.IdentityType · @Model.IdentityNumber</small><br />
+            <small><span class="text-muted">Department</span> · @Model.Department.Name</small><br />
+            @*<small><span class="text-muted">Address</span> · @Model.Address</small><br />*@
+            @if (Model.DateOfJoined.HasValue)
+            {
+                <small><span class="text-muted">Service Duration</span> · @(@Model.DateOfJoined.Value.GetTimeDifference(DateTime.Now))</small><br />
+            }
+            @*@if (Model.HasUserAccount)
+                {
+                    <small><span class="text-muted">User info</span> · @Model.UserName</small><br />
+                }*@
+            @*<small>Profile view</small>*@
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="list-group">
+            <div class="list-group-item border-right-0 border-left-0 border-top-0"><i class="fa fa-envelope-open"></i> <a href="mailto:@Model.EmailWork"> @Model.EmailWork</a></div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.PhoneWork))
+            {
+                <div class="list-group-item border-right-0 border-left-0 border-bottom-0"><i class="fa fa-phone"></i> <a href="tel:@Model.PhoneWork"> @Model.PhoneWork</a></div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.PhonePersonal))
+            {
+                <div class="list-group-item border-right-0 border-left-0 border-bottom-0"><i class="fa fa-phone"></i> <a href="tel:@Model.PhonePersonal"> @Model.PhonePersonal</a></div>
+            }
+
+            <div class="list-group-item border-right-0 border-left-0 border-bottom-0">
+                <i class="fa fa-user-lock"></i>
+                @if (Model.HasUserAccount)
+                {
+                    @Model.UserName
+                }
+                <a class="" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="MapUser" asp-route-id="@Model.Id">
+                    <i class="ion-ios-compose-outline"></i> Map
+                </a>
+
+            </div>
+
+
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row">
+
+    <div class="col-md-3">
+        <div class="list-group empl-sidebar" id="empl-sidebar">
+            <div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="general_table" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-action="General" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)">General</a></div>
+            <div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="performance_table" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" data-ajax-success="setActiveTab(this);" asp-action="Performance" asp-route-id="@Model.Id">Performance</a></div>
+
+            <div class="list-group-item border-right-0 border-left-0 border-top-0"><a class="general_table" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-action="Contracts" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)">Contracts</a></div>
+            <div class="list-group-item border-right-0 border-left-0 border-bottom-0"><a class="" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-action="CompensationBenefits" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)">Compensation & Benefits</a></div>
+            @*<div class="list-group-item border-right-0 border-left-0 border-bottom-0"><a class="" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="clearHome()" asp-action="AddOrUpdate" asp-route-id="@Model.Id">Team & Allocation</a></div>
+                <div class="list-group-item border-right-0 border-left-0 border-bottom-0"><a class="" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="clearHome()" asp-action="AddOrUpdate" asp-route-id="@Model.Id">Goals</a></div>*@
+            <div class="list-group-item border-right-0 border-left-0 border-bottom-0"><a class="" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-action="TimeOffAndSickLeave" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)">Time Off & leaves</a></div>
+
+            <div class="list-group-item border-right-0 border-left-0 border-bottom-0"><a class="" data-ajax="true" data-ajax-update="#employee-content" data-ajax-begin="clearHome()" asp-action="Resources" asp-route-id="@Model.Id" data-ajax-success="setActiveTab(this)">Resources</a></div>
+
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div id="employee-content">
+
+        </div>
+    </div>
+</div>
+
+<div class="text-center">
+</div>
+<div class="clearfix"></div>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+
+@section scripts {
+    <!-- Resources -->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script src="~/js/micro-charts.js"></script>
+    <script>
+
+        function setActiveTab(e) {
+            console.log('tab', e);
+            var newTab = $(e).parent();
+            $('#empl-sidebar').find('.list-group-item').not(newTab).removeClass('active');
+            $(newTab).addClass('active');
+        }
+
+
+        function clearHome() {
+
+            $("#employee-content").children().fadeOut();
+            var loader = getLoaderHtmlWithLineHeight(25);
+            $("#employee-content").empty();
+
+
+            $("#employee-content").append(loader).fadeIn();
+        }
+
+        $('.performance_table').click();
+        //function reload() {
+        //    var url = GetAppRootPath() + "/employee/detail/" + $('#empId :selected').val();
+        //    console.log(url);
+
+        //    location.href = url;
+        //}
+
+
+        //function getPerformanceChart() {
+        //    $.get(GetAppRootPath() + '/employee/GetPerfromanceAndSalaryChart?start=' + start + '&end=' + end, function (data) {
+        //        console.log(data);
+        //        //chart.data = d.chartdata;
+        //        drawSalaryChart(data.salaryChart);
+        //    });
+        //}
+
+        function drawSalaryChart(data) {
+
+            // Create chart instance
+            var chart = am4core.create("chartdiv", am4charts.XYChart);
+            chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
+            chart.data = data;
+            chart.numberFormatter.numberFormat = "#a";
+
+            console.log('chart.data');
+            console.log(chart.data);
+
+
+            // Create axes
+            var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+            //dateAxis.renderer.minGridDistance = 50;
+
+            var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+            valueAxis.valueFormatString = "#,###,.##K";
+            valueAxis.renderer.minGridDistance = 30;
+
+            // Create series
+            var series = chart.series.push(new am4charts.ColumnSeries());
+            series.dataFields.valueY = "item2";
+            series.dataFields.dateX = "item1";
+            series.strokeWidth = 2;
+            series.minBulletDistance = 10;
+            //series.tooltipText = "{valueY}";
+            series.name = "Gross Salary";
+            series.tooltipText = "{name}\n[font-size: 14] MVR {valueY}[/]";
+            series.tooltip.pointerOrientation = "vertical";
+            series.tooltip.background.cornerRadius = 20;
+            series.tooltip.background.fillOpacity = 0.5;
+            series.tooltip.label.padding(12, 12, 12, 12)
+
+            //// as by default columns of the same series are of the same color,
+            //// we add adapter which takes colors from chart.colors color set
+            //series.columns.template.adapter.add("fill", function (fill, target) {
+            //    return chart.colors.getIndex(target.dataItem.index);
+            //});
+
+            var series2 = chart.series.push(new am4charts.ColumnSeries());
+            series2.dataFields.valueY = "item3";
+            series2.dataFields.dateX = "item1";
+            series2.strokeWidth = 4;
+            series2.minBulletDistance = 10;
+            series2.name = "Net Salary";
+            series2.tooltipText = "{name}\n[font-size: 14] MVR {valueY}[/]";
+            series2.tooltip.pointerOrientation = "vertical";
+            series2.tooltip.background.cornerRadius = 20;
+            series2.tooltip.background.fillOpacity = 0.5;
+            series2.tooltip.label.padding(12, 12, 12, 12)
+
+
+            // Add cursor
+            chart.cursor = new am4charts.XYCursor();
+            chart.cursor.yAxis = valueAxis;
+            chart.cursor.snapToSeries = series;
+
+            // Add legend
+            chart.legend = new am4charts.Legend();
+            chart.legend.position = "top";
+
+            hidelogos();
+
+
+        }
+    </script>
+}

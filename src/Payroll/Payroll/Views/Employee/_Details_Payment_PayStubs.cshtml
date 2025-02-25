@@ -1,0 +1,33 @@
+﻿@model List<PayrollPeriodEmployee>
+
+
+<table class="table">
+    <thead>
+        <tr colspan="">
+            <th width="10px"></th>
+            <th>Payroll</th>
+            <th>Pay date</th>
+            <th>Total Gross Pay</th>
+            <th>Deductions</th>
+            <th>Net Pay</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    <a data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewPaySlip" asp-controller="Payroll" asp-route-id="@item.Id">
+                        <i class="fad fa-file-invoice"></i>
+                    </a>
+                </td>
+                <td>@item.PayrollPeriod.Name <br /> <small>@item.PayrollPeriod.StartDate.GetDuration(item.PayrollPeriod.EndDate, User)</small></td>
+                <td>@item.PayrollPeriod.PayDate.ToSystemFormat(User)</td>
+                <td>MVR @item.GrossPay.ToSystemFormat(User)</td>
+                <td>MVR @((item.GrossPay - item.NetSalary).ToSystemFormat(User))</td>
+                <td><b>MVR @item.NetSalary.ToSystemFormat(User)</b></td>
+            </tr>
+        }
+    </tbody>
+</table>

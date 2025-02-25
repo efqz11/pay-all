@@ -1,0 +1,148 @@
+﻿@model List<Schedule>
+@inject Payroll.Database.PayrollDbContext dbContext
+@{
+    ViewData["Title"] = "Rostering";
+    var i = 15;
+    ViewBag.Small = true;
+}
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link href="~/lib/RangePickerSlider/range_picker.css" rel="stylesheet" />
+
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="text-lg-left">
+            <h4 class="display">Rosters</h4>
+            <p>View all rosters created, click to edit them</p>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="filters float-right">
+            <form asp-action="All" style="display: inline-flex;" id="rosterFilterForm">
+                <div class="form-group">
+                    <label class="control-label text-muted">On Date</label>
+                    <input type="text" id="date" name="date" class="form-control form-control-sm has-datepicker" value="@(ViewBag.date)" onchange="submitFIlterForm()" />
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Employee</label>
+                    <select name="empId" id="empId" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                        <partial name="_EmployeeDropdownOpt" model="(List<Employee>)ViewBag.EmployeeIds" />
+                    </select>
+                </div>
+                <div class="form-group ml-2">
+                    <label class="control-label text-muted">Limit</label>
+                    <select name="limit" id="limit" class="form-control form-control-sm" onchange="submitFIlterForm()">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-12" id="">
+        <table class="table">
+            <tbody>
+                <tr>
+                    <td colspan="3">
+                        <a class="btn btn-primary" asp-action="New" asp-route-id=""><i class="fad fa-plus-circle"></i> Create New Roster</a>
+                    </td>
+                </tr>
+                @foreach (var schedule in Model)
+                {
+                    i = 3;
+
+                    <tr>
+                        <td class="">
+                            <h6>
+                                <a class="" asp-action="Index" asp-route-id="@schedule.Id">
+                                    @if (!string.IsNullOrWhiteSpace(schedule.Name))
+                                    {
+                                        <span>@schedule.Name</span>
+                                        <br />
+                                    }
+                                    @schedule.Start.ToLocalFormat() &mdash; @schedule.End.ToLocalFormat()
+                                    <br>
+                                    <small class="text-muted">@(schedule.DaysData?.Count()) days(s) &middot; @(schedule.EmployeeIds?.Count() ?? 0) Employee(s) &middot; @(schedule.WorkTimeIds?.Count() ?? 0) WorkTime(s)</small>
+                                </a>
+                            </h6>
+                        </td>
+                        <td>
+                            <div style="display:flex">
+                                @if (schedule.EmployeeIdsData?.Count() > 0)
+                                {
+                                    foreach (var item in schedule.EmployeeIdsData.Take(10))
+                                    {
+                                        <div class="image-container">
+                                            <img src="@Url.Content(item.Photo ?? DefaultPictures.default_user)" height="30" title="@item.Name" class="rounded-circle" style="position: relative;right: @(i+"px");" />
+                                        </div>
+                                        i += 25;
+                                    }
+                                }
+                                @if (schedule.EmployeeIds?.Count() - 10 > 0)
+                                {
+                                <span style="position: relative;right: @(i - 20 + "px");top: 5px" class="mb-1"> +@(schedule.EmployeeIds?.Count() - 10)</span>
+                                }
+                            </div>
+                            @if (schedule.WorkTimeIds?.Any() ?? false)
+                            {
+                            <div style="">
+                                @if (schedule.WorkTimeIdsData?.Count() > 0)
+                                {
+                                    i = 25;
+                                    foreach (var item in schedule.WorkTimeIdsData.Take(3))
+                                    {
+                                        <span title="@item.Name" class="shift sch-@item.Color" style="right: @(i + "px");padding: 3px 6px;margin-right: 5px;border-radius:6px; color:#fff">@item.Name</span>
+                                        i += 15;
+                                    }
+                                }
+                                @if (schedule.WorkTimeIds?.Count() - 3 > 0)
+                                {
+                                    <span style="position: relative;right: @(i + "px");top: 5px" class="mb-1"> +@(schedule.WorkTimeIds?.Count() - 3)</span>
+                                }
+                            </div>
+                            }
+                        </td>
+                        <td>
+                            <partial name="_DisplayRequestStatus" model="@schedule.Status" />
+                        </td>
+                        <td>
+                            <span class="text-muted">@(((DateTime)dbContext.Entry(schedule).Property(AuditFileds.CreatedDate).CurrentValue).ToSystemFormat(User, true))</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section scripts {
+
+
+    <script>
+        $(".has-datepicker").flatpickr({
+            dateFormat: "j-M-Y",
+            clearBtn: true
+        });
+
+        var limit = '@ViewBag.limit';
+        if (limit)
+            $('#limit').val(limit);
+        
+        var empId = '@ViewBag.empId';
+        if (empId)
+            $('#empId').val(empId);
+
+        function submitFIlterForm() { $('#rosterFilterForm').submit() }
+
+        $('input[name="date"]').on('apply.daterangepicker', function (ev, picker) {
+            submitFIlterForm();
+        });
+
+    </script>
+
+
+}

@@ -1,0 +1,84 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using Payroll.Database;
+using Payroll.Models;
+
+namespace Payroll.Controllers
+{
+    public class DeductionController : Controller
+    {
+        private readonly PayrolDbContext context;
+
+        public DeductionController(PayrolDbContext context)
+        {
+            this.context = context;
+        }
+
+        public IActionResult Index(int id)
+        {
+            var emp = context.Deductions.ToList();
+            return View(emp);
+        }
+
+        [HttpPost]
+        public IActionResult Index(Deduction[] model)
+        {
+            if (ModelState.IsValid)
+            {
+
+                context.Deductions.UpdateRange(model);
+                context.SaveChanges();
+            }
+
+            return PartialView("_Listing", GetNewList());
+        }
+
+        [HttpPost]
+        public IActionResult Create()
+        {
+            if (ModelState.IsValid)
+            {
+                context.Deductions.Add(new Deduction
+                {
+                    Name = "New Deduction"
+                });
+                context.SaveChanges();
+                return PartialView("_Listing", GetNewList());
+            }
+
+            return BadRequest();
+        }
+
+        [HttpPost]
+        public IActionResult Remove(int itemId = 0)
+        {
+            if (ModelState.IsValid)
+            {
+                var add = context.Deductions.Find(itemId);
+                if (add == null)
+                    return BadRequest("Oooh! we didnt find that one");
+                if(context.PayrollPeriodDeductions.Any(x=> x.DeductionId == itemId))
+                    return BadRequest("Ouch! Some items are used as children, please remove them before proceed");
+
+                context.Deductions.Remove(add);
+                context.SaveChanges();
+                return PartialView("_Listing", GetNewList());
+            }
+
+            return BadRequest();
+        }
+
+        private List<Deduction> GetNewList()
+        {
+            return context.Deductions
+                .ToList();
+        }
+        
+    }
+}

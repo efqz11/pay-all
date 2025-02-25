@@ -1,0 +1,71 @@
+﻿@model List<Request>
+@inject Payroll.Database.PayrollDbContext dbContext
+
+@if (Model.Count > 0)
+{
+    @if (Model.Count >= 4)
+    {
+        <p>
+            <small><span class="src btn-outline-dark btn-sm btn" data-target="draft">@Model.Count(x => x.Status == WorkItemStatus.Draft) Draft</span> · <span class="src btn-outline-primary btn-sm btn " data-target="submitted">@Model.Count(x => x.Status == WorkItemStatus.Submitted) Submitted</span> · <span class="src btn-outline-success btn-sm btn" data-target="approved">@Model.Count(x => x.Status == WorkItemStatus.Approved) Approved</span> · <span class="src btn-outline-danger btn-sm btn" data-target="rejected">@Model.Count(x => x.Status == WorkItemStatus.Rejected) Rejected</span></small>
+        </p>
+    }
+    <table class="table table-sm table-submissions">
+        <tbody>
+            @foreach (var sbmss in Model)
+            {
+                <tr class="@sbmss.Status.ToString().ToLower()">
+                    <td>
+                        <a asp-action="ViewRequest" asp-controller="Request" asp-route-id="@sbmss.Id" asp-route-type="@sbmss.RequestType" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" title="Click to make changes" class="" style="">
+
+                            @if (sbmss.IsTransferEmployee)
+                            {
+                                @("Transfer to " + sbmss.TransferredEmployeeName)
+                            }
+                            else
+                            {
+                                @sbmss.GetNewCheckInCheckOutDuration(User)
+                            }
+                        </a>
+                        <br />
+                        <small><partial name="~/Views/Request/_DisplayRequestTypeOnly.cshtml" model="@sbmss.RequestType" /></small>
+                    </td>
+                    <td>@sbmss.Status</td>
+                    <td class="text-right">
+                        @*@if (sbmss.Status == WorkItemStatus.Draft)
+                            {
+                                <a asp-action="SubmitSingleWork" asp-controller="Schedule" asp-route-wiId="@Model.Id" asp-route-id="@sbmss.Id" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container" data-ajax-begin="showModal()" title="Send for Approval" class="btn btn-sm btn-outline-primary" style="">
+                                    <i class="fas fa-share"></i>
+                                </a>
+                            }*@
+                        @if (sbmss.Status == WorkItemStatus.Submitted)
+                        {
+                            <small>submitted abt @(sbmss.SubmissionDate?.GetTimeDifference(DateTime.UtcNow)) ago</small>
+                        }
+                        @if (sbmss.Status == WorkItemStatus.Approved || sbmss.Status == WorkItemStatus.Rejected)
+                        {
+                            <a asp-action="ViewAttendance" asp-controller="Schedule" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" title="@(sbmss.Status == WorkItemStatus.Approved ? "Approved" : "Rejected")" class="btn btn-sm btn-outline-@(sbmss.Status == WorkItemStatus.Approved ? "success" : "danger")" style="">
+                                <i class="fas @(sbmss.Status == WorkItemStatus.Approved ? "fa-check-circle" : "fa-times-circle")"></i>
+                            </a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<script>
+
+    $('.src').click(function (e) {
+        var match = $('.table-submissions')
+            .find('tr.' + $(this).data('target'));
+        
+
+        $('.table-submissions tbody tr').not(match).hide();
+        $(match).not('.fields-row').show();
+        $('.src').removeClass('active');
+        $(this).addClass('active');
+    });
+
+
+</script>

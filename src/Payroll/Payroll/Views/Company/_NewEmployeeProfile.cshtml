@@ -1,0 +1,215 @@
+﻿@model EmploymentProfileVm
+@{ 
+
+    var i = 0;
+}
+
+
+<div>
+    <div class="layout-main-landing">
+        <div class="row">
+            <div class="layout-main-landing-header col-sm-12">
+                <div class="relative">
+                    <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                        @*<img class="zp-icon-image large content-block-with-icon__icon hidden-xs flex-self-start" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-map-288f54db.svg" alt="">*@
+                        <div class="content-block-with-icon__content">
+                            <h1 class="page-title margin-top-none margin-bottom-none">
+                                Create employee profile
+                            </h1>
+                        </div>
+                    </div>
+                    @*<div class="layout-landing-header-details"><p class="layout-landing-header-pricing margin-bottom-none"></p></div>*@
+                </div>
+            </div>
+        </div>
+        <div class="layout-main-landing-row row margin-bottom-20px">
+            <ol class="progress-bar-tabs progress-bar-style-default">
+                <li data-step="1" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Basics</div></li>
+                <li data-step="2" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Employment</div></li>
+                <li data-step="3" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Pay components</div></li>
+            </ol>
+            <div class="col-sm-12 col-md-8 content">
+                <form asp-action="NewEmployeeProfile" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" data-ajax-success="sendNotification('success', 'New employee was just created');" id="form" data-ajax-failure="handleModalPostFailure">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="CompanyId" type="hidden" />
+
+                    <div class="step" data-step="1">
+                        <h4 class="pb-4 fs-unmask">Profile basics</h4>
+
+                        <div class="row mb-4">
+                            <div class="form-group col-md-2">
+                                <label asp-for="Initial" class="control-label">Initials</label>
+                                <select asp-for="Initial" asp-items="@(Html.GetEnumSelectList<Initial>())" class="form-control form-control-lg"></select>
+                            </div>
+
+                            <div class="form-group col-md-10">
+                                <label asp-for="FirstName" class="control-label">Their official, legal first name</label>
+                                <input asp-for="FirstName" as class="form-control form-control-lg" />
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="LastName" class="control-label">
+                                Their official, legal last name
+                            </label>
+                            <input asp-for="LastName" as class="form-control form-control-lg" />
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="StartDate" class="control-label">Start date</label>
+                            <p class="small">
+                                Your employee’s first day of work at your company.
+                            </p>
+                            <input asp-for="StartDate" class="form-control form-control-lg has-datepicker" />
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="LocationId" class="control-label">Location</label>
+                            <select asp-items="ViewBag.LocationId" asp-for="LocationId" class="form-control form-control-lg">
+                                <option value="0">Choose</option>
+                            </select>
+                            <span asp-validation-for="LocationId" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="DepartmentId" class="control-label">Department</label>
+                            <select asp-items="ViewBag.DepartmentId" asp-for="DepartmentId" class="form-control form-control-lg">
+                                <option value="0">Choose</option>
+                                <option value="-1" >Add new department</option>
+                            </select>
+                            <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                        </div>
+                        <div class="form-group mb-4" id="newDpt">
+                            <label asp-for="NewDepartment" class="control-label">Enter name of new department</label>
+                            <input asp-for="NewDepartment" as class="form-control form-control-lg" />
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="ReportingEmployeeId" class="control-label">Manager</label>
+                            <p class="small">
+                                Managers can approve hours and time off. Based on your settings, they may also be able to access or edit information about their reports. Learn more
+                            </p>
+                            <select asp-for="ReportingEmployeeId" class="form-control form-control-lg">
+                                <partial name="_EmployeeDropdownOpt" model="(List<Employee>)ViewBag.ReportingEmployeeId" />
+                            </select>
+                            <span asp-validation-for="ReportingEmployeeId" class="text-danger"></span>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label asp-for="PersonalEmail" class="control-label">Personal email</label>
+                            <p class="small">
+                                Please be extra careful typing the address. We use it to grant access to the employee’s sensitive information.
+                            </p>
+                            <input asp-for="PersonalEmail" class="form-control form-control-lg" />
+                            <span asp-validation-for="PersonalEmail" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label class="custom-control custom-checkbox custom-checkbox-large">
+                                <input type="checkbox" asp-for="InviteThemToFill" class="date-chooser custom-control-input" onchange="onCheckChange(this);">
+                                <span class="custom-control-label" for="chbxTerms">
+                                    Invite this employee to enter their own details online.
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="step" data-step="2">
+                        <h4 class="pb-4 fs-unmask">Employment information</h4>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="JobTitle" class="control-label">Job title</label>
+                            <p class="text-weight-normal">Normally you'd just choose the vacant job and occupy job with the employee, but for now we'll just enter job title and create a new job.</p>
+                            @*<select asp-items="ViewBag.JobId" asp-for="DepartmentId" class="form-control form-control-lg">
+                                <option value="0">Choose</option>
+                                <option value="-1">Create new job</option>
+                            </select>*@
+                            <input asp-for="JobTitle" class="form-control form-control-lg" placeholder="ex: 'Director of Sales'" />
+                            <span asp-validation-for="JobTitle" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <label asp-for="Level" class="control-label">Job level</label>
+                            <input asp-for="Level" class="form-control form-control-lg" placeholder="ex: 'Manager'" />
+                            <span asp-validation-for="Level" class="text-danger"></span>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label asp-for="EmployeeType" class="control-label">Employment Type</label>
+                            <select asp-for="EmployeeType" type="text" class="form-control form-control-lg has-datepicker" asp-items="@Html.GetEnumSelectList<EmployeeType>()"></select>
+                            <span asp-validation-for="EmployeeType" class="text-danger"></span>
+                        </div>
+
+
+                    </div>
+                    <div class="step" data-step="3">
+                        <h4 class="pb-4 fs-unmask">Pay components</h4>
+                        <table class="table table-hover">
+                            <tbody>
+                                @foreach (var item in Model.Wages.OrderBy(a => a.PayAdjustment.VariationType.ToString()).ThenBy(a => a.PayAdjustment.Name))
+                                {
+                                    <tr>
+                                        <input type="hidden" name="Wages[@i].PayAdjustmentId" value="@item.PayAdjustmentId" />
+                                        <input type="hidden" name="Wages[@i].EmployeeId" value="@item.EmployeeId" />
+                                        <input type="hidden" name="Wages[@i].Id" value="@item.Id" />
+
+                                        <td width="10px">
+                                            <label class="custom-control custom-checkbox custom-checkbox-large mb-0">
+                                                <input type="checkbox" id="_@item.PayAdjustmentId" name="Wages[@i].IsActive" value="@(item.IsActive ? "True" :"False")" class="custom-control-input" tabindex="5" onchange="onCheckChange(this); $(this).parent().parent().next().next().find('input').prop('disabled', !$(this).is(':checked')).focus().select()">
+                                                <input type="hidden" name="Wages[@i].IsActive" value="false" />
+                                                <span class="custom-control-label" for="chbxTerms">
+                                                </span>
+                                            </label>
+                                        </td>
+
+                                        <td>
+                                            <label class="mb-0" for="_@item.PayAdjustmentId">@item.PayAdjustment.Name
+                                            <br />
+                                            <small>@item.PayAdjustment.VariationType</small>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            @if (item.PayAdjustment.VariationType.ToString().Contains("Constant"    ))
+                                            {
+                                                <input type="number" name="Wages[@i].Total" value="@item.Total" class="form-control form-control-lg" disabled />
+                                            }
+                                        </td>
+                                    </tr>
+
+                                    i++;
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                    <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+                        <button class="btn btn-lg btn-outline-primary btn-back mr-2" type="button">Back</button>
+                        <button class="btn btn-lg btn-primary btn-next" type="button">Submit</button>
+
+                    </div>
+
+                    @*<footer class="modal__footer">
+                    <button type="submit" class="modal__btn modal__btn-primary">
+                        Save
+                    </button>
+                    <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+
+                </footer>*@
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    initDatePicker();
+    $("#DepartmentId").change(function () {
+        if ($(this).val() == "-1")
+            $('#newDpt').show();
+        else
+            $('#newDpt').hide();
+    }).change();
+</script>
+
+@*
+
+*@

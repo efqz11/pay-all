@@ -1,0 +1,188 @@
+﻿@model Payroll.ViewModels.MapUserToEmployeeVm
+
+@{
+    ViewData["Title"] = "Change employee details";
+}
+
+
+<form asp-action="MapUser" data-ajax="true" data-ajax-method="POST" data-ajax-update="" data-ajax-success="sendNotification('success', 'Employee was successfully mapped');hideModal()" id="employeeDetailsCreateForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="EmployeeId" type="hidden" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            Map employee to user account
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        @if (Model.IsAlreadyMapped)
+        {
+            <div class="form-group">
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    Employee is <b>already mapped</b> to below user. Any changes <b>will replace</b> employee mapping to the new user.
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="text-left font-weight-bold sticky-col first-col" style=" vertical-align: middle;display:flex">
+                    <img src="@Url.Content(Model.UserAvatar ?? DefaultPictures.default_user)" height="35" class="mt-1 mr-2 rounded-circle" />
+                    <div class="name-display pt-1">
+                        <span class="">@Model.UserName</span>
+                        <br />
+                        <smalL> @Model.AppUser.PhoneNumber</smalL>
+                    </div>
+                </div>
+            </div>
+
+        }
+
+        <div class="form-group">
+            <label for="EmployeeIds" class="control-label">Map to an existing user</label>
+            <select class='form-control itemSearch' type='text' name="UserId" id="UserId" placeholder='Choose user'></select>
+        </div>
+
+        <div class="form-group">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" asp-for="CreateNewUser" value="@Roles.Company.accountant" class="date-chooser custom-control-input">
+                <span class="custom-control-label" for="chbxTerms">
+                    or Create New User
+                </span>
+            </label>
+        </div>
+
+        <div class="creat-new-empl" style="display:none">
+            <div class="form-group">
+                <label asp-for="AppUser.NickName" class="control-label">Friendly Name</label>
+                <input asp-for="AppUser.NickName" as class="form-control" />
+                <span class="text-danger" asp-validation-for="AppUser.NickName"></span>
+            </div>
+            @*<div class="form-group">
+            <label asp-for="AppUser.UserName" class="control-label">User Name</label>
+            <input asp-for="AppUser.UserName" as class="form-control" />
+            <span class="text-danger" asp-validation-for="AppUser.UserName"></span>
+        </div>*@
+            <div class="form-group">
+                <label asp-for="AppUser.Email" class="control-label"></label>
+                <input asp-for="AppUser.Email" as class="form-control" value="@Model.AppUser.Email" />
+                <span asp-validation-for="AppUser.Email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AppUser.PhoneNumber" class="control-label">Phone Number</label>
+                <input asp-for="AppUser.PhoneNumber" as class="form-control" />
+                <span asp-validation-for="AppUser.PhoneNumber" class="text-danger"></span>
+            </div>
+            @*<div class="form-group">
+                <label asp-for="AppUser.PasswordHash" class="control-label">Password</label>
+                <input asp-for="AppUser.PasswordHash" class="form-control" type="password" />
+                <span asp-validation-for="AppUser.PasswordHash" class="text-danger"></span>
+            </div>*@
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" asp-for="SendOtpAndLoginFirst" class="custom-control-input" onchange="onCheckChange(this)" disabled checked>
+                    <span class="custom-control-label" for="chbxTerms">
+                        Allow user to login using OTP code sent to email
+                    </span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" asp-for="ChangePasswordOnLogin" class="custom-control-input" onchange="onCheckChange(this)" disabled checked>
+                    <span class="custom-control-label" for="chbxTerms">
+                        Require to change password on next login attempt
+                    </span>
+                </label>
+            </div>
+        </div>
+
+        @*<div class="form-group">
+            <label asp-for="BankAccountNumber" class="control-label"></label>
+            <input asp-for="BankAccountNumber" class="form-control" />
+            <span asp-validation-for="BankAccountNumber" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="BankAccountName" class="control-label"></label>
+            <input asp-for="BankAccountName" class="form-control" />
+            <span asp-validation-for="BankAccountName" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="BankName" class="control-label"></label>
+            <input asp-for="BankName" class="form-control" />
+            <span asp-validation-for="BankName" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Address" class="control-label"></label>
+            <input asp-for="Address" class="form-control" />
+            <span asp-validation-for="Address" class="text-danger"></span>
+        </div>
+        <div class="row">
+            <div class="form-group col">
+                <label asp-for="Street" class="control-label"></label>
+                <input asp-for="Street" class="form-control" />
+                <span asp-validation-for="Street" class="text-danger"></span>
+            </div>
+            <div class="form-group col">
+                <label asp-for="ZipCode" class="control-label"></label>
+                <input asp-for="ZipCode" class="form-control" />
+                <span asp-validation-for="ZipCode" class="text-danger"></span>
+            </div>
+        </div>*@
+    </main>
+    <footer class="modal__footer">
+        <button class="modal__btn modal__btn-primary">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        @if (Model.Employee.HasUserAccount)
+        {
+            <a class="modal__btn modal__btn-danger float-right" asp-action="UnMapUser" asp-route-id="@Model.EmployeeId" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', 'Employee to user mapping was just removed');hideModal()" data-ajax-confirm="Are you sure you want to remove mapping">Un-map User</a>
+        }
+    </footer>
+
+</form>
+
+
+<script>
+    $('#CreateNewUser').change(function (e) {
+        if ($(this).is(':checked')) {
+            $('.creat-new-empl').show();
+        } else {
+            $('.creat-new-empl').hide();
+        }
+
+        $(this).val($(this).prop('checked'));
+    });
+
+    var url = '@Url.Action("Users", "Search")';
+    $('#UserId').select2({
+        //width:'300px'
+        placeholder: "Select user",
+        minimumInputLength: 2,
+        ajax: {
+            url: url,
+            dataType: 'json',
+            type: "GET",
+            quietMillis: 50,
+            
+            data: function (term) {
+                return {
+                    'term': term.term //search term
+                };
+            },
+            error: function(data){
+                console.log("ERROR");
+            },
+            processResults: function (data) {
+                return {
+                    results : data
+                };
+            }
+        },
+        
+        escapeMarkup: function (m) {
+			return m;
+		}
+    });
+</script>

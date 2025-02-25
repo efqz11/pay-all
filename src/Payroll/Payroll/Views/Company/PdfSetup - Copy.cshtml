@@ -1,0 +1,379 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<form class="edit_pro_file" id="document-form" action="/files/422c78d3265340780c2f" accept-charset="UTF-8" data-remote="true" method="post">
+    <input name="utf8" type="hidden" value="✓"><input type="hidden" name="_method" value="patch">
+    <input type="hidden" name="merge_files" id="merge_files">
+    <input id="document_data" value="{&quot;pages&quot;:{&quot;1&quot;:{&quot;elements&quot;:[{&quot;type&quot;:&quot;TEXT_FIELD&quot;,&quot;family&quot;:&quot;FORM_FIELD&quot;,&quot;style&quot;:{&quot;align&quot;:&quot;left&quot;,&quot;back_color&quot;:&quot;NONE&quot;,&quot;bold&quot;:false,&quot;border_color&quot;:&quot;NONE&quot;,&quot;border_style&quot;:&quot;solid&quot;,&quot;border_width&quot;:0,&quot;color&quot;:&quot;#000000&quot;,&quot;font&quot;:&quot;Helvetica&quot;,&quot;italic&quot;:false,&quot;max_len&quot;:0,&quot;multiline&quot;:false,&quot;password&quot;:false,&quot;pro&quot;:true,&quot;size&quot;:14,&quot;tool_tip&quot;:null,&quot;default&quot;:&quot;&quot;,&quot;field_name&quot;:&quot;TexthLg2A&quot;,&quot;tx_width&quot;:100,&quot;tx_height&quot;:25.333333333333332,&quot;para_width&quot;:100,&quot;para_height&quot;:75},&quot;transform&quot;:{&quot;x&quot;:465.3333333333333,&quot;y&quot;:189.0666666666667,&quot;width&quot;:100,&quot;height&quot;:25.333333333333332},&quot;content&quot;:{&quot;text&quot;:&quot;&quot;,&quot;default&quot;:&quot;&quot;,&quot;field_group&quot;:&quot;&quot;,&quot;field_name&quot;:&quot;TexthLg2A&quot;,&quot;full_name&quot;:&quot;TexthLg2A&quot;},&quot;id&quot;:&quot;hYuwcAdGem7tRA1&quot;,&quot;scale&quot;:0.25252525252525254,&quot;fromJson&quot;:true,&quot;rotation&quot;:0,&quot;pageHeight&quot;:792,&quot;pageWidth&quot;:612}],&quot;width&quot;:918,&quot;height&quot;:1188}},&quot;page_order&quot;:[],&quot;deleted_annots&quot;:{},&quot;rotated_pages&quot;:{},&quot;last_page_no&quot;:1,&quot;last_merge_no&quot;:0,&quot;deleted_fields&quot;:{},&quot;last_form_handles&quot;:{&quot;0&quot;:0},&quot;changed_order&quot;:false}" type="hidden" name="pro_file[content]">
+    <input id="document_name" type="hidden" value="dummyform.pdf" name="pro_file[filename]">
+    <input value="Editor" type="hidden" name="pro_file[process_type]" id="pro_file_process_type">
+    <input type="hidden" value="422c78d3265340780c2f" name="pro_file[unique_id]" id="pro_file_unique_id">
+    <input value="422c78d3265340780c2f" type="hidden" name="pro_file[id]" id="pro_file_id">
+    <input value="36242177" type="hidden" name="pro_file[input_pro_file_id]" id="pro_file_input_pro_file_id">
+    <div class="field new-fields">
+        <input type="hidden" name="document[page_count]" value="1">
+        <input type="hidden" name="document_signatures" id="document_signatures">
+        <input type="hidden" name="document_initials" id="document_initials">
+        <input type="hidden" name="document_images" id="document_images">
+        <input type="hidden" name="document[protect_settings]" id="document_protect_settings">
+    </div>
+</form>
+
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12" style="padding:10px">
+            <button class="btn btn-primary btn-block" onClick="showCoordinates()">Show PDF Placeholders Coordinates</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12" id="pdfManager" style="display:block">
+            <div class="row" id="selectorContainer">
+                <div class="col-md-3" id="parametriContainer">
+                    <h5>Form Builder</h5>
+                    <div class="list-group">
+                        <div class="list-group-item list-group-item-action border-0">
+                            <i class="fad fa-grip-lines"></i> Input Field
+                        </div>
+                        <div class="list-group-item list-group-item-action border-0">
+                            <i class="fad fa-line-columns"></i> Paragraph
+                        </div>
+                    </div>
+                    <div id="thumb_pane">
+                        <div id="thumb_1" class="thumb_element thumb_preview"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div id="pdf-viewport">
+                        <div id="pdf-wrapper" class="loaded-pdf-element">
+                            <canvas id="pdf-canvas" style="border:1px  solid black"></canvas>
+                        </div>
+                    </div>
+                    @*<div id="pageContainer" class="pdfViewer singlePageView dropzone nopadding">
+                        </div>*@
+                </div>
+                <div class="col-md-3" id="parametriContainer">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/lozad"></script>
+    <script src="~/js/pdfPro___pdf.js"></script>
+    <script src="~/js/pdfPro__make.js"></script>
+    <script src="~/js/pdfPro__underscore.js"></script>
+
+    @*// binders*@
+    <script>
+
+        function onPageRender() {
+            console.log('onPageRender ');
+            // if (null != renderTimer) {
+            //   clearTimeout(renderTimer);
+            //   /** @@type {null} */
+            //   renderTimer = null;
+            // }
+            $("#progress-block").hide();
+            $("#editor-navbar").hide();
+            $(".loaded-pdf-element").show();
+            $("#new-surface").show();
+            enablePageNav();
+            checkAutosize();
+            renderingPage = false;
+            if (!saving) { $('.document-button').removeClass('disabled'); }
+        }
+
+        function onPageGet(InkElement) {
+            console.log('onPageGet pdf ', InkElement);
+            $("#new-surface").hide();
+            $newFields = $("form#document-form").find(".new-fields");
+            // if ($newFields.exists()) {
+            //   $newFields.find('input[name="document[page_width]"]').val(InkElement.pageWidth);
+            //   $newFields.find('input[name="document[page_height]"]').val(InkElement.pageHeight);
+            // }
+            currentPageWidth = InkElement.pageWidth;
+            currentPageHeight = InkElement.pageHeight;
+            // currentPageScale = InkElement.pageScale;
+            var udataCur = $pdfCanvas.PDFViewer("pageNumbers").indexOf($pdfCanvas.PDFViewer("pageNumber")) + 1;
+            $(".page-number").val(udataCur);
+            readJSON();
+            if (InkElement.changeToMode) {
+                $("#new-surface").activeEditor("mode", InkElement.changeToMode);
+            }
+        }
+
+
+        function onLoadPDF(data) {
+            console.log('on load pdf ', data);
+
+            var pageCount = data.pageCount;
+
+            $newFields = $('form#document-form').find('.new-fields');
+            if ($newFields.exists()) {
+                $newFields.find('input[name="document[page_count]"]').val(pageCount);
+            }
+
+            $('.page-count').html(pageCount);
+
+            $('select.page-number').empty();
+            for (i = 0; i < pageCount; i++) {
+                $('select.page-number').append($("<option></option>")
+                    .attr("value", i + 1)
+                    .text(i + 1));
+            }
+            if (pageCount > 1) {
+                $("#page_num").show();
+                $("#nav-btns").show();
+            } else {
+                $("#one_page").show();
+            }
+        }
+
+
+        function onLoadError(data) {
+            console.log('onLoadError pdf ', data);
+            $("#progress-block").hide();
+            if (data.error.indexOf('Password') !== -1) {
+                $("#password-error-message").show();
+            } else {
+                $("#error-message").show();
+                //   if(typeof Rollbar != "undefined") {
+                //   Rollbar.error("PDF Load error", data.error);
+                // }
+            }
+        }
+
+    </script>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "/js/pdfPro__worker.js";
+
+
+        var isEncrypted = false;
+        var $pdfCanvas;
+        $pdfCanvas = $('#pdf-canvas');
+        $pdfCanvas.bind('getPage', onPageGet);
+        $pdfCanvas.bind('renderPage', onPageRender);
+        $pdfCanvas.bind('loadPDF', onLoadPDF);
+        $pdfCanvas.bind('loadError', onLoadError);
+
+        password = '';
+        var pdfURL = "https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf";
+        var formsEnabled = false;
+        var firstLoad = true;
+        var documentData;
+        var inputFiles = {};
+        if ("{\&quot;0\&quot;:{\&quot;id\&quot;:\&quot;aewpulhhsku-f412dfe3\&quot;,\&quot;url\&quot;:\&quot;https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf\&quot;,\&quot;first\&quot;:1,\&quot;last\&quot;:null,\&quot;password\&quot;:null}}") {
+            try {
+                inputFiles = JSON.parse(_.unescape("{\&quot;0\&quot;:{\&quot;id\&quot;:\&quot;aewpulhhsku-f412dfe3\&quot;,\&quot;url\&quot;:\&quot;https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf\&quot;,\&quot;first\&quot;:1,\&quot;last\&quot;:null,\&quot;password\&quot;:null}}"));
+            } catch (err) {
+                console.log('error inputFiles ', err);
+                inputFiles = {};
+            }
+        }
+
+
+        $(function () {
+
+            const lozadEl = document.querySelector('canvas');
+            const lozadOb = lozad('.thumb-canvas', {
+                load: function (el) {
+                    $pdfCanvas.PDFViewer("renderThumbnail", "thumb_canvas_", el.getAttribute('id').replace('thumb_canvas_', ''), true);
+                }
+            });
+            const lozadSort = lozad('.page-canvas', {
+                load: function (el) {
+                    $pdfCanvas.PDFViewer("renderThumbnail", "sortable_canvas_", el.getAttribute('id').replace('sortable_canvas_', ''), false);
+                }
+            });
+            console.log('inputFiles ', inputFiles);
+
+            try {
+                if ($("#document_data").val() != '') {
+                    if (isEncrypted && ("changes" in permissions) && (!checkPermissions(permissions["changes"], permissions["open"], permissions["print"], permissions["copy"], permissions["text_access"], permissions["owner"]))) {
+                    } else {
+                        documentData = JSON.parse($("#document_data").val());
+                        if (documentData.rotated_pages) {
+                            rotatedPages = documentData.rotated_pages;
+                        }
+                        if (documentData.changed_order) {
+                            changedOrder = documentData.changed_order;
+                        }
+                        if (documentData.deleted_annots) {
+                            deletedAnnots = documentData.deleted_annots;
+                        }
+                        if (documentData.deleted_fields) {
+                            deletedFields = documentData.deleted_fields;
+                        }
+                        if (documentData.last_form_handles) {
+                            lastFormHandles = documentData.last_form_handles;
+                        }
+                        if (documentData.last_page_no) {
+                            lastPageNumber = parseInt(documentData.last_page_no);
+                        }
+                        if (documentData.last_merge_no) {
+                            lastMergeNumber = parseInt(documentData.last_merge_no);
+                        }
+                        loadPDFViewer();
+                    }
+                } else {
+                    queryFileData("aewpulhhsku-f412dfe3");
+                }
+            }
+            catch (err) {
+                console.log('error loaded ', err);
+                if (isEncrypted && ("changes" in permissions) && (!checkPermissions(permissions["changes"], permissions["open"], permissions["print"], permissions["copy"], permissions["text_access"], permissions["owner"]))) {
+                } else {
+                    documentData = { "pages": {}, "page_order": [], "deleted_annots": {}, "last_form_handles": {}, "rotated_pages": {}, "last_page_no": null, "last_merge_no": null };
+                    loadPDFViewer();
+                }
+            }
+
+
+
+
+            //goToOnePageView(true);
+            //$('#new-surface').activeEditor('enableFormEditing');
+        })
+
+
+
+
+        function loadPDFViewer() {
+            console.log('loading pdf viewer ');
+            lastSavedJson = JSON.stringify(documentData);
+            if (firstLoad) {
+                if (password.length > 0) {
+                    $pdfCanvas.PDFViewer({ pdf_url: pdfURL, password: password });
+                } else {
+                    $pdfCanvas.PDFViewer({ pdf_url: pdfURL });
+                }
+            } else {
+                try {
+                    $pdfCanvas.PDFViewer("loadFiles", pdfURL, password);
+                } catch (err) {
+                    if (password.length > 0) {
+                        $pdfCanvas.PDFViewer({ pdf_url: pdfURL, password: password });
+                    } else {
+                        $pdfCanvas.PDFViewer({ pdf_url: pdfURL });
+                    }
+                }
+            }
+        }
+
+
+        function queryFileData(fileId) {
+            var data = { "content": "{\"pages\":{},\"last_form_handles\":{\"0\":0}}", "is_encrypted": false, "changes": "", "print": "", "owner": "", "open": "", "copy": "", "text_access": "" };
+            if (data['content'].length > 0) {
+                if (!data['is_encrypted'] || checkPermissions(data['changes'], data['open'], data["print"], data["copy"], data["text_access"], data['owner'])) {
+                    //Offline.off("confirmed-down", function () { });
+                    documentData = JSON.parse(data['content']);
+                    if (documentData.rotated_pages) {
+                        rotatedPages = documentData.rotated_pages;
+                    }
+                    if (documentData.changed_order) {
+                        changedOrder = documentData.changed_order;
+                    }
+                    if (documentData.deleted_annots) {
+                        deletedAnnots = documentData.deleted_annots;
+                    }
+                    if (documentData.deleted_fields) {
+                        deletedFields = documentData.deleted_fields;
+                    }
+                    if (documentData.last_form_handles) {
+                        lastFormHandles = documentData.last_form_handles;
+                    }
+                    if (documentData.last_page_no) {
+                        lastPageNumber = parseInt(documentData.last_page_no);
+                    }
+                    if (documentData.last_merge_no) {
+                        lastMergeNumber = parseInt(documentData.last_merge_no);
+                    }
+                    loadPDFViewer();
+                }
+            } else {
+                setTimeout(queryFileData, 2000, fileId);
+            }
+
+            //$.ajax({
+            //    url: "/files/" + fileId + "/file_data",
+            //    type: "GET",
+            //    dataType: "json"
+            //}).success(function (data) {
+            //    if (data['content'].length > 0) {
+            //        if (!data['is_encrypted'] || checkPermissions(data['changes'], data['open'], data["print"], data["copy"], data["text_access"], data['owner'])) {
+            //            Offline.off("confirmed-down", function () { });
+            //            documentData = JSON.parse(data['content']);
+            //            if (documentData.rotated_pages) {
+            //                rotatedPages = documentData.rotated_pages;
+            //            }
+            //            if (documentData.changed_order) {
+            //                changedOrder = documentData.changed_order;
+            //            }
+            //            if (documentData.deleted_annots) {
+            //                deletedAnnots = documentData.deleted_annots;
+            //            }
+            //            if (documentData.deleted_fields) {
+            //                deletedFields = documentData.deleted_fields;
+            //            }
+            //            if (documentData.last_form_handles) {
+            //                lastFormHandles = documentData.last_form_handles;
+            //            }
+            //            if (documentData.last_page_no) {
+            //                lastPageNumber = parseInt(documentData.last_page_no);
+            //            }
+            //            if (documentData.last_merge_no) {
+            //                lastMergeNumber = parseInt(documentData.last_merge_no);
+            //            }
+            //            loadPDFViewer();
+            //        }
+            //    } else {
+            //        setTimeout(queryFileData, 2000, fileId);
+            //    }
+            //}).error(function (data) {
+            //    Offline.off("confirmed-down", function () { });
+            //    if (!data['is_encrypted'] || checkPermissions(data['changes'], data['open'], data["print"], data["copy"], data["text_access"], data['owner'])) {
+            //        documentData = { "pages": {}, "page_order": [], "deleted_annots": {}, "last_form_handles": {}, "rotated_pages": {}, "last_page_no": null, "last_merge_no": null };
+            //        loadPDFViewer();
+            //    }
+            //}).fail(function (data) {
+            //    Offline.off("confirmed-down", function () { });
+            //    if (!data['is_encrypted'] || checkPermissions(data['changes'], data['open'], data["print"], data["copy"], data["text_access"], data['owner'])) {
+            //        documentData = { "pages": {}, "page_order": [], "deleted_annots": {}, "rotated_pages": {}, "last_page_no": null, "last_merge_no": null };
+            //        loadPDFViewer();
+            //    }
+            //});
+        }
+
+
+        function goToOnePageView(forms) {
+            var currentPageNumber;
+            if (thumbnailsView) {
+                if ($('#thumb_pane').length) { updateOnePageThumbnails(); };
+                currentPageNumber = $pdfCanvas.PDFViewer("pageNumber");
+                if ($pdfCanvas.PDFViewer("pageNumbers").includes(currentPageNumber)) {
+                    goToPage(currentPageNumber, null, "TRANSFORM", forms);
+                } else {
+                    goToPage($pdfCanvas.PDFViewer("pageNumbers")[0], null, "TRANSFORM", forms);
+                }
+                thumbnailsView = false;
+            } else {
+                if (forms) {
+                    formsEnabled = true;
+                }
+                $("#new-surface").activeEditor("mode", "TRANSFORM");
+            }
+            $("#one-page-view").show();
+            $("#thumbnails-view").hide();
+            $('.file-tab-btn').hide();
+            $('.tools-edit-tab-btn').show();
+            $('#file-tab-container').removeClass('active-tab');
+        }
+    </script>
+
+}

@@ -1,0 +1,169 @@
+﻿@model Announcement
+
+<form asp-action="NewAnnouncement" asp-controller="Home" data-ajax="true" data-ajax-method="POST" data-ajax-update="#announcementArea" data-ajax-success="shideModal('Announcement was just @(Model.Id == 0 ? "created" : "updated")')" id="userForm" data-ajax-failure="handleModalPostFailure" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @(Model == null || Model.Id <= 0 ? "Create New Announcement" : "Change Announcement")
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+
+        <div class="form-group">
+            <input asp-for="Title" class="form-control" value="@Model.Title" placeholder="Title for announcement" />
+        </div>
+        <div class="form-group">
+            <textarea asp-for="Summary" class="form-control" rows="8" placeholder="Summary"></textarea>
+        </div>
+
+        @*@if (Model.Id <= 0)
+        {
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" asp-for="IsPublic" value="True" class="custom-control-input" tabindex="5" onchange="onCheckChange(this);$('#nonPublic').toggle();">
+                    <span class="custom-control-label" for="chbxTerms">
+                        This is public announcement
+                    </span>
+                </label>
+            </div>
+        }*@
+
+        @*@if (Model.Id > 0)
+        {
+            <p>Audience: @(Model.IsPublic ? "Public" : Model.IsForDepartment ? "Department" : "Employee(s)")</p>
+        }*@
+
+
+        @*@if (Model.Id <= 0)
+        {
+            <div id="nonPublic" style="@(Model.IsPublic ? "display:none" : "")">
+
+
+                <div class="form-group dept-emp">
+                    <label for="EmployeeIds" class="control-label">Choose Employees</label>
+                    <select name="EmployeeIdsData" id="EmployeeIdsData" asp-items="@ViewBag.EmployeeIds" class="form-control" multiple></select>
+
+                    @if (Model.Id <= 0)
+                    {
+                        <br />
+                        <small class="btn-link p-0" onclick="$('.dept-emp').toggle();$('#IsForDepartment').val(true)">or choose specific department</small>
+                    }
+
+                </div>
+
+                <div class="form-group dept-emp" style="display:none">
+                    <label for="DepartmentId" class="control-label">Choose department</label>
+                    <select asp-for="DepartmentId" asp-items="@ViewBag.DepartmentId" class="form-control"></select>
+
+                    <small class="btn-link p-0" onclick="$('.dept-emp').toggle();$('#IsForDepartment').val(false)">or choose individual employee</small>
+                </div>
+            </div>
+        }*@
+
+        <div class="form-group">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" name="HasExpiry" value="false" class="custom-control-input" tabindex="5" onchange="$('#hasTime').toggle();onCheckChange(this)">
+                <span class="custom-control-label" for="chbxTerms">
+                    Announcement will start and expire on dates
+                </span>
+            </label>
+        </div>
+
+        <div id="hasTime" style="display:none">
+            <div class="row">
+                <div class="form-group col">
+                    <label asp-for="Start" class="control-label">
+                    </label>
+                    <input type="text" asp-for="Start" value="@Model.Start?.ToString("dd-MMM-yyyy")" class="form-control has-datepicker" />
+                    <span asp-validation-for="Start" class="text-danger"></span>
+                </div>
+
+                <div class="form-group col">
+                    <label asp-for="End" class="control-label">
+                    </label>
+                    <input type="text" asp-for="End" value="@Model.End?.ToString("dd-MMM-yyyy")" class="form-control has-datepicker" />
+                    <span asp-validation-for="End" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Start" class="control-label">Add an Attachment</label>
+            <br />
+            <input type="file" name="file" id="file" />
+        </div>
+        @foreach (var item in Model.FileDatas)
+        {
+        <div class="form-group">
+            <a href="@Url.Content(item.FileUrl)" target="_blank">@item.Name</a> &ndash;
+            <a class="btn-link text-danger" asp-action="Remove" asp-controller="FileDatas" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@Model.Title was just removed');hideModal();$('div.message-item-@Model.Id').hide();" data-ajax-confirm="Are you sure you want to remove this @Model.Title" data-ajax-begin="convertToLoadingTable('#tblMasterPayAdjustments')">Remove</a>
+        </div>
+        }
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+
+        @if (Model != null && Model.Id > 0)
+        {
+            <a class="modal__btn modal__btn-danger float-right" asp-action="RemoveAnnouncement" asp-route-id="@Model.Id" data-ajax-method="POST" data-ajax="true" data-ajax-failure="handleModalPostFailure" data-ajax-success="sendNotification('success', '@Model.Title was just removed');hideModal();$('div.message-item-@Model.Id').hide();" data-ajax-confirm="Are you sure you want to remove this @Model.Title" data-ajax-begin="convertToLoadingTable('#tblMasterPayAdjustments')">Remove</a>
+        }
+    </footer>
+</form>
+
+
+<script>
+    $(document).find('.color-chooser').each(function () { $(this).val($(this).attr('value')); });
+    $('.color-chooser').change(function (e) {
+        $(this).removeClass('sch-red sch-blue sch-green');
+
+        var val = $(this).find(":selected").val();das
+        $(this).addClass('sch-' + val);
+        $(this).val(val);
+    })
+
+    $(".has-datepicker").flatpickr({
+        dateFormat: "j-M-Y"
+    });
+
+    $(".has-timepicker").flatpickr({
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+    });
+
+    loadMultipleEmpddSearch('#EmployeeIdsData');
+
+
+    window.addEventListener("submit", function (e) {
+        var form = e.target;
+        if (form.getAttribute("enctype") === "multipart/form-data") {
+            if (form.dataset.ajax) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+
+                var xhr = new XMLHttpRequest();
+                xhr.open(form.method, form.action);
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        if (form.dataset.ajaxUpdate) {
+                            var updateTarget = document.querySelector(form.dataset.ajaxUpdate);
+                            console.log('updateTarget', updateTarget);
+
+                            if (updateTarget) {
+                                updateTarget.innerHTML = xhr.responseText;
+                            }
+                            shideModal('Announcement was just @(Model.Id == 0 ? "created" : "updated")');
+                        }
+                    }
+                };
+                xhr.send(new FormData(form));
+
+            }
+        }
+    }, true);
+</script>

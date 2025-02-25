@@ -1,0 +1,307 @@
+﻿@model Company
+
+    <ol class="progress-bar-tabs progress-bar-style-default">
+        <li data-step="1" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Schedule</div></li>
+        <li data-step="2" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Work hours</div></li>
+        <li data-step="3" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Break hours</div></li>
+        <li data-step="4" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Flexibility</div></li>
+    </ol>
+
+    <partial name="_ShowAlertMessage" />
+
+    <div class="row pt-3">
+        <div class="col-sm-12 col-md-7 content">
+            @*data-ajax-begin="showModal()" #masterEmployeeArea*@
+            <form asp-action="ChangeWorkType" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" data-ajax-success="sendNotification('success', 'Work type and timings were just saved')" id="form" data-ajax-failure="handleModalPostFailure">
+                @Html.AntiForgeryToken()
+                <input asp-for="Id" type="hidden" value="@Model.Id" />
+                <div class="step" data-step="1">
+                    <h4 class="pb-4 fs-unmask">Tell us about your work schedule?</h4>
+                    <label class="text-large font-weight-bold">
+                        Where does your company timings belong to:
+                    </label>
+
+                    @foreach (var item in Enum.GetValues(typeof(Payroll.Models.CompanyWorkType)))
+                    {
+                        <label class="custom-control custom-radio custom-radio-large">
+                            <input type="radio" groupe="2" asp-for="WorkType" class=" custom-control-input" onchange="onCheckChange(this);" name="HowTrackTime" value="@item" data-val="true">
+                            <span class="text-large custom-control-label text-weight-normal">
+                                @(((Payroll.Models.CompanyWorkType)Enum.Parse(typeof(Payroll.Models.CompanyWorkType), item.ToString())).GetDisplayName())
+                            </span>
+                        </label>
+                    }
+                    <span class="text-danger" asp-validation-for="WorkType"></span>
+                </div>
+
+                <div class="step" data-step="2">
+                    <h4 class="pb-4 fs-unmask">Tell us about working hours</h4>
+
+                    <div class="form-group mb-4" id="tblWorkTimes">
+                        <partial name="_ChangeWorkTypeHoursTable"  />
+                        @*<table class="table table-sm table-work-hours">
+                            <thead>
+                                <tr>
+                                    <td colspan="5" class="border-0">Work Hours</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.WorkTimes.Count(); i++)
+                                {
+                                    <tr>
+
+                                        <td><input name="WorkTimes[@i].ShiftName" value="@Model.WorkTimes[i].ShiftName" class="form-control form-control-sm" /></td>
+                                        <td width="10%"><input name="WorkTimes[@i].StartTime" value="@Model.WorkTimes[i].StartTime.ToString("hh\\:mm")" class="form-control form-control-sm has-timepicker" /></td>
+                                        <td width="10%"><input name="WorkTimes[@i].EndTime" value="@Model.WorkTimes[i].EndTime.ToString("hh\\:mm")" class="form-control form-control-sm has-timepicker" /></td>
+                                        <td>
+                                            <select name="WorkTimes[@i].ColorCombination" value="@Model.WorkTimes[i].ColorCombination" class="form-control form-control-sm color-chooser text-white sch-@Model.WorkTimes[i].ColorCombination">
+                                                <option value="green" class="sch-green text-white">Green</option>
+                                                <option value="blue" class="sch-blue text-white">blue</option>
+                                                <option value="red" class="sch-red text-white">Red</option>-->
+                                                @*<option value="blue" class="sch-yellow">Yellow</option>*
+                                                <!--<option value="orange" class="sch-orange text-white">Orange</option>
+                                                <option value="purple" class="sch-purple text-white">Purple</option>
+                                                <option value="aqua" class="sch-aqua text-white">Aqua</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <a class="btn btn-sm btn-danger float-right" asp-action="RemoveWorkTime" asp-route-id="@Model.WorkTimes[i].Id" asp-route-cmpId="@Model.WorkTimes[i].CompanyId" data-ajax-method="POST" data-ajax-failure="alert('unable to delete')" data-ajax="true" data-ajax-success="sendNotification('success', 'Work time was just removed');$(this).parents('tr').fadeOut()" data-ajax-confirm="Are you sure you want to remove this work time?"><i class="ion-trash-b"></i></a>
+
+                                            <input type="hidden" name="WorkTimes[@i].Id" value="@Model.WorkTimes[i].Id" />
+                                            <input type="hidden" name="WorkTimes[@i].CompanyAccountId" value="@Model.WorkTimes[i].CompanyId" />
+                                        </td>
+                                    </tr>
+                                }
+
+
+                                <tr>
+                                    <td colspan="5" class="text-center p-3">
+                                        <button type="button" class="btn btn btn-primary btn-add-workkHours"><i class="fad fa-plus-circle"></i> Work Time</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>*@
+                    </div>
+                </div>
+                <div class="step" data-step="3">
+                    <h4 class="pb-4 fs-unmask">Tell us about break hours</h4>
+                    <div class="form-group mb-4" id="tblBreakTimes">
+                        @{ ViewData["isBreak"] = true; }
+                        <partial name="_ChangeWorkTypeHoursTable" view-data="ViewData" />
+                        @*<table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <td colspan="3" class="border-0">Break Hours</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+
+                                @for (int i = 0; i < Model.BreakTimes.Count(); i++)
+                                {
+                                    <tr>
+                                        <td><input name="BreakTimes[@i].StartTime" value="@Model.BreakTimes[i].StartTime" class="form-control form-control-sm has-timepicker" /></td>
+                                        <td><input name="BreakTimes[@i].EndTime" value="@Model.BreakTimes[i].EndTime" class="form-control form-control-sm has-timepicker" /></td>
+                                        <td>
+                                            <a class="btn btn-sm btn-danger float-right" asp-action="RemoveBreakTime" asp-route-id="@Model.BreakTimes[i].Id" asp-route-cmpId="@Model.BreakTimes[i].CompanyId" data-ajax-method="POST" data-ajax-failure="alert('unable to delete')" data-ajax="true" data-ajax-success="sendNotification('success', 'Break time was just removed');$(this).parents('tr').fadeOut()" data-ajax-confirm="Are you sure you want to remove this break time?"><i class="ion-trash-b"></i></a>
+
+                                            <input type="hidden" name="BreakTimes[@i].Id" value="@Model.BreakTimes[i].Id" />
+                                            <input type="hidden" name="BreakTimes[@i].CompanyAccountId" value="@Model.BreakTimes[i].CompanyId" />
+                                        </td>
+                                    </tr>
+                                }
+
+                                <tr>
+                                    <td colspan="3" class="text-center p-3">
+                                        <button type="button" class="btn btn btn-primary btn-add-brekHours"><i class="fad fa-plus-circle"></i> Break Time</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>*@
+
+                        
+
+                        <a href="#" class="link-summary" onclick="skipStep(event)">Skip this step</a>
+                    </div>
+                </div>
+                <div class="step" data-step="4">
+                    <h4 class="pb-4 fs-unmask">What's your policy for time tracking</h4>
+                    <div class="form-group mb-4">
+                        <label asp-for="FlexibleBreakHourCount" class="control-label">How many hours of flexible break</label>
+                        <input asp-for="FlexibleBreakHourCount" class="form-control form-control-lg" />
+                        <span class="text-danger" asp-validation-for="FlexibleBreakHourCount"></span>
+                    </div>
+                    <div class="form-group mb-4">
+                        <label asp-for="EarlyOntimeMinutes" class="control-label">Early mins before work start to set as &bull; On-Time</label>
+                        <input asp-for="EarlyOntimeMinutes" class="form-control form-control-lg" />
+                        <span class="text-danger" asp-validation-for="EarlyOntimeMinutes"></span>
+                    </div>
+
+
+                    <div class="form-group mb-4">
+                        <label class="custom-control custom-checkbox custom-checkbox-large">
+                            <input type="checkbox" asp-for="IsBreakHourStrict" value="false" class="custom-control-input" tabindex="5" onchange="onCheckChange(this)">
+                            <span class="custom-control-label" for="chbxTerms">
+                                <b>FIX BREAK</b>: Ensure staffs are on time on break and checkin
+                                <p>This check will ensure mployees are ON-TIME after break out</p>
+                            </span>
+                        </label>
+                    </div>
+
+
+                    @if (ViewBag.EnableUpdateType)
+                    {
+                        <div class="form-group mb-4">
+                            <label class="control-label">Apply these changes to:</label>
+                            <label class="custom-control custom-radio">
+                                <input type="radio" asp-for="UpdateHistory" class="custom-control-input" value="True">
+                                <span class="custom-control-label" for="chbxTerms">
+                                    History records and future records
+                                </span>
+                            </label>
+                            <label class="custom-control custom-radio">
+                                <input type="radio" asp-for="UpdateHistory" class="custom-control-input" value="False">
+                                <span class="custom-control-label" for="chbxTerms">
+                                    Future records only
+                                </span>
+                            </label>
+                        </div>
+                    }
+
+                    <input type="hidden" asp-for="IsSaveOtf" value="False" />
+                    <input type="hidden" asp-for="IsChangeWorkType" value="False" />
+                    <input type="hidden" asp-for="CreateAnotherShift" value="False" />
+                    <input type="hidden" asp-for="CreateNewBreakHour" value="False" />
+                    <input type="hidden" asp-for="CreateNewWorkHour" value="False" />
+
+                </div>
+
+                <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+                    <button class="btn btn-lg btn-outline-primary btn-back mr-2" type="button">Back</button>
+                    <button class="btn btn-lg btn-primary btn-next btn-save-master" type="button">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+<script>
+    initTimePicker();
+    initWorkButtons();
+
+    $('.table-work-hours').find('.color-chooser').each(function () { $(this).val($(this).attr('value')); });
+
+    reloadColorChooser();
+
+    function reloadColorChooser() {
+        $('.color-chooser').change(function (e) {
+            $(this).removeClass('sch-red sch-blue sch-green sch-aqua sch-orange sch-purple');
+
+            var val = $(this).find(":selected").val();
+            console.log(val);
+            $(this).addClass('sch-' + val);
+            $(this).val(val);
+        });
+    }
+
+    //var currVa = $('#WorkType :selected').val();
+
+    @*$('#WorkType').change(function (e) {
+        console.log(currVa);
+        var count = parseInt('@Model.WorkTimes?.Count');
+        var countBreate = parseInt('@Model.BreakTimes?.Count');
+
+        if (count > 0 || countBreate > 0) {
+            if (confirm("Are you sure you wish to change work type? This will remove all existing work and break times.")) {
+                $("#IsChangeWorkType").val(true);
+                //$('#ChangeWorkTypeForm').attr("data-ajax-update", ".modal__container");
+                $('.btn-save-master').trigger('click');
+            }
+            else {
+                $('#WorkType').val(currVa);
+            }
+        }
+
+    });*@
+
+    function post(msg, replaceSelector) {
+        var form = $('#form');
+        $.post($(form).attr('action'), $(form).find('input,select').serialize(), function (d) {
+            sendNotification('success', msg);
+            console.log('replacing html div with post data in ' + replaceSelector);
+            $(replaceSelector).html(d);
+        }).done(function () {
+            initTimePicker();
+            initWorkButtons();
+            reloadColorChooser();
+        }).fail(handleModalPostFailure)
+        .always(function () {
+            $("#CreateNewBreakHour").val(false);
+            $("#CreateNewWorkHour").val(false);
+            //initWorkButtons();
+        });
+    }
+
+    
+
+    function initWorkButtons() {
+
+        $('.btn-add-brekHours').click(function () {
+            $("#CreateNewBreakHour").val(true);
+            post('New Break hour was added', "#tblBreakTimes");
+
+            //$('#ChangeWorkTypeForm').attr("data-ajax-success", "sendNotification('success', 'New Break hour was added')");
+            ////$('#ChangeWorkTypeForm').attr("data-ajax-update", ".modal__container");
+            //$('.btn-save-master').trigger('click');
+            //$("#CreateNewBreakHour").val(false);
+        });
+
+        $('.btn-add-workkHours').click(function () {
+            console.log('added working hours button clicked');
+            $("#CreateNewWorkHour").val(true);
+            post('New Work hour was added', "#tblWorkTimes");
+
+            //$('#ChangeWorkTypeForm').attr("data-ajax-success", "sendNotification('success', 'New Work hour was added')");
+            ////$('#ChangeWorkTypeForm').attr("data-ajax-update", ".modal__container");
+            //$('.btn-save-master').trigger('click');
+            //$("#CreateNewWorkHour").val(false);
+        });
+    }
+
+    @*$('#IntegratedSecurityCheck').change(function (e) {
+        if (!$(this).is(":checked")) {
+            $('#IntegratedSecurity').val(false);
+        } else {
+            $('#IntegratedSecurity').val(true);
+        }
+    });
+
+    $('#check-conn').click(function (e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        console.log(this);
+        var url = '@Url.Action("CheckConnection", "Company")';
+        var postData = $('form#addUpdateConnectionForm').find('input').serializeArray();
+        $('#conn-status-btn').find('text').text("connecting...");
+        $('#ConnectionStatus').val(false);
+
+        $.post(url, postData, function (d) {
+        }).done(function (data) {
+            console.log(data);
+            if (data && data.item1 === true) {
+                var changeclass = data.item1 === true ? "fa ion-android-cloud-done text-success" : "fa ion-android-cloud  text-danger";
+                $('#conn-status-btn').find('i').attr('class', changeclass);
+                $('#conn-status-btn').find('text').text(data.item1 === true ? "WORKING" : "FAILED");
+                $('#ConnectionStatus').val(true);
+            }
+            else {
+                handleFail(data);
+            }
+        }).fail(handleModalPostFailure);
+    });
+
+    function handleFail(data) {
+        $('#conn-status-btn').find('i').attr('class', "fa text-secondary ion-android-cloud  text-daanger");
+        $('#conn-status-btn').find('text').text("FAILED");
+        sendNotification('error', data.item2);
+    }*@
+    </script>

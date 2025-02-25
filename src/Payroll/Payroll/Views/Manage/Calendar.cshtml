@@ -1,0 +1,329 @@
+﻿@model HomeEmployeeVm
+@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    ViewData["Title"] = "Events Calendar";
+
+    //var attmSchedule = Model.AttedanceSchedule.FirstOrDefault()?.Attendances;
+    var cmpConfig = (CompanyAccount)ViewBag.cmpConfig;
+
+}
+<link href="~/css/tabs.css" rel="stylesheet" />
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link href="~/css/employee-card.css" rel="stylesheet" />
+<link href="~/css/card.css" rel="stylesheet" />
+<link href="~/css/payroll.css" rel="stylesheet" />
+
+<style>
+    .cell-attndance .item {
+        /*max-width: 115px !important;*/
+    }
+
+    .table-calendar tbody td {
+        /*padding: 10px 5px;*/
+        padding:0px;
+    }
+
+        .table-calendar tbody td .cell-div {
+            min-height: 100px;
+        }
+    .table-calendar tbody td {
+        vertical-align: top !important;
+    }
+
+    .cell-attndance .item:not(.leave) {
+        margin: 10px 2px;
+        /*max-width: 115px !important;*/
+    }
+
+    .cell-attndance .item.leave.hover {
+        -webkit-transform: scale(1.5);
+        transform: scale(1.5);
+        text-decoration: none;
+    }
+
+    .cell-attndance .leave {
+        border-radius: 0px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    } 
+    .table-calendar tbody td.leave {
+        padding: 0;
+    } .table-calendar tbody td .list-group-item {
+        padding: 10px 2px;
+    } .cell-div {
+        min-height: 70px;
+    } .past {
+        opacity: 0.3;
+    }
+</style>
+<input type="hidden" id="__AddJustmentID" />
+
+
+
+<div class="row mt-8 mb-3">
+
+    <div class="col-md-8">
+        <h2 class="">@FeatureMenus.GetFeatureMenuItem(FeatureMenus.MenuItem.Calendar) Events Calendar</h2>
+    </div>
+    <div class="col-md-4 text-right">
+
+        <span class="text-primary">
+            @Html.Raw(HttpContextAccessor.HttpContext.Session.GetString(SessionVariables.EmployeeSelectorSummary) ?? "(no filter)")
+            <a class="text-muted " data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="SelectEmployees" asp-controller="Base" asp-route-onsuccess="location.reload()" asp-route-update="none" style="">
+                <i class="fa fa-angle-down"></i>
+            </a>
+        </span>
+    </div>
+</div>
+
+
+
+<div class="row mb-3">
+
+    @* <div class="col-md-2">
+
+        <div class="list-group" id="empList">
+            @foreach (var item in Calendars.List)
+            {
+                <div class="list-group-item text-left mb-1 font-weight-bold sticky-col first-col list-group-item-@item.Item2 active" style=" vertical-align: middle;display:flex" data-ajax-success="setEmpListActive('@item.Item1')">
+                    <span class="d-flex text-@item.Item2">
+                        <span class="mr-2"><i class=" @item.Item3"></i></span>   @item.Item1 
+                    </span>
+                </div>
+            }
+        </div>
+    </div> *@
+    <div class="col-md-12">
+        <div id="employee-content">
+            <partial name="_Calendar" />
+        </div>
+
+        @*<table class="table table-calendar table-bordered" id="weekly-table3123"  style=" table-layout: fixed">
+            <thead>
+                <tr>
+                <tr style="background-color: #dee2e6 !important;">
+                    @for (var start = moveDate; start < moveDate.AddDays(7).Date; start = start.AddDays(1))
+                    {
+                        <td class="@(cmpConfig.DayOfWeekHolidays.Contains((int)start.DayOfWeek) ? "" : "")">
+
+                            <div class="pt-2 text-center">
+                                <h4>@start.ToString("ddd").ToUpper()</h4>
+                            </div>
+                        </td>
+                    }
+                </tr>
+            </thead>
+            @if (Model == null || Model.WorkTimes.Any() == false)
+            {
+                <tbody>
+                    <tr>
+
+                        <td colspan="8">
+                            <div class="p-5 text-center" style="width:100%">
+                                <p class="text-lead mt-5">No schedules were found for the week @ViewBag.CurrentRangeDisplay</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            }
+            else
+            {
+        <tbody>
+            @Model.WorkAnniversaries.Count()
+            @for (int i = 0; i < rows; i++)
+            {
+
+
+                <tr>
+                    @for (var start = moveDate; start < moveDate.AddDays(7).Date; start = start.AddDays(1))
+                    {
+                    <td class=" @(cmpConfig.DayOfWeekHolidays.Contains((int)start.DayOfWeek) ? "bg-light" : "")">
+                        <div class="cell-div cell-attndance @(start.Month != _start.Month ? "past" : "")">
+                                <h5 class="w-100 text-right @(start.Date == DateTime.Now.Date ? "text-primary" : "") pr-2 pt-2">
+                                    <span class=" ">@start.Day</span>
+                                </h5>
+
+                                <div class="list-group">
+                                    @if (Model.BirthDaysInMonth.Any(a => a.Key.Date == start.Date))
+                                    {
+                                        foreach (var item in Model.BirthDaysInMonth.First(a => a.Key.Date == start.Date).Value)
+                                        {
+                                            <div class="list-group-item m-0 p-1 small list-group-item-@calendars[1].Item2"><i class="@calendars[1].Item3"></i> @item.FullName</div>
+                                        }
+                                    }
+
+
+                                    @if (Model.WorkAnniversaries.Any(a => a.Key.Date == start.Date))
+                                    {
+                                        foreach (var item in Model.WorkAnniversaries.First(a => a.Key.Date == start.Date).Value)
+                                        {
+                                            <span class="list-group-item m-0 p-1 small list-group-item-@calendars[3].Item2"><i class="@calendars[3].Item3"></i> @item.FullName @item.WorkAnniversaryYear year(s)</span>
+                                        }
+                                    }
+
+                                    @if (Model.PublicHolidaysUpcoming.Any(a => a.Date == start.Date))
+                                    {
+                                        foreach (var item in Model.PublicHolidaysUpcoming.Where(a => a.Date == start.Date))
+                                        {
+                                            <div class="list-group-item m-0 p-1 small list-group-item-@calendars[2].Item2"><i class="@calendars[2].Item3"></i> @item.Name</div>
+                                        }
+                                    }
+
+                                    @{
+                                        foreach (var item in Model.MyRequests.Where(a => a.Start.Date <= start.Date && a.End.Date >= start.Date))
+                                        {
+                                            <div class="lv_@item.RequestId list-group-item m-0 item p-1 leave small list-group-item-@calendars[0].Item2" data-cell="lv_@item.RequestId">
+                                                @if(item.Start == start.Date) { 
+                                                <span>
+                                                    <i class="@calendars[0].Item3"></i> @Html.Raw(item.RequestedStatusIcon) @item.DayOffName &middot; @item.RequestedDuration
+                                                </span>
+                                                }
+                                                else
+                                                {
+                                                    <span>&nbsp;</span>
+                                                }
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                        </div>
+                    </td>
+                    }
+                </tr>
+
+
+                moveDate = moveDate.AddDays(7);
+            }
+        </tbody>
+            }
+        </table>*@
+    </div>
+</div>
+
+<a asp-action="AttendanceView" asp-route-id="Id" data-ajax-begin="clearHome(this)" data-ajax="true" data-ajax-method="GET" data-ajax-update="#attendance-tab" data-ajax-failure="handleModalPostFailure" id="_LoadAttendanceTab" data-ajax-complete="$('.tab-content').not('.active').find('> div').empty()" data-ajax-success="getAttendanceOverviewData()" style="display:none">
+</a>
+<div id="attendance-tab">
+</div>
+
+<style>
+    .list-group-item.active,
+    .list-group-item.active small {
+        color: white !important;
+    }
+    .list-group-item:hover {
+        /*background-color: rgba(237, 237, 237, 0.34) !important;*/
+        transform: scale(1.05);
+        transition: all 0.25s;
+        z-index: 111;
+    }
+    .list-group-item.active {
+        background-color: #ffffffa8 !important;
+        border-left: 1px solid #d9d9d9e8 !important;
+        border-radius:0;
+    }
+    .animate {
+        transition: all 0.25s
+    }
+</style>
+
+@section scripts {
+
+    @*<script src="~/js/payroll.js"></script>
+        <script src="~/js/adjustmentEval.js"></script>*@
+
+    <!-- Resources -->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+    <script>
+
+        InitializeTabs();
+
+        //$('#employee-content').load('@Url.Action("Calendar", "Manage", new { empId = @Model.Employee?.Id ?? 0 })');
+
+
+        $('.item').on('mouseover', function () {
+            $('.item').removeClass('hover');
+            $('.item[data-cell="' + $(this).data('cell') + '"]').addClass('hover');
+        });
+        $('.item').on('mouseleave', function () {
+            $('.item').removeClass('hover');
+        });
+
+
+        $('.src').click(function (e) {
+            var isShown = $(this).hasClass('active');
+            if (isShown) {
+                $('.table-schedule').find('.cell-attndance .bg-' + $(this).data('target')).fadeOut();
+                $(this).removeClass('active');
+            } else {
+                $('.table-schedule').find('.cell-attndance .bg-' + $(this).data('target')).fadeIn();
+                $(this).addClass('active');
+            }
+            //var match = $('.table-schedule')
+            //    .find('.cell-attndance .bg-' + $(this).data('target'));
+
+
+            //if ($(this).data('target') === "all") {
+            //    $('.table-schedule').find('.item').show();
+            //    $('.src').removeClass('active');
+            //    return;
+            //}
+            //$('.table-schedule').find('.item').not(match).hide();
+            //$(match).show();
+
+            //$('.src').removeClass('active');
+            //$(this).addClass('active');
+        });
+
+        function setEmpListActive(id, empId) {
+            $('#empList .list-group-item').removeClass('active');
+            $('#empList .list-group-item.e_'+id).addClass('active');
+        }
+
+        function toggleEmpDayAttendanceRecord(e, empId, id) {
+            var tr = $(e).parent().parent();
+            var svg = $(e);
+            if ($(tr).next().hasClass('hide')) {
+                convertToLoadingTable($('#tablebio'));
+                $(".tableEmpAtt tr.bottom:not(.hide)").addClass('hide');
+                $(".tableEmpAtt tr.top .animate.fa-rorate-180").removeClass('fa-rorate-180');
+                $.get(GetAppRootPath() + '/manage/EmployeeDayBiometricRecords/' + empId + '?aid=' + id, function (d) {
+                    $(tr).next().find("#BioRecords_" + id).html(d);
+                    console.log("#BioRecords_" + id);
+                    console.log(d);
+                });
+
+                $(tr).next().removeClass('hide');
+
+            } else {
+                $(tr).next().addClass('hide');
+            }
+            $(svg).toggleClass('fa-rorate-180');
+        }
+
+        //$(function () {
+        //    var active = true;
+
+        //    $("td.cell-attndance").mousedown(function (ev) {
+        //        active = true;
+        //        $(".highlight").removeClass("highlight"); // clear previous selection
+        //        ev.preventDefault(); // this prevents text selection from happening
+        //        $(this).addClass("highlight");
+        //    });
+
+        //    $("td.cell-attndance").mousemove(function (ev) {
+        //        if (active) {
+        //            $(this).addClass("highlight");
+        //        }
+        //    });
+
+        //    $(document).mouseup(function (ev) {
+        //        active = false;
+        //    });
+        //});
+
+        //$(function () { $('#_LoadAttendanceTab').trigger('click'); });
+    </script>
+}

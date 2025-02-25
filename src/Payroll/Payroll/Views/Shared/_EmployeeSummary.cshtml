@@ -1,0 +1,25 @@
+﻿@model Employee
+@{ 
+    var useLink = ViewBag.NoLink == null;
+}
+
+
+<div class="text-left font-weight-bold sticky-col first-col" style=" vertical-align: middle;display:flex">
+    <div class="image-container">
+        <img src="@Url.Content(Model.Avatar ?? DefaultPictures.default_user)" class="mt-1 mr-2 rounded-circle" />
+    </div>
+    <div class="name-display pt-1">
+        @if (useLink)
+        {
+            <a asp-controller="Employee" asp-action="Detail" asp-route-id="@Model.Id">
+                <span class="">@Model.EmpID &middot; @Model.GetSystemName(User)</span>
+            </a>
+        }
+        else
+        {
+            <span class="">@Model.EmpID &middot; @Model.GetSystemName(User)</span>
+        }
+        <br>
+        <small class="text-dark" style="position: relative;top: -2px;">@Model.JobTitle</small>
+    </div>
+</div>

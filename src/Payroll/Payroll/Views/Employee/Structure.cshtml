@@ -1,0 +1,238 @@
+﻿@{
+    ViewData["Title"] = "Organization Structure";
+}
+
+<style>
+    .struct-toolbar button {
+        padding: 10px 18px !important;
+    }
+</style>
+
+<link href="/css/jquery.orgchart-custom.css" rel="stylesheet" />
+@*<link href="https://dabeng.github.io/OrgChart/css/jquery.orgchart.css" rel="stylesheet" />*@
+
+<partial name="_Header" model="3" />
+
+<div class="row mb-1">
+    <div class="col">
+        <select asp-items="ViewBag.DepartmentIds" id="deptIds" class=" form-control-lg form-control w-auto d-inline">
+            <option value=" " selected>All Departments</option>
+        </select>
+    </div>
+    <div class="col">
+        <div class="btn-toolbar float-right struct-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+            <div class="btn-group mr-2" role="group" aria-label="0th group">
+                <button id="btn_expand" class="btn btn-default" title="Expand all"><i class="fad fa-expand-wide"></i></button>
+                <button id="btn_collapse" class="btn btn-default" title="Collapse all"><i class="fad fa-compress-wide"></i></button>
+            </div>
+            <div class="btn-group mr-2" role="group" aria-label="0th group">
+                <button id="btn_chartzoomin" class="btn btn-default" title="Zoom in"><i class="fad fa-plus"></i></button>
+                <button id="btn_chartzoomout" class="btn btn-default" title="Zoom out"><i class="fad fa-minus"></i></button>
+            </div>
+            <div class="btn-group mr-2 " role="group" aria-label="0th group">
+                @*<button id="btn_fith" class="btn btn-default" title="fit to container horizontally"><i class="fad fa-arrows-alt-h"></i></button>
+                    <button id="btn_fitv" class="btn btn-default" title="fit to container vertically"><i class="fad fa-arrows-alt-v"></i></button>*@
+                <button id="btn_reset" class="btn btn-default" title="reset chart size"><i class="fad fa-history"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="clearfix"></div>
+
+<div id="chart-container">
+
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.7/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/orgchart/3.1.1/js/jquery.orgchart.min.js" integrity="sha512-alnBKIRc2t6LkXj07dy2CLCByKoMYf2eQ5hLpDmjoqO44d3JF8LSM4PptrgvohTQT0LzKdRasI/wgLN0ONNgmA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="text/javascript" src="https://dabeng.github.io/OrgChart/js/jquery.mockjax.min.js"></script>
+
+    @*<script type="text/javascript" src="https://dabeng.github.io/OrgChart/js/jquery.orgchart.js"></script>*@
+
+    <script>
+        var oc = null;
+        $(function () {
+
+            //var datasource = {
+            //    'name': 'Lao Lao',
+            //    'title': 'general manager',
+            //    'office': '白城',
+            //    'children': [
+            //        { 'name': 'Bo Miao', 'title': 'department manager', 'office': '北京' },
+            //        {
+            //            'name': 'Su Miao', 'title': 'department manager', 'office': '北戴河',
+            //            'children': [
+            //                { 'name': 'Tie Hua', 'title': 'senior engineer', 'office': '北戴河' },
+            //                { 'name': 'Hei Hei', 'title': 'senior engineer', 'office': '北戴河' }
+            //            ]
+            //        },
+            //        { 'name': 'Yu Jie', 'title': 'department manager', 'office': '长春' },
+            //        { 'name': 'Yu Li', 'title': 'department manager', 'office': '长春' },
+            //        { 'name': 'Hong Miao', 'title': 'department manager', 'office': '长春' },
+            //        { 'name': 'Yu Wei', 'title': 'department manager', 'office': '长春' },
+            //        { 'name': 'Chun Miao', 'title': 'department manager', 'office': '长春' },
+            //        { 'name': 'Yu Tie', 'title': 'department manager' }
+            //    ]
+            //};
+
+            var nodeTemplate = function (data) {
+                console.log(data);
+                return `
+                                ${data.avatar == undefined ? `` : `<img class="avatar" src="${data.avatar}">`}
+                                <div class="title"><a href="/employee/detail/${data.id}">${data.name}</a></div>
+                                <div class="content">
+                                    <p class=""><i class="fad fa-user-tag"></i> ${data.title}</p>
+                                    ${data.department == undefined || data.department == "" ? `` : `<p class="department"><i class="fad fa-user-friends"></i> ${data.department}</p>`}
+                                    ${data.location == undefined ? `` : `<p class="location"><i class="fad fa-map-marker-alt"></i> ${data.location}</p>`}
+                                    ${data.division == undefined || data.division == "" ? `` : `<p class="division"><i class="fad fa-sitemap"></i> ${data.division}</p>`}
+                                    ${data.empstate == "None" || data.empstate == undefined ? `` : `<p class="empstate"><i class="fad fa-dot-circle"></i> ${data.empstate}</p>`}
+                                </div>
+                                `;
+            };
+
+
+            oc = $('#chart-container').orgchart({
+                'data': GetAppRootPath() + '/employee/GetOrganChart', // datasource,
+                'nodeTemplate': nodeTemplate,
+                'exportButton': true,
+                'verticalDepth': true,
+                'pan': true,
+                'zoom': true,
+                'depth': 2,
+                'nodeContent': 'title',
+                'scaleInitial': 0.5,
+                'nodeID': 'id',
+                'initCompleted': onOrginitCompleted,
+
+                'draggable': true,
+                'dropCriteria': function ($draggedNode, $dragZone, $dropZone) {
+                    console.log($draggedNode, $dropZone, $dragZone);
+                    //if ($draggedNode.find('.content').text().indexOf('manager') > -1 && $dropZone.find('.content').text().indexOf('engineer') > -1) {
+                    //    return false;
+                    //}
+                    return true;
+                }
+                //'createNode': function ($node, data) {
+                //    var secondMenuIcon = $('<i>', {
+                //        'class': 'oci oci-info-circle second-menu-icon',
+                //        click: function () {
+                //            $(this).siblings('.second-menu').toggle();
+                //        }
+                //    });
+                //    // console.log(data);
+                //    if (data.avatar !== undefined) {
+                //        var secondMenu = '<div class="second-menu"><img class="avatar" src="' + data.avatar + '"></div>';
+                //        $node.append(secondMenuIcon).append(secondMenu);
+                //    }
+                //}
+            });
+
+
+            oc.$chart.on('nodedrop.orgchart', function (event, extraParams) {
+                console.log('draggedNode:' + extraParams.draggedNode.children('.title').text()
+                    + ', dragZone:' + extraParams.dragZone.children('.title').text()
+                    + ', dropZone:' + extraParams.dropZone.children('.title').text()
+                );
+            });
+
+
+            //$(window).resize(function () {
+            //    var width = $(window).width();
+            //    if (width > 576) {
+            //        oc.init({ 'verticalLevel': undefined });
+            //    } else {
+            //        oc.init({ 'verticalLevel': 2 });
+            //    }
+            //});
+
+
+            $('#btn_expand').on('click', function () {
+                var $temp = oc.$chart
+                    .find('.hidden, .isCollapsedDescendant, .isChildrenCollapsed')
+                    .removeClass('hidden isCollapsedDescendant isChildrenCollapsed');
+                $temp[0].offsetWidth;
+                $temp.find('.slide-up').removeClass('slide-up');
+            });
+
+            $('#btn_collapse').on('click', function () {
+                oc.hideChildren(oc.$chart.find('.node:first'));
+            });
+
+            $("#deptIds").change(function () {
+                oc.init({
+                    'data': GetAppRootPath() + '/employee/GetOrganChart?dept=' + this.value,
+                    'depth': this.value == "0" ? 2 : 10,
+                    'scaleInitial': 0.5,
+                });
+            });
+
+            function onOrginitCompleted() {
+                setTimeout(function () {
+
+                    // center the chart to container
+                    var $container = $('#chart-container');
+                    $container.scrollLeft(($container[0].scrollWidth - $container.width()) / 2);
+                    console.log("scroll to center " + $container[0].scrollWidth);
+
+                    // get "zoom" and make usable
+                    var $chart = $('.orgchart');
+                    $chart.css('transform', "scale(1,1)");
+                    var div = $chart.css('transform');
+                    var values = div.split('(')[1];
+                    values = values.split(')')[0];
+                    values = values.split(',');
+                    var a = values[0];
+                    var b = values[1];
+                    var currentZoom = Math.sqrt(a * a + b * b);
+                    var zoomval = .8;
+                    console.log("current zoom " + currentZoom);
+
+                    // zoom buttons
+                    $('#btn_chartzoomin').on('click', function () {
+                        zoomval = currentZoom += 0.1;
+                        $chart.css('transform', div + " scale(" + zoomval + "," + zoomval + ")");
+                        console.log("zoomin " + zoomval);
+                    });
+                    $('#btn_chartzoomout').on('click', function () {
+                        zoomval = currentZoom -= 0.1;
+                        $chart.css('transform', div + " scale(" + zoomval + "," + zoomval + ")");
+                        console.log("zoomout " + zoomval);
+                    });
+
+                }, 1000);
+            }
+
+            //$('#btn_fith').on('click', function () {
+            //    var $container = oc.$chartContainer;
+            //    var $chart = oc.$chart;
+            //    var scale = $container.width() / $chart.outerWidth(true);
+            //    var x = ($container.width() - $chart.outerWidth(true)) / 2 * (1 / scale);
+            //    var y = ($container.height() - $chart.outerHeight(true)) / 2 * (1 + scale);
+            //    oc.setChartScale($chart, scale);
+            //    var val = $chart.css('transform');
+            //    $chart.css('transform', val + ' translate(' + x + 'px,' + y + 'px)');
+            //});
+
+            //$('#btn_fitv').on('click', function () {
+            //    var $container = oc.$chartContainer;
+            //    var $chart = oc.$chart;
+            //    var scale = $container.height() / $chart.outerHeight(true);
+            //    var x = ($container.width() - $chart.outerWidth(true)) / 2 * (1 + scale);
+            //    var y = ($container.height() - $chart.outerHeight(true)) / 2 * (1 / scale);
+            //    oc.setChartScale($chart, scale);
+            //    var val = $chart.css('transform');
+            //    $chart.css('transform', val + ' translate(' + x + 'px,' + y + 'px)');
+            //});
+
+            $('#btn_reset').on('click', function () {
+                oc.$chart.css('transform', 'none');
+            });
+
+        });
+
+    </script>
+}

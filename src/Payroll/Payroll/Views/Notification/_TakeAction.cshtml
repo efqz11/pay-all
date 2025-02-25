@@ -1,0 +1,78 @@
+﻿@model Notification
+@inject Payroll.Database.AccountDbContext dbContext
+    
+<form asp-action="TakeAction" asp-controller="Notification" data-ajax="true" data-ajax-method="POST" data-ajax-update=".modal__container"  data-ajax-success="sendNotification('success', 'Action was taken for Notification');" id="userForm" data-ajax-failure="handleModalPostFailure" >
+    @Html.AntiForgeryToken()
+    @*@Html.ValidationSummary(false)*@
+    @Html.HiddenFor(m=> m.Id)
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+
+            @if (Model != null || Model.Id > 0)
+            {
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="GetMyNotifications" asp-controller="Notification">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+            }
+
+            Notification Action
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="list-group">
+            <div class="list-group-item border-0 border">
+                <strong >
+                    @Model.NotificationType.Type
+                </strong>
+            </div>
+
+            <div class="list-group-item list-group-item-action border-0 border">
+                <div class="row">
+                    <div class="col-md-1 text-center" style="color:@Model.NotificationType.Color">
+                            <i class="fa-2x @Model.NotificationType.Icon"></i>
+                    </div>
+                    <div class="col-md-11">
+                        <div>
+                            <a href="@Model.Url">
+                                @Html.Raw(Model.Summary)
+                            </a>
+                            <br />
+                            <small class="text-muted">@(Model.SentDate.ToSystemFormat(User, true))</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.NotificationType.RequireApproveRejectAction)
+        {
+            <div class="form-group mt-2">
+                <div class="btn-group btn-group-toggle btn-group-justified actions" data-toggle="buttons">
+                    <label class="btn btn-outline-success">
+                        <i class="fad fa-check"></i> <input type="radio" name="NotificationActionTakenType" value="Approved" autocomplete="off" checked> Approve
+                    </label>
+                    <label class="btn btn-outline-danger">
+                        <i class="fad fa-times"></i> <input type="radio" name="NotificationActionTakenType" value="Rejected" autocomplete="off"> Reject
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Remarks" class="control-label">Remarks</label>
+                <textarea asp-for="Remarks" class="form-control"></textarea>
+            </div>
+        }
+
+    </main>
+    <footer class="modal__footer">
+        <button type="submit" class="modal__btn modal__btn-primary" onclick="setRoles()">Save</button>
+        <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+    </footer>
+</form>
+
+<script>
+    $('.actions input[type=radio]').on('change', function() {
+    console.log(this.value);
+});
+</script>

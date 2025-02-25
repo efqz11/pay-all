@@ -1,0 +1,247 @@
+﻿@model Attendance
+@inject Payroll.Database.PayrollDbContext dbContext
+@{ 
+    var date = (DateTime)ViewBag.StartDateTime;
+    var startTimeSpan = date; // date.Add(TimeSpan.FromHours(date.Hour));
+    var endTimeSpan = date.Add(TimeSpan.FromHours(23));
+
+    var mappedTimes = Model.BiometricRecords
+        .Where(a => a.BiometricRecordState == BiometricRecordState.CheckIn || a.BiometricRecordState == BiometricRecordState.CheckOut)
+        .OrderBy(a => a.DateTime)
+        .Select(a => a.DateTime)
+        .ToList();
+
+
+    var _bioRecrds = Model.BiometricRecords.Select(x => new BiometricRecord
+    {
+        Id = x.Id,
+        DateTime = x.Minute == 0 ? x.DateTime.AddMinutes(x.Minute - 1) : x.DateTime,
+        BiometricRecordState = x.BiometricRecordState,
+        BiometricRecordType = x.BiometricRecordType
+    }).ToList();
+    var i = 0;
+}
+
+<style>
+    .tblClockRecds td {
+        padding: 15px 0 15px 15px;
+    }
+</style>
+<form asp-action="UpdateBiometricRelate" asp-controller="Schedule" data-ajax="true" data-ajax-method="POST" data-ajax-update=".attend-block-@Model.Id" data-ajax-begin="showModal()" data-ajax-success="sendNotification('success', 'Attendance record was just updated');hideModal()" id="updateBiometricrecordsForm" data-ajax-failure="handleModalPostFailure">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" value="@Model.Id" />
+    <input asp-for="EmployeeId" type="hidden" value="@Model.EmployeeId" />
+    <header class="modal__header">
+        <h2 class="modal__title" id="modal-1-title">
+            @if (Model != null || Model.Id > 0)
+            {
+                <a class="modal__btn modal__btn-back" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewAttendance" asp-controller="Schedule" asp-route-id="@Model.Id">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+            }
+            Manage Clock Records
+            <br />
+            <small>
+                @Model.Date.ToLongDateString()
+            @if (Model.IsOvertime)
+            {
+                <i class="fa fa-hourglass-start" title="Overtme request"></i>
+            }
+        </small>
+        </h2>
+        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+    </header>
+    <main class="modal__content" id="modal-1-content">
+        <div class="form-group">
+            <partial name="_EmployeeSummary" model="@Model.Employee" />
+        </div>
+
+        <div class="form-group">
+            <span class="sch-@Model.ShiftColor text-white p-2 rounded">Work time: @Model.Duration</span>
+        </div>
+        <div class="form-group ">
+            @Html.Raw("Status: " + Model.StatusString)
+            @if (Model.CurrentStatus == AttendanceStatus.Early || Model.CurrentStatus == AttendanceStatus.Late)
+            {
+                <span class='text-muted'>(@(Model.CurrentStatus == AttendanceStatus.Early ? ((int)Model.TotalEarlyMins + " mins early") : ((int)Model.TotalLateMins + " mins late")))</span>
+            }
+
+
+            @if (Model.HasError)
+            {
+                <span class="text-danger"><i class=" fad fa-exclamation-triangle" title=" @Model.ErroMsg"></i> @Model.ErroMsg</span>
+            }
+        </div>
+        <div class="add-new-record btn btn-primary btn-sm">+ Add</div>
+        @*<div class="btn btn-outline-primary btn-sm" onclick="$('.tr-clock-cmts').toggle()">show/hide comments</div>*@
+        <table class="table table-sm tblClockRecds table-borderless">
+            <thead>
+                <tr class="bg-transparent">
+                    <td></td>
+                    <td></td>
+                    <td>Time</td>
+                    <td>State</td>
+                    <td><small></small></td>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.BiometricRecords.Any())
+                {
+                    foreach (var item in Model.BiometricRecords.OrderBy(a => a.DateTime).ToList())
+                    {
+                        <tr class="">
+                            <td><i class="fad fa-fingerprint"></i></td>
+                            <td><i class="far fa-comment" title="@item.Location"></i></td>
+                            <td><input type="time" value="@item.Time" name="Time" class="form-control" /></td>
+                            <td style="width:150px"><select type="time" name="BiometricRecordState" class="form-control m" asp-items="@(new SelectList(Html.GetEnumSelectList<BiometricRecordState>(), "Value", "Text", (int)item.BiometricRecordState))"></select></td>
+                            @*<td><input type="text" value="@item.Location" name="Location" class="form-control m" /></td>*@
+                            <td>
+                                <a class="btn btn-sm btn-default remove-record" onclick="if (confirm('Are you sure?') {
+        $(this).parent('tr').fadeOut().remove(); onCheckChange($(this).next()); }"><i class="fad text-danger fa-minus-circle"></i></a>
+
+                                <input type="hidden" value="@item.IsActive" name="IsActive" />
+                            </td>
+                        </tr>
+                        @*<tr class="tr-@item.Id border-top-0 hide tr-clock-cmts">
+                            <td colspan="4" class="pt-0">
+                                <input type="text" value="@item.Location" name="Location" class="form-control" />
+                            </td>
+                        </tr>*@
+                    }
+                }
+            </tbody>
+        </table>
+
+        <div class="form-group">
+            <span>Total Worked Hours: @Model.TotalWorkedHours.GetHourMinString()</span>
+            <br />
+            <span>Per schedule @Model.TotalHoursWorkedPerSchedule.GetHourMinString()</span>
+        </div>
+
+        <div class="form-group">
+            @*Check-in / out: @Model.DurationCheckin*@
+
+        </div>
+
+    </main>
+    <footer class="modal__footer">
+
+        <a class="modal__btn modal__btn-primary" id="updateBiometricrecordsBtn" onclick="submitForm()">
+            <i class="fa fa-user-shield"></i> Update Records
+        </a>
+        @*&nbsp;
+        <a class="modal__btn modal__btn-primary" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="AttendanceChangeRequest" asp-controller="Request" asp-route-id="@Model.Id" disabled="@(Model.Requests.Any(x => x.Status == WorkItemStatus.Submitted) ? "disabled" : "")">
+            <i class="fa fa-user-shield"></i> Make Request
+        </a>*@
+    </footer>
+</form>
+
+
+<script>
+
+    $('.src').click(function (e) {
+        var match = $('.table-submissions')
+            .find('tr.' + $(this).data('target'));
+
+        $('.table-submissions tbody tr').not(match).hide();
+        $(match).not('.fields-row').show();
+        $('.src').removeClass('active');
+        $(this).addClass('active');
+    });
+    @*if ('@Model.BiometricRecords.Count()' == 0) {
+        console.log('ddd');
+        $('.add-new-record').click().click();
+    }*@
+
+    $('.add-new-record').click(function (e) {
+        //$('.tblClockRecds tbody').append('<tr><td><input type="time" value="" name="Time" class="form-control"></td><td style="width:120px"><select  name="BiometricRecordState" class="form-control m"><option selected="selected" value="-1">Choose</option><option value="0">CheckIn</option><option value="1">CheckOut</option><option value="2">BreakIn</option><option value="3">BreakOut</option></select></td><td><input type="text" name="Location" value="" class="form-control m"></td><td><a class="btn btn-sm btn-default remove-record" onclick="$(this).parents(\'tr\').fadeOut();"><i class="fad text-danger fa-minus-circle"></i></a></td></tr>').fadeIn();
+
+        $('.tblClockRecds tbody').append('<tr class=""><td><i class="fad fa-fingerprint"></i></td><td><i class="far fa-comment" title="News Room"></i></td><td><input type="time" value="08:32:00" name="Time" class="form-control"></td><td style="width:150px"><select type="time" name="BiometricRecordState" class="form-control m"><option selected="selected" value="0">CHECK-IN</option><option value="1">CHECK-OUT</option><option value="2">BREAK-IN</option><option value="3">BREAK-OUT</option></select></td><td><a class="btn btn-sm btn-default remove-record" onclick="if (confirm(\'Are you sure?\') {$(this).parent(\'tr\').fadeOut().remove(); onCheckChange($(this).next()); }"><i class="fad text-danger fa-minus-circle"></i></a><input type="hidden" value="value" name="IsActive"></td></tr>').fadeIn();
+    });
+
+    //$(document).on('.tblClockRecds tbody .remove-record', 'click', function (e) {
+    //    $(this).parents('tr').fadeOut().remove();
+    //});
+
+    $(".has-datepicker").flatpickr({
+        dateFormat: "j-M-Y"
+    });
+
+    $(".has-timepicker").flatpickr({
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true
+    });
+
+
+    function submitForm() {
+        $('.tblClockRecds tbody tr:visible').each(function (i, e) {
+            if ($(this).find('[name="Time"]').val() == "" || $(this).find('[name="Time"]').val() == undefined)
+                $(this).find('[name="Time"]').addClass('border-danger');
+            else
+                $(this).find('[name="Time"]').removeClass('border-danger');
+
+
+            if ($(this).find('[name="BiometricRecordState"]').val() == "" || $(this).find('[name="BiometricRecordState"]').val() == "-1")
+                $(this).find('[name="BiometricRecordState"]').addClass('border-danger');
+            else
+                $(this).find('[name="BiometricRecordState"]').removeClass('border-danger');
+        });
+
+        if ($('.tblClockRecds tbody tr:visible').length <= 0)
+            return false;
+        if ($('.tblClockRecds tbody tr:visible input,select').hasClass('border-danger'))
+            return false;
+
+
+        var formData = new FormData();
+
+        var id = $('form#updateBiometricrecordsForm #Id').val().trim()
+        var empId = $('form#updateBiometricrecordsForm #EmployeeId').val().trim()
+        formData.append("Id", id);
+        formData.append("EmployeeId", empId);
+        $('.tblClockRecds tbody tr:visible').each(function (i, e) {
+            formData.append("BiometricRecords[" + i + "].Time", $(this).find('[name="Time"]').val());
+            formData.append("BiometricRecords[" + i + "].BiometricRecordState", $(this).find('[name="BiometricRecordState"]').val());
+            formData.append("BiometricRecords[" + i + "].Location", $(this).find('[name="Location"]').val());
+        });
+
+
+        var token = $('form#updateBiometricrecordsForm input[name="__RequestVerificationToken"]').val().trim()
+        formData.append("__RequestVerificationToken", token);
+
+
+        $.ajax({
+            type: "POST",
+            url: $('form#updateBiometricrecordsForm').attr('action'),
+            data: formData,
+            processData: false,
+            contentType: false,
+            beforeSend: function (response) {
+                $('#updateBiometricrecordsBtn').text('please wait').prop('disabled', true);
+            },
+            success: function (response) {
+                hideModal();
+            },
+            complete: function (response) {
+
+                var selector = '.attend-block-@Model.Id';
+                console.log($(selector), selector);
+                console.log(response);
+                if ($(selector).length > 0) {
+                    var td = $(selector).parents('td');
+                    var cls = $(td).attr('class');
+                    $(td).attr('class', 'cell-highlight');
+
+                    $(selector).html(response.responseText);
+                    setTimeout(function () {
+                        $(td).attr('class', cls);
+                    }, 3000);
+                }
+                //$('#bulkUpdateImportBtn').html("Upload & Verify Data");
+            },
+            error: handleModalPostFailure,
+        });
+    }
+</script>

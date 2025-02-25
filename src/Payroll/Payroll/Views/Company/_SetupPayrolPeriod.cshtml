@@ -1,0 +1,140 @@
+﻿@model CompanyAccount
+
+
+    <ol class="progress-bar-tabs progress-bar-style-default">
+        <li data-step="1" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Payroll period</div></li>
+        <li data-step="2" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Calendar</div></li>
+    </ol>
+
+    <partial name="_ShowAlertMessage" />
+
+    <div class="row pt-3">
+        <div class="col-sm-12 col-md-7 content">
+            <form asp-action="SetupPayrolPeriod" asp-controller="Company" data-ajax="true" data-ajax-method="POST" data-ajax-update="#main-content" data-ajax-success="sendNotification('success', 'Payroll setup was just saved')" data-ajax-failure="handleModalPostFailure" id="form">
+                @Html.AntiForgeryToken()
+                <input asp-for="Id" type="hidden" value="@Model.Id" />
+                <div class="step" data-step="1">
+                    <h4 class="pb-4 fs-unmask">How is payrol period defined?</h4>
+
+
+                    <div class="form-inline">
+                        <div class="form-group mb-4">
+                            <label for="PayrolPeriodStartDate" class="text-large text-weight-bold">Payroll period from &nbsp;</label>
+                            <select class="form-control" asp-for="PayrolPeriodStartDate" asp-items="ViewBag.PayrolPeriodEndDate">
+                                <option value="">choose</option>
+                            </select>
+                            &mdash; to &mdash;
+                            <select class="form-control" asp-for="PayrolPeriodEndDate" asp-items="ViewBag.PayrolPeriodEndDate">
+                                <option value="">choose</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label for="PayrolPeriodStartDate" class="text-large text-weight-bold">When does your week start</label>
+                        <p class="text-weight-normal">
+                            Your week start date will be the first date that will apear in all the calendars.
+                        </p>
+                        <select asp-for="WeekStartDay" asp-items="@Html.GetEnumSelectList<DayOfWeek>()" class="form-control form-control-lg">
+                            <option value="">choose</option>
+                        </select>
+                    </div>
+
+                    @*<div class="form-group mb-4 no_cc">
+            <label class="font-weight-bold text-large mb-0">What is the name of your company?</label>
+            <input class="form-control form-control-lg" asp-for="Name" data-val="true" data-val-required="⚠️ Please name of your company" />
+            <span class="text-danger" asp-validation-for="Name"></span>
+        </div>*@
+                </div>
+
+                <div class="step" data-step="2">
+                    <h4 class="pb-4 fs-unmask">Tell us about your week?</h4>
+                    <div class="form-group mb-4">
+                        <label for="DayOfWeekHolidays" class="">Which is off day</label>
+                        <select asp-for="DayOfWeekOffDays" asp-items="@ViewBag.DayOfWeekOffDays" class="form-control form-control-lg" multiple></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="DayOfWeekHolidays" class="">What are the public holidays</label>
+                        <select asp-for="DayOfWeekHolidays" asp-items="@ViewBag.DayOfWeekHolidays" class="form-control form-control-lg" multiple></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="PayrolPeriodStartDate" class="">Leave entitlement period</label>
+                        <select asp-for="WhenToApplyPaidTimeOffPolicyAfterJoining" asp-items="@Html.GetEnumSelectList<WhenToApplyPaidTimeOffPolicyAfterJoining>()" class="form-control form-control-lg"></select>
+                    </div>
+
+                </div>
+
+
+                <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+                    <button class="btn btn-lg btn-outline-primary btn-back mr-2" type="button">Back</button>
+                    <button class="btn btn-lg btn-primary btn-next" type="button">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        $('#DayOfWeekOffDays').select2({
+            //width:'300px'
+            placeholder: "Choose day of week to set as Off Days",
+        });
+        $('#DayOfWeekHolidays').select2({
+            //width:'300px'
+            placeholder: "Choose day of week to set as holidays",
+        });
+
+        //$(".has-timepicker").flatpickr({
+        //    enableTime: true,
+        //    noCalendar: true,
+        //    dateFormat: "H:i",
+        //});
+
+        $('#IncludeStartDate').change(function (e) {
+            if ($(this).is(":checked")) {
+                $('#IncludeEndDate').prop('checked', false)
+            }
+            viewText();
+        });
+
+        $('#IncludeEndDate').change(function (e) {
+            if ($(this).is(":checked")) {
+                $('#IncludeStartDate').prop('checked', false)
+            }
+            viewText();
+        });
+
+        function viewText() {
+            var value = parseInt($('#PayrolPeriodStartDate :selected').val() || 0);
+            console.log(value);
+
+            if ($('#IncludeStartDate').prop('checked') === false)
+                value += 1;
+
+            var includeEndDate = $('#IncludeEndDate').prop('checked') === true;
+
+            var days = 30;
+            //if ($('#IncludeEndDate').prop('checked') === true)
+            //    days -= 1;
+
+            var daysLeft1mos = days - value;
+
+            var enddate = days - daysLeft1mos;
+            if (!includeEndDate) enddate++;
+
+            console.log('value', value, 'days', 'daysLeft1mos', daysLeft1mos, days, 'enddate', enddate);
+
+            var after30 = value + days;
+            var totalDays = (after30 - days);
+
+
+            //if (after30 > 30) {
+            $('.duration-calc').html('Payrol will start from <b>this month ' + value + ' until next month ' + (enddate) + '<b> - (' + (daysLeft1mos + enddate) + ' days)').fadeIn();
+            //}
+
+            $('#PayrolPeriodEndDate').val(enddate);
+            $('#IncludeEndDate').val($('#IncludeEndDate').prop('checked'));
+            $('#IncludeStartDate').val($('#IncludeStartDate').prop('checked'));
+        }
+    </script>

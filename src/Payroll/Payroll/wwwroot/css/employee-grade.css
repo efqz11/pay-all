@@ -1,0 +1,40 @@
+._a, .pro._a {
+  color: #ffffff;
+  background-color: #31ea0a; }
+
+._b, .pro._b {
+  color: #ffffff;
+  background-color: #35c5d8; }
+
+._c, .pro._c {
+  color: #ffffff;
+  background-color: #c828d6; }
+
+._d, .pro._d {
+  color: #ffffff;
+  background-color: #d27710; }
+
+._e, .pro ._e {
+  color: #191818;
+  background-color: #fb0505; }
+
+._f, .pro ._f {
+  color: #191818;
+  background-color: #fb0505; }
+
+._u, .pro ._u {
+  color: #ffffff;
+  background-color: #585555; }
+
+.pro {
+  color: #231E39;
+  background-color: #FEBB0B;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 1px 5px;
+  position: relative;
+  top: -3px;
+  left: -2px; }
+
+/*# sourceMappingURL=employee-grade.css.map */

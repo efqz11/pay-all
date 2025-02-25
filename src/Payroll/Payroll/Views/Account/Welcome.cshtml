@@ -1,0 +1,394 @@
+﻿@model AppUser
+@{
+    Layout = "_LayoutAccountWelcome1";
+}
+@* <link href="~/css/webSetup.css" rel="stylesheet" /> *@
+<link href="~/css/tabs.css" rel="stylesheet" />
+<style>
+    .flex-items-start {
+        align-items: flex-start !important;
+    }
+
+    .h-6, h6 {
+        font-size: 16px;
+        line-height: 24px;
+    }
+
+    .gwb_1RbKo {
+        font-size: 1.4rem;
+        font-weight: 400;
+        line-height: 2rem;
+        letter-spacing: 0.02rem;
+        color: #525257;
+        margin-bottom: 0;
+        margin-top: 0;
+    }
+
+    .step {
+        display: none
+    }
+
+</style>
+
+<main class="layout-main">
+    <article id="main-content" class="app-module__mainContent___vq83C" tabindex="-1">
+        <div>
+            <h1 class="title page-title pb-4">
+                <div class="d-flex flex-md flex-items-start">
+                    <h1 class="mr-3">👋</h1>
+                    @* <img class="zp-icon-image medium mr-3"
+                        src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-wave-7cb334d6.svg" alt=""> *@
+                    <div>
+                        Welcome to your Payall account, bachu<p class="h-6 text-weight-normal c-salt-900 pt-2 text-muted">
+                            We’ll
+                            gather some info from you to customize your setup experience.
+                        </p>
+                    </div><span style="margin-left: auto;">
+                        <button class="btn btn-outline-primary margin-bottom-none _2nCJpOBBogixuL_YVYSLvK" type="button">
+                            Frequently asked
+                            questions
+                        </button>
+                    </span>
+                </div>
+            </h1>
+            @*
+                <div class="row">
+                    <div class="col">
+
+                            <div class="d-flex">
+                                <img class="zp-icon-image medium margin-right-20px"
+                            src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-wave-7cb334d6.svg"
+                            alt="">
+                            <h1>Welcome to your Gusto account, bachu</h1>
+                            </div>
+                            <p
+                                class="h-6 text-weight-normal c-salt-900 pt-3">We’ll gather some info from you
+                                to customize your setup experience.</p>
+                    </div>
+                    <div class="col">
+                        <button
+                                class="btn btn-outline-primary float-right mb-0 _2nCJpOBBogixuL_YVYSLvK"
+                                type="button">Frequently asked questions</button>
+                    </div>
+                </div>
+                <hr> *@
+            <ol class="progress-bar-tabs progress-bar-style-default">
+                <li data-step="1" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Welcome</div></li>
+                <li data-step="2" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Team makeup</div></li>
+                <li data-step="3" class="progress-bar-item incomplete"><div class="progress-bar-item-content">Entity and industry</div></li>
+            </ol>
+
+            <partial name="_ShowAlertMessage" />
+
+            <div class="row pt-3">
+                <div class="col-sm-12 col-md-7 content">
+                    <form asp-action="Welcome" asp-controller="Account" class="gwb_3YnzF gwb_1gvhf gwb_1KWvf gwb_3Eve3 mb-3" id="welcomeForm" style="--autoRows:max-content; --rowGap:2.4rem; --maxWidth:65rem; --display:grid;">
+                        <div aria-describedby="161f936f-f0c8-497d-9623-4d85dcd2f8cb" class="step" data-step="1">
+                            <h4 class="pb-4 fs-unmask">First things first: Tell us about your team</h4>
+                            <h4 class="gwb_32NMr gwb_wTau- fs-unmask gwb_1RbKo">
+                                Who is your company planning to pay?
+                            </h4>
+                            <span id="161f936f-f0c8-497d-9623-4d85dcd2f8cb" class="  text-weight-normal mpb-3">
+                                Select all that apply
+                            </span>
+                            <div class="mt-2">
+                                @foreach (var item in Enum.GetValues(typeof(Payroll.Models.PayingTo)))
+                                {
+                                    <div class="form-group">
+                                        <label class="custom-control custom-checkbox custom-checkbox-large">
+                                            <input type="checkbox" name="SurveyCs_PayingToWhom" class=" custom-control-input" onchange="onCheckWhoPaying(this);" value="@item"  >
+                                            <span class="text-large custom-control-label text-weight-normal">
+                                                @(((Payroll.Models.PayingTo)Enum.Parse(typeof(Payroll.Models.PayingTo), item.ToString())).GetDisplayName())
+                                            </span>
+                                        </label>
+                                    </div>
+                                }
+                                <span class="text-danger" asp-validation-for="SurveyCs_PayingToWhom"></span>
+                            </div>
+                        </div>
+                        <div aria-describedby="161f936f-f0c8-497d-9623-4d85dcd2f8cb" class="step" data-step="2">
+                            <h4 class="pb-4 fs-unmask">
+                                Tell us about your working employees  @*@PayingTo.W2Employees.GetDisplayName()*@
+                            </h4>
+                            <div class="mt-2">
+                                @*<div class="form-group">
+                                    <input class="form-control fs-block input-validation-error" placeholder="Full name" type="text" value="" data-val="true" data-val-required="Hi... We're PayAll, whats your full name?" id="FullName" name="FullName" aria-describedby="FullName-error" aria-invalid="true">
+                                </div>*@
+
+                                <div class="form-group mb-4 no_w2">
+                                    <label class="text-large font-weight-bold">How many @PayingTo.W2Employees.GetDisplayName() employees currently work for your company?</label>
+                                    <input class="form-control form-control-lg" asp-for="SurveyCs_NoW2Employees" value="@(Model.SurveyCs_NoW2Employees > 0 ? Model.SurveyCs_NoW2Employees : "")" data-val="true" data-val-required="⚠️ Please fill the number of @PayingTo.W2Employees.GetDisplayName()" />
+                                    <span class="text-danger" asp-validation-for="SurveyCs_NoW2Employees" data-valmsg-replace="true" id="FullName-error"></span>
+                                </div>
+
+
+                                <div class="form-group mb-4 no_cc">
+                                    <label class="font-weight-bold text-large mb-0">How many contractors currently work for your company?</label>
+                                    <p class="text-weight-normal">
+                                        We know this number can change month to month, so your best estimate is fine. Don’t worry—Payall only charges for contractors in the months that you pay them.
+                                    </p>
+                                    <input class="form-control form-control-lg" asp-for="SurveyCs_NoContractors" value="@(Model.SurveyCs_NoContractors > 0 ? Model.SurveyCs_NoContractors : "")"  data-val="true" data-val-required="⚠️ Please fill the number of @PayingTo.Contracts.GetDisplayName()" />
+                                    <span class="text-danger" asp-validation-for="SurveyCs_NoContractors"></span>
+                                </div>
+
+
+                                <div class="form-group mb-4 ">
+                                    <label class="text-large font-weight-bold">
+                                        Do you have employees who need to track their time?
+                                    </label>
+                                    <label class="custom-control custom-radio custom-radio-large">
+                                        <input type="radio" asp-for="SurveyCs_NeedTrackTime" class=" custom-control-input" onchange="onCheckChange(this);$('.howTT').show()" group="1" value="True" data-val="true">
+                                        <span class="text-large custom-control-label text-weight-normal" for="chbxTerms">
+                                            Yes
+                                        </span>
+                                    </label>
+                                    <label class="custom-control custom-radio custom-radio-large">
+                                        <input type="radio" asp-for="SurveyCs_NeedTrackTime" class=" custom-control-input" onchange="onCheckChange(this);$('.howTT').hide()" group="1" value="False"  data-val="true">
+                                        <span class="text-large custom-control-label text-weight-normal" for="chbxTerms">
+                                            No
+                                        </span>
+                                    </label>
+                                    <span class="text-danger" asp-validation-for="SurveyCs_NeedTrackTime"></span>
+                                </div>
+
+
+                                <div class="form-group mb-4 howTT" style="display:@(Model.SurveyCs_NeedTrackTime ? "block" : "none")">
+                                    <label class="text-large font-weight-bold">
+                                        How do you want these employees to track their time with PayAll?
+                                    </label>
+
+                                    @foreach (var item in Enum.GetValues(typeof(Payroll.Models.HowToTrackTime)))
+                                    {
+                                        <label class="custom-control custom-radio custom-radio-large">
+                                            <input type="radio" groupe="2" asp-for="SurveyCs_TrackTimeHow" class=" custom-control-input" onchange="onCheckChange(this);" name="HowTrackTime" value="@item" data-val="true">
+                                            <span class="text-large custom-control-label text-weight-normal">
+                                                @(((Payroll.Models.HowToTrackTime)Enum.Parse(typeof(Payroll.Models.HowToTrackTime), item.ToString())).GetDisplayName())
+                                            </span>
+                                        </label>
+                                    }
+                                    <span class="text-danger" asp-validation-for="SurveyCs_TrackTimeHow"></span>
+                                </div>
+
+
+                                <div class="form-group mb-4">
+                                    <label class="text-large font-weight-bold">
+                                        Which of the following describes your role, @Model.FullName?
+                                    </label>
+                                    <label class="custom-control custom-radio custom-radio-large">
+                                        <input type="radio" asp-for="SurveyCs_EmpRoleString" class=" custom-control-input" onchange="onCheckChange(this);" group="6" value="@Roles.Company.management" data-val="true">
+                                        <span class="text-large custom-control-label text-weight-normal" for="chbxTerms">
+                                            Owner, CEO or Management
+                                        </span>
+                                    </label>
+                                    <label class="custom-control custom-radio custom-radio-large">
+                                        <input type="radio" asp-for="SurveyCs_EmpRoleString" class=" custom-control-input" onchange="" group="6" value="@Roles.Company.all_employees" data-val="true">
+                                        <span class="text-large custom-control-label text-weight-normal" for="chbxTerms">
+                                            Employee
+                                        </span>
+                                    </label>
+
+                                    <label class="custom-control custom-radio custom-radio-large">
+                                        <input type="radio" asp-for="SurveyCs_EmpRoleString" class=" custom-control-input" onchange="" group="6" value="@Roles.Company.accountant" data-val="true">
+                                        <span class="text-large custom-control-label text-weight-normal" for="chbxTerms">
+                                            Accountant
+                                        </span>
+                                    </label>
+                                    <span class="text-danger" asp-validation-for="SurveyCs_EmpRoleString"></span>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div aria-describedby="161f936f-f0c8-497d-9623-4d85dcd2f8cb" class="step" data-step="3">
+                            <h4 class="pb-4 fs-unmask">
+                                Tell us about your company's entity and industry
+                            </h4>
+                            <div class="mt-2">
+
+                                <div class="form-group mb-4">
+                                    <label class="text-large mb-0 font-weight-bold">
+                                        What's your company's legal entity name?
+                                    </label>
+                                    <p class="text-weight-normal">
+                                        Write your company's name here and don't worry, you can change this later leave.
+                                    </p>
+                                    <input type="text" asp-for="CompanyName" class=" form-control form-control-lg"  data-val="true" data-val-required="⚠️ Please enter your company's leagl entity name">
+                                    <span class="text-danger" asp-validation-for="CompanyName"></span>
+                                </div>
+
+                                <div class="form-group mb-4">
+                                    <label class="text-large mb-0 font-weight-bold">
+                                        What's your company's entity type?
+                                    </label>
+                                    <p class="text-weight-normal">
+                                        If you’re not sure, leave this blank for now and we’ll collect this info later.
+                                    </p>
+                                    <select class="form-control form-control-lg" asp-for="SurveyCs_CompanyEntityType" asp-items="@Html.GetEnumSelectList<CompanyEntityType>()" data-val="true" data-val-required="⚠️ Please choose your company's entity type">
+                                        <option value="">Choose..</option>
+                                    </select>
+                                    <span class="text-danger" asp-validation-for="SurveyCs_CompanyEntityType"></span>
+                                </div>
+
+
+                                <div class="form-group mb-4">
+                                    <label class="text-large font-weight-bold">
+                                        What industry are you in?
+                                    </label>
+                                    <p class="text-weight-normal">
+                                        Select the industry that most closely matches your company’s. Think you fall between industries? Choose the one that best represents your primary business activity (this is usually the activity that generates the most income for your company).
+                                    </p>
+                                    <select class="form-control form-control-lg" asp-for="SurveyCs_IndustryId" asp-items="ViewBag.SurveyCs_IndustryId" data-val="true" data-val-required="⚠️ Please choose your company's industry">
+                                        <option value="">Choose..</option>
+                                    </select>
+                                    <span class="text-danger" asp-validation-for="SurveyCs_IndustryId"></span>
+                                </div>
+
+                                <label class="custom-control custom-checkbox custom-checkbox-large">
+                                    <input type="checkbox" id="CantFindIndustry" name="CantFindIndustry" class=" custom-control-input" onchange="onCheckShow(this,'.cantFindInd');" group="1">
+                                    <span class="text-large custom-control-label text-weight-normal" for="CantFindIndustry">
+                                        I can't find my industry!
+                                    </span>
+                                </label>
+
+                                <div class="form-group mb-4 cantFindInd" style="display:none">
+                                    <label class="text-large">
+                                        Describe your industry in your own words.
+                                    </label>
+                                    <input type="text" asp-for="SurveyCs_IndustryOwnWords" class=" form-control form-control-lg">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions ajax-spinner formActions-module__spinner___12v5R pt-5 mt-0 border-none text-left">
+                            <button class="btn btn-lg btn-outline-primary btn-back mr-2" type="button">Back</button>
+                            <button class="btn btn-lg btn-primary btn-next" type="button">Submit</button>
+                            <div class="spinner display-none" style="display: none;">
+                                <img src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/images/loader-spinner-e1422883.gif"
+                                     alt="Loading. Please Wait."><span class="inline-block margin-left-5px">
+                                    Please
+                                    wait…
+                                </span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </article>
+</main>
+
+
+@section scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+<script>
+    function onCheckWhoPaying(e) {
+        console.log(e, $(e).prop('checked'));
+        var v = ''; // $('[name="SurveyCs_PayingToWhom"]:checked').val();
+        if ($(e).prop('checked'))
+            v = $(e).val();
+        $('.no_w2, .no_cc').hide();
+        if (v == "NoneForLeastNext3")
+            $('[name="SurveyCs_PayingToWhom"]:not(:last)').prop('checked', false);
+        else
+            $('[name="SurveyCs_PayingToWhom"][value="NoneForLeastNext3"]').prop('checked', false);
+
+        if ($('[name="SurveyCs_PayingToWhom"][value="W2Employees"]').prop('checked'))
+            $('.no_w2').show();
+        if ($('[name="SurveyCs_PayingToWhom"][value="Contracts"]').prop('checked'))
+            $('.no_cc').show();
+
+        $('.btn-next').prop('disabled', false);
+        //console.log(e);
+    }
+
+    function onCheckShow(e, selector) {
+        if ($(e).prop('checked'))
+            $(selector).show();
+        else
+            $(selector).hide();
+    }
+
+    function getCurrentStep(hideCurrntStepDiv){
+        var currStep = 0;
+        if($('.progress-bar-tabs li.active').length > 0)
+            currStep = parseInt( $('.progress-bar-tabs li.active').last().data('step'));
+
+        if(hideCurrntStepDiv){
+            $('.step[data-step="' + currStep + '"]').hide();
+            @* $('.progress-bar-tabs li[data-step="' + currStep + '"]').toggleClass('active incomplete'); *@
+        }
+
+        $('.btn-back').css('display', currStep === 0 ? 'none' : 'initial');
+        return currStep;
+    }
+
+    $('.btn-back').click(function () {
+        var currStep = getCurrentStep(true); // $('.progress-bar-tabs li.active').last().data('step');
+        @* $('.progress-bar-tabs li[data-step="' + currStep + '"]').toggleClass('active incomplete'); *@
+        @* $('.step[data-step="' + currStep + '"]').hide(); *@
+        var prevStep = parseInt(currStep) - 1;
+        if (prevStep > 0) {
+            $('.progress-bar-tabs li[data-step="' + currStep + '"]').toggleClass('active incomplete');
+
+            $('.progress-bar-tabs li[data-step="' + prevStep + '"]').attr('class', 'progress-bar-item active');
+            $('.step[data-step="' + prevStep + '"]').show();
+        }
+        else
+            $('.btn-back').css('display', 'none');
+    });
+
+    $('.btn-next').click(function () {
+        var currStep = getCurrentStep(true); // $('.progress-bar-tabs li.active').last().data('step');
+        //$('.progress-bar-tabs li[data-step="' + currStep + '"]').toggleClass('active incomplete');
+        // $('.step[data-step="' + currStep + '"]').hide();
+        $(this).prop('disabled', true);
+        var nextStep = parseInt(currStep) + 1;
+        if ($('.progress-bar-tabs li[data-step="' + nextStep + '"]').length > 0) {
+            $('.progress-bar-tabs li[data-step="' + nextStep + '"]').toggleClass('active incomplete');
+            $('.step[data-step="' + nextStep + '"]').show();
+        } else {
+            // this is last step
+            console.log('this is last step...');
+            $("#welcomeForm").submit();
+        }
+    });
+
+    $('#welcomeForm input[type="checkbox"],#welcomeForm input[type="radio"],#welcomeForm select').change(function () {
+        var currStep = getCurrentStep(false);
+        console.log('form status: ' + $('div[data-step="' + currStep + '"]').find('select,input').valid());
+        if ($('div[data-step="' + currStep + '"]').find('select,input').valid()) {
+            if (currStep == 2) {
+                if ($('div[data-step="2"]').find('select,input:checked').length >= 2)
+                    $('.btn-next').prop('disabled', false);
+            }
+            if (currStep == 1) {
+                if ($('div[data-step="1"]').find('select,input:checked').length > 0)
+                    $('.btn-next').prop('disabled', false);
+            }
+            if (currStep == 3)
+                $('.btn-next').prop('disabled', false);
+        }
+        else
+            $('.btn-next').prop('disabled', true);
+    });
+
+    $("#CantFindIndustry").change(function () {
+        if ($(this).prop('checked')) {
+            $("#SurveyCs_IndustryId").val('');
+        }
+    });
+
+    $("#SurveyCs_IndustryId").change(function () {
+        if ($(this).val() != "")
+            if ($("#CantFindIndustry").prop('checked'))
+                $("#CantFindIndustry").click();
+    });
+    
+    $(function () {
+        $('.btn-next').click();
+        $('input[type="radio"]:checked').prop('checked', false);
+        $('#SurveyCs_CompanyEntityType').val('');
+        @* $('.step[data-step="1"]').show(); *@
+    });
+    </script>
+}

@@ -1,0 +1,58 @@
+﻿@model List<BiometricRecord>
+@{ 
+    var mapped= Model
+        //.Where(a => a.BiometricRecordState == BiometricRecordState.CheckIn || a.BiometricRecordState == BiometricRecordState.CheckOut)
+        .OrderBy(a => a.DateTime)
+        .ToList();
+}
+
+@*<table class="table table-borderless" id="tablebio">*@
+    @*<tbody>
+        <tr>
+            <th class="pb-0 pt-0"><small class="text-muted">Time  <span><i class="fal fa-chevron-down ml-1 mr-1"></i></span></small></th>
+            <th class="pb-0 pt-0"><small class="text-muted">Type</small></th>
+            <th class="pb-0 pt-0"><small class="text-muted">Break</small></th>
+            <th class="pb-0 pt-0"><small class="text-muted">Comments</small></th>
+            <th class="pb-0 pt-0"><small class="text-muted"></small></th>
+        </tr>
+    </tbody>*@
+    @*<tbody>*@
+        @for (int i = 0; i < mapped.Count; i++)
+        {
+            <div class="small text-left">
+                <div class="border-0 pt-1">
+                    <span>@mapped[i].DateTime.ToSystemFormat(User, onlyTime: true, formatOverride: "HH:mm", convertToLocal: false)</span>
+                    <span><i class="fal fa-long-arrow-right ml-1 mr-1"></i></span>
+                    @if (i + 1 < mapped.Count())
+                    {
+                        <span>@mapped[i + 1].DateTime.ToSystemFormat(User, onlyTime: true, formatOverride: "HH:mm", convertToLocal: false)</span>
+
+                        @*<span class="ml-2 f5 badge badge-outline-info">@((Model[i + 1].DateTime - Model[i].DateTime).TotalHours.GetHourMinString()) </span>*@
+                    }
+                </div>
+                @*<td class="border-0">
+
+                    <small class="text-muted">@Model[i].BiometricRecordState.GetDisplayName()</small>
+
+
+                    <span><i class="fal fa-long-arrow-right ml-1 mr-1"></i></span>
+                    @if (i + 1 < Model.Count())
+                    {
+                        <small class="text-muted">@Model[i + 1].BiometricRecordState.GetDisplayName()</small>
+                    }
+                </td>*@
+                @*<td class="border-0">
+                    @if (i + 1 == Model.Count - 1)
+                    {
+                        <span class="badge badge-outline-secondary">@((Model[i].Location))</span>
+                        <span class="badge badge-outline-secondary">@((Model[i].Attendance.TotalBreakHours).GetHourMinString()) </span>
+                    }
+                </td>*@
+                @*<td class="border-0"></td>
+                <td class="border-0"></td>*@
+            </div>
+
+            i++;
+        }
+    @*</tbody>
+</table>*@

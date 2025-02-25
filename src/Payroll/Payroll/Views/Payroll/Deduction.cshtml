@@ -1,0 +1,77 @@
+﻿@model PayItemVm
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="form-inline form-group">
+            <label asp-for="PayrolPeriodId" class="col-form-label">Payrol Period</label>
+            <select asp-for="PayrolPeriodId" asp-items="ViewBag.PayrolPeriodId" onchange="reload(this)" class="form-control"></select>
+        </div>
+
+        <div class="form-inline form-group">
+            <label asp-for="ItemId" class="col-form-label">Deduction</label>
+            <select asp-for="ItemId" asp-items="ViewBag.ItemId" onchange="reload(this)" class="form-control"></select>
+            &nbsp;
+            <a class="btn btn-info btn-sm" asp-action="Index" asp-controller="Addition"><i class="ion-android-open"></i> Master deductions</a>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="text-lg-right">
+            <a asp-controller="payroll" asp-action="detail" asp-route-id="@Model.PayrolPeriodId">
+                <h4 class="display">@(ViewBag.PayrolPediodText ?? "NA")</h4>
+            </a>
+            <p class="mb-1">@ViewBag.ItemName</p>
+            <a class="btn btn-sm btn-outline-dark" role="tooltip" data-microtip-position="top" aria-label="Click to view other additions in this period" asp-action="Addition" asp-route-addId="@(Model.ItemId)" asp-route-payrolId="@(Model.PayrolPeriodId)"><i class="ion-android-open"></i> other additions</a>
+        </div>
+    </div>
+</div>
+
+
+<form method="post" data-ajax="true" asp-ajax-update=".data-container" id="masterForm" asp-action="SaveDeduction">
+
+    <div class="float-right pb-2">
+        <a class="btn-add btn btn-primary" asp-action="CreateDeduction" asp-route-addId="@(Model.ItemId)" asp-route-payrolId="@(Model.PayrolPeriodId)" data-ajax-method="POST" data-ajax-update=".data-container" data-ajax="true">Add Record</a>
+
+        <button class="btn-save btn btn-success">Save All</button>
+    </div>
+
+    <input type="hidden" asp-for="ItemId" />
+    <input type="hidden" asp-for="ItemName" />
+    <input type="hidden" asp-for="PayrolPeriodId" />
+
+
+    <div class="data-container">
+        <partial name="_Listing" model="Model" />
+    </div>
+</form>
+
+
+@section scripts {
+    <script>
+        function replace(data) {
+            var updateDiv = $(data).find('.data-container-table');
+
+            $(html).find('.data-container-table').replace(updateDiv);
+        }
+
+        /// Temp fix to routing issue
+        function GetAppRootPath() {
+            var url = window.location.href;
+            if (url.indexOf('hr') != -1)
+                return '/hr';
+            else return '';
+        }
+
+        function reload() {
+            var url = GetAppRootPath() + "/payroll/deduction?addId=" + $('#ItemId :selected').val() + "&payrolId=" + $('#PayrolPeriodId :selected').val();
+            console.log(url);
+
+            location.href = url;
+        }
+
+
+    </script>
+}

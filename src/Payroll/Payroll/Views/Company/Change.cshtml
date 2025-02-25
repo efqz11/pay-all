@@ -1,0 +1,35 @@
+﻿@model CompanyAccount
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<link href="~/css/schedules.css" rel="stylesheet" />
+<link href="~/css/webSetup.css" rel="stylesheet" />
+<link href="~/css/tabs.css" rel="stylesheet" />
+@*<link href="~/css/step-progress.css" rel="stylesheet" />*@
+
+
+<div id="change-form-wrapper">
+    @if (ViewBag.NewEmployee != null)
+    {
+        <partial name="_AddOrUpdate" model="Model" />
+    }
+    else
+    {
+        <partial name="_ChangeOverview" model="Model" />
+    }
+</div>
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.css" />
+
+
+@section scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+    <script src="~/js/step-validator.js"></script>
+
+    @if (ViewBag.NewEmployee != null)
+    {
+        <text><script>startStep();</script></text>
+    }
+}

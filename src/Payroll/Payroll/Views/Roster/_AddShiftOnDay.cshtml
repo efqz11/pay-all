@@ -1,0 +1,135 @@
+﻿@model DayVm
+@{ 
+    var wtc = (List<CompanyWorkTime>)ViewBag.WorkTimeCompany;
+
+    var wi = (List<_WorkTime>)ViewBag.WorkTime;
+    var skip = 0;
+}
+<style>
+    .selected {
+        /*background-color: #28a745 !important;*/
+        color: white;
+        opacity: 1 !important;
+        box-shadow: 1px 10px 20px -10px rgba(0, 0, 0, 0.82);
+    }
+    .rq-type{cursor: pointer}
+    .rq-type div{opacity:0.7}
+    .rq-type div:hover,
+    .rq-type div:active,
+    .rq-type div:focus{
+        opacity:1;
+    }
+</style>
+    <form asp-action="AddShiftOnDay" asp-controller="Roster" data-ajax="true" data-ajax-method="POST" data-ajax-update="#card-placeholder" data-ajax-begin="" id="addNewRequest_JumboTrons" data-ajax-failure="handleModalPostFailure" data-ajax-success="hideModal()">
+        @Html.AntiForgeryToken()
+        <input name="sId" type="hidden" value="@ViewBag.sId" />
+        <input asp-for="Day" type="hidden" />
+        <input asp-for="ShiftId" type="hidden" />
+        <header class="modal__header">
+            <h2 class="modal__title" id="modal-1-title">
+                Choose Shift for Day @Model.Day
+            </h2>
+            <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        </header>
+        <main class="modal__content" id="modal-1-content">
+            @*<div class="form-group">
+                <label class="control-label">Choose Request Type</label>
+            </div>*@
+
+            @while (wi.Count - skip > 0)
+            {
+            <div class="row">
+                @foreach (var item in wi.Skip(skip).Take(3))
+                {
+
+                    <div class="col-md-4 rq-type " data-type="@wtc.FirstOrDefault(a=> a.Id == item.id).Id">
+                        <div class="text-center bg-light border-0 p-3 sch-@wtc.FirstOrDefault(a=> a.Id == item.id).ColorCombination @(Model.ShiftId == item.id ? "selected" : "") text-white" style="border-radius:5px">
+                            <h2 class="text-white">@item.Name.Substring(0,1).ToUpper()</h2>
+                            @*<i class="ion ion-flag fa-2x"></i>*@
+                            @*<br />*@
+                            <span>@item.Name</span>
+                            <br />
+                            <small class="badge badge-outline-dark">@wtc.FirstOrDefault(a => a.Id == item.id).Duration</small>
+                        </div>
+                    </div>
+
+                    @*<div class="row">
+                        <div class="col-md-4 rq-type" data-type="@RequestType.Overtime">
+                            <div class="text-center bg-light border-0 p-3" style="border-radius:5px">
+                                <i class="ion ion-clock fa-2x"></i>
+                                <br />
+                                <small>Overtime Applications</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 rq-type" data-type="@RequestType.Document">
+                            <div class="text-center bg-light border-0 p-3" style="border-radius:5px">
+                                <i class="ion fa fa-file-archive fa-2x"></i>
+                                <br />
+                                <small>Document Request Applications</small>
+                            </div>
+                        </div>
+                    </div>*@
+                }
+
+            </div>
+                skip += 3;
+            }
+
+            <br>
+            <div class="row">
+
+                <div class="col-md-4"></div>
+                <div class="col-md-4 rq-type " data-type="0">
+                    <div class="text-center bg-dark border-0 p-3 sch- text-white @(Model.ShiftId == 0 ? "selected" : "") " style="border-radius:5px">
+                        <h2>OFF</h2>
+                        @*<i class="ion ion-flag fa-2x"></i>*@
+                        @*<br />*@
+                        <small>day off</small>
+                    </div>
+                </div>
+                <div class="col-md-4"></div>
+
+            </div>
+
+                @*<br />
+        <div class="row">
+
+            <div class="col-md-4 rq-type" data-type="@RequestType.Attendance_Change">
+                <div class="text-center bg-light border-0 p-3" style="border-radius:5px">
+                    <i class="ion ion-android-calendar fa-2x"></i>
+                    <br />
+                    <small>Attendance Applications</small>
+                </div>
+            </div>
+            <div class="col-md-4 rq-type" data-type="@RequestType.Work_Change">
+                <div class="text-center bg-light border-0 p-3" style="border-radius:5px">
+                    <i class="ion ion-ios-briefcase fa-2x"></i>
+                    <br />
+                    <small>Work Change Applications</small>
+                </div>
+            </div>
+            <div class="col-md-4 rq-type" data-type="@RequestType.Work_Submission">
+                <div class="text-center bg-light border-0 p-3" style="border-radius:5px">
+                    <i class="fa fa-tasks fa-2x"></i>
+                    <br />
+                    <small>Work Item Submissions</small>
+                </div>
+            </div>
+        </div>*@
+</main>
+        <footer class="modal__footer">
+            @*<button type="submit" class="modal__btn modal__btn-primary"><i class="fas fa-file-import"></i> Submit</button>
+            <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>*@
+        </footer>
+    </form>
+
+
+<script>
+    $('.rq-type').click(function () {
+        $('.rq-type div').removeClass('selected');
+        $(this).find('div').addClass('selected');
+        $("#ShiftId").val($(this).data('type'));
+
+        $('form#addNewRequest_JumboTrons').submit();
+    });
+</script>

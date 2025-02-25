@@ -1,0 +1,55 @@
+﻿@model List<Notification>
+@inject Payroll.Database.AccountDbContext dbContext
+
+@if(!Model.Any())
+{
+    <p>There are no notifications</p>
+}
+<div class="list-group list-group-noti data-container-table">
+    @foreach (var item in Model.OrderByDescending(a => a.SentDate))
+    {
+        <partial name="~/Views/Notification/_ListItem.cshtml" model="item" />
+    }
+</div>
+
+@*<table class="table">
+    <thead>
+        <tr>
+            <td>Type</td>
+            <td>Summary</td>
+            <td>Status</td>
+            <td>Assigned</td>
+
+            <td>Sent on</td>
+            <td></td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.OrderByDescending(a=> a.SentDate))
+        {
+            <tr>
+                <td>
+                    <p class="mb-0">
+                        <a class="" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="ViewNotificationType" asp-controller="Notification" asp-route-id="@item.NotificationTypeId">
+                            <i class="@item.NotificationType.Icon @item.NotificationType.Color"></i> @item.NotificationType.Type
+                        </a>
+                    </p>
+                    <small>@item.CompanyAccount.Name</small>
+                </td>
+                <td><a href="@Url.Content(item.Url)" target="_blank">@Html.Raw(item.Summary)</a></td>
+                <td>
+                    <i class="fad @(item.IsRead ? "fa-eye" : "fa-eye-slash")" title="Status: @item.IsRead"></i>
+                    <i class="fad @(item.User != null ? "fa-user" : "fa-user-slash")" title="Status: @item.IsRead"></i>
+                </td>
+                <td>@(item.User?.NameDisplay ?? "Unassigned")</td>
+                <td>@item.SentDate.ToSystemFormat(User, true)</td>
+                <td>
+                    <a class="btn btn-warning list-group-toggler" data-ajax="true" data-ajax-update=".modal__container" data-ajax-begin="showModal()" asp-action="TakeAction" asp-controller="Notification" asp-route-id="@item.Id" asp-route-from="">
+                        <i class="far fa-exclamation-circle"></i>
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+
+</table>*@

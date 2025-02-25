@@ -1,0 +1,32 @@
+﻿@model int
+
+
+<ol class="progress-bar-tabs progress-bar-style-default">
+
+    <li data-step="1" class="progress-bar-item @(Model >= 1 ? "complete" : "incomplete")"><div class="progress-bar-item-content">Basics</div></li>
+
+    <li data-step="1" class="progress-bar-item @(Model >= 2 ? "complete" : "incomplete")"><div class="progress-bar-item-content">Personal Info</div></li>
+    <li data-step="2" class="progress-bar-item @(Model >= 3 ? "complete" : "incomplete")"><div class="progress-bar-item-content">Address</div></li>
+    <li data-step="3" class="progress-bar-item @(Model >= 4 ? "complete" : "incomplete")"><div class="progress-bar-item-content">Emergency Contact</div></li>
+    <li data-step="4" class="progress-bar-item @(Model >= 5 ? "complete" : "incomplete")"><div class="progress-bar-item-content">Bank details</div></li>
+    <li data-step="4" class="progress-bar-item @(Model >= 6 ? "complete" : "incomplete")"><div class="progress-bar-item-content">Employment</div></li>
+    <li data-step="4" class="progress-bar-item @(Model >= 7 ? "complete" : "incomplete")"><div class="progress-bar-item-content">Pay components</div></li>
+</ol>
+
+@*<div class="steps">
+    <ul class="steps-container">*@
+        @*<li style="width:33%;">
+                <div class="step">
+                </div>
+            </li>
+            <li style="width:33%;">
+                <div class="step">
+                </div>
+            </li>
+            <li style="width:33%;">
+                <div class="step">
+                </div>
+            </li>*@
+    @*</ul>
+    <div class="step-bar" style="width: @Model%;"></div>
+</div>*@

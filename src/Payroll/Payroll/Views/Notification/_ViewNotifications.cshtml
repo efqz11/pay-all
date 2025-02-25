@@ -1,0 +1,46 @@
+﻿@model List<Notification>
+@inject Payroll.Database.AccountDbContext dbContext
+
+<style>
+    .list-group-noti svg {
+        font-size: 18px;
+        vertical-align: middle;
+    }
+</style>
+    
+@*<form asp-action="AddOrUpdatePayAllRoles" asp-controller="AppUser" data-ajax="true" data-ajax-method="POST" data-ajax-update="#detailView"  data-ajax-success="sendNotification('success', 'Roles have been updated');hideModal();" id="userForm" data-ajax-failure="handleModalPostFailure" >*@
+@Html.AntiForgeryToken()
+<header class="modal__header">
+    <h2 class="modal__title" id="modal-1-title">
+        My Notifications
+    </h2>
+    <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+</header>
+<main class="modal__content" id="modal-1-content">
+    @if (Model == null || !Model.Any())
+    {
+        <h6>
+            <i class="fad fa-folder-open"></i> Great! You've seen all the notifications.
+        </h6>
+    }
+    <div class="list-group list-group-noti">
+        @foreach (var item in Model.GroupBy(a => a.NotificationType))
+        {
+            <div class="list-group-item border-0 border">
+                <strong >
+                    @item.Key.Type
+                </strong>
+            </div>
+
+            @foreach (var n in item)
+            {
+                <partial name="~/Views/Notification/_ListItem.cshtml" model="n" />
+            }
+        }
+    </div>
+</main>
+<footer class="modal__footer">
+    @*<button type="submit" class="modal__btn modal__btn-primary" onclick="setRoles()">Save</button>*@
+    <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+</footer>
+@*</form>*@

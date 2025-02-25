@@ -1,0 +1,265 @@
+﻿
+@model object
+@{ 
+    WorkItemStatus? status = null;
+    DayOffEmployeeItemStatus? status2 = null;
+    CompanyStatus? status3 = null;
+    AccessGrantStatus? status4 = null;
+    PayrollStatus? status5 = null;
+    ScheduleStatus? status6 = null;
+    AnnouncementStatus? status7 = null;
+    Payroll.Models.TaskStatus? status8 = null;
+    HrStatus? status9 = null;
+    JobStatus? status10 = null;
+    var _status = "";
+    if (Model.GetType() == typeof(WorkItemStatus))
+    {
+        status = (WorkItemStatus)Model;
+        _status = status.ToString().ToUpper();
+    }
+
+    var css = "";
+    switch (status)
+    {
+        case WorkItemStatus.Draft:
+            css = "badge-secondary";
+            break;
+        case WorkItemStatus.Submitted:
+            css = "badge-info";
+            break;
+        case WorkItemStatus.Approved:
+            css = "badge-success";
+            break;
+        case WorkItemStatus.Rejected:
+            css = "badge-danger";
+            break;
+        case WorkItemStatus.Completed:
+            css = "badge-success";
+            break;
+        case WorkItemStatus.FailedWithDeduction:
+            css = "badge-warning";
+            break;
+        default:
+            break;
+    }
+
+
+    if (Model.GetType() == typeof(DayOffEmployeeItemStatus))
+    {
+        status2 = (DayOffEmployeeItemStatus)Model;
+        _status = status2.ToString().ToUpper();
+    }
+    switch (status2)
+    {
+        case DayOffEmployeeItemStatus.Cancelled:
+            css = "badge-secondary";
+            break;
+        case DayOffEmployeeItemStatus.Requested:
+            css = "badge-info";
+            break;
+        case DayOffEmployeeItemStatus.Approved:
+            css = "badge-success";
+            break;
+        case DayOffEmployeeItemStatus.Rejected:
+            css = "badge-danger";
+            break;
+        default:
+            break;
+    }
+
+
+    if (Model.GetType() == typeof(CompanyStatus))
+    {
+        status3 = (CompanyStatus)Model;
+        _status =  status3.ToString().ToUpper();
+    }
+    switch (status3)
+    {
+        case CompanyStatus.Pending:
+            css = "badge-outline-warning";
+            break;
+        case CompanyStatus.Closed:
+            css = "badge-outline-info";
+            break;
+        case CompanyStatus.Approved:
+            css = "badge-outline-success";
+            break;
+        case CompanyStatus.Rejected:
+            css = "badge-outline-danger";
+            break;
+        case CompanyStatus.Draft:
+            css = "badge-outline-secondary";
+            break;
+        default:
+            break;
+    }
+
+
+    if (Model.GetType() == typeof(AccessGrantStatus))
+    {
+        status4 = (AccessGrantStatus)Model;
+        _status = status4.ToString().ToUpper();
+    }
+    switch (status4)
+    {
+        case AccessGrantStatus.ApplyOn:
+            css = "badge-warning";
+            break;
+        case AccessGrantStatus.Expired:
+            css = "badge-info";
+            break;
+        case AccessGrantStatus.Active:
+            css = "badge-success";
+            break;
+        case AccessGrantStatus.Suspended:
+            css = "badge-danger";
+            break;
+        default:
+            break;
+    }
+
+
+
+    if (Model.GetType() == typeof(PayrollStatus))
+    {
+        status5 = (PayrollStatus)Model;
+        _status = status5.ToString().ToUpper();
+    }
+    switch (status5)
+    {
+        case PayrollStatus.OnGoing:
+            css = "badge-warning";
+            break;
+        case PayrollStatus.Draft:
+            css = "badge-info";
+            break;
+        case PayrollStatus.Complete:
+            css = "badge-success";
+            break;
+        case PayrollStatus.PendingPayment:
+            css = "badge-danger";
+            break;
+        default:
+            break;
+    }
+
+
+    if (Model.GetType() == typeof(ScheduleStatus))
+    {
+        status6 = (ScheduleStatus)Model;
+        _status = status6.ToString().ToUpper();
+    }
+    switch (status6)
+    {
+        case ScheduleStatus.Draft:
+            css = "badge-outline-secondary";
+            break;
+        case ScheduleStatus.Generated:
+            css = "badge-outline-info";
+            break;
+        case ScheduleStatus.Published:
+            css = "badge-outline-success";
+            break;
+        default:
+            break;
+    }
+
+
+    if (Model.GetType() == typeof(AnnouncementStatus))
+    {
+        status7 = (AnnouncementStatus)Model;
+        _status = status7.ToString().ToUpper();
+    }
+    switch (status7)
+    {
+        case AnnouncementStatus.Draft:
+            css = "badge-outline-secondary";
+            break;
+        case AnnouncementStatus.Scheduled:
+            css = "badge-outline-info";
+            break;
+        case AnnouncementStatus.Published:
+            css = "badge-outline-success";
+            break;
+        case AnnouncementStatus.Expired:
+            css = "badge-outline-danger";
+            break;
+        default:
+            break;
+    }
+
+
+    if (Model.GetType() == typeof(Payroll.Models.TaskStatus))
+    {
+        status8 = (Payroll.Models.TaskStatus)Model;
+        _status = status8.ToString().ToUpper();
+    }
+    switch (status8)
+    {
+        case Payroll.Models.TaskStatus.Recurring:
+            css = "badge-warning";
+            break;
+        case Payroll.Models.TaskStatus.Scheduled:
+            css = "badge-info";
+            break;
+        case Payroll.Models.TaskStatus.Ended:
+            css = "badge-success";
+            break;
+        case Payroll.Models.TaskStatus.Cancelled:
+            css = "badge-danger";
+            break;
+        default:
+            break;
+    }
+
+    if (Model.GetType() == typeof(HrStatus))
+    {
+        status9 = (HrStatus)Model;
+        _status = status9.ToString().ToUpper();
+    }
+    switch (status9)
+    {
+        case HrStatus.Recruitement:
+            css = "badge-info";
+            break;
+        case HrStatus.Employed:
+            css = "badge-success is-light";
+            break;
+        case HrStatus.Probation:
+            css = "badge-warning is-light";
+            break;
+        case HrStatus.Permanant:
+            css = "badge-info is-light";
+            break;
+        case HrStatus.Suspended:
+            css = "badge-danger is-light";
+            break;
+        case HrStatus.Terminated:
+            css = "badge-danger";
+            break;
+    }
+
+
+
+
+    if (Model.GetType() == typeof(JobStatus))
+    {
+        status10 = (JobStatus)Model;
+        _status = status10.ToString().ToUpper();
+    }
+    switch (status10)
+    {
+        case JobStatus.Vacant:
+            css = "badge-info";
+            break;
+        case JobStatus.Occupied:
+            css = "badge-success is-light";
+            break;
+        case JobStatus.Abolished:
+            css = "badge-danger is-light";
+            break;
+    }
+
+}
+
+<span class="badge @css" style="font-size:11px;font-weight:600">@_status</span>

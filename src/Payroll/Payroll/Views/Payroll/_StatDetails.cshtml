@@ -1,0 +1,101 @@
+﻿@model List<Attendance>
+@inject Payroll.Database.PayrollDbContext dbContext
+@{ 
+    string type = (string)ViewBag.Type;
+    var emp = (Employee)ViewBag.emp;
+    var pp = (PayrollPeriod)ViewBag.pp;
+}
+
+<header class="modal__header">
+    <h2 class="modal__title" id="modal-1-title">
+        View Stats
+        <br />
+        <small><i class="@(type=="late" ? "fa fa-circle fa-sm text-danger" : type=="absent" ? "fa fa-times-octagon fa-sm text-secondary" : type == "workedHrs" ? "fad fa-business-time text-info" : "fad fa-hourglass-half text-warning")"></i> @type</small>
+    </h2>
+    <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+</header>
+<main class="modal__content" id="modal-1-content">
+    <div class="form-group">
+        
+        <div class="text-left font-weight-bold sticky-col first-col" style=" vertical-align: middle;display:flex">
+            <div class="image-container">
+                <img src="@Url.Content(emp.Avatar ?? DefaultPictures.default_user)" height="35" class="mt-1 mr-2 rounded-circle" />
+            </div>
+            <div class="name-display pt-1">
+                <span class="">@emp.EmpID &sim; @emp.GetSystemName(User)</span>
+                <br>
+                <small class="text-muted" style="position: relative;top: -4px;">@(emp.JobTitle ?? "No Designation")</small>
+            </div>
+        </div>
+        <small>Stats during @pp.StartDate.GetDuration(pp.EndDate, User) &middot; @pp.Name</small>
+
+    </div>
+    <table class="table table-sm">
+        <tbody>
+            @foreach (var item in Model.GroupBy(a=> a.Date.Date).ToList())
+            {
+                <tr>
+                    <td>@item.Key.ToSystemFormat(User)</td>
+                    <td>
+                        @foreach (var w in item)
+                        {
+                            switch (type)
+                            {
+                                case "late":
+                                    @if (w.TotalLateMins > 0)
+                                    {
+                                        @(w.TotalLateMins.GetHourMinString(isMinutes:true))
+                                    }
+                                    break;
+                                case "workedHrs":
+                                case "ot":
+                                    @if (w.TotalHoursWorkedPerSchedule > 0)
+                                    {
+                                        @(w.TotalHoursWorkedPerSchedule.GetHourMinString())
+                                    }
+                                    break;
+                                @*case "overtimeMins":
+                                    @if (w.TotalHoursWorkedPerSchedule > 0)
+                                    {
+                                        @(TimeSpan.FromHours(w.TotalHoursWorkedPerSchedule).Hours + "h " + TimeSpan.FromHours(w.TotalHoursWorkedPerSchedule).Minutes + "m")
+                                    }
+                                    break;*@
+                                default:
+                                    break;
+                            }
+
+                            @(" · ")
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td>Total</td>
+                <td>
+                    @switch (type)
+                    {
+                        case "late":
+                            @(Model.Sum(a => a.TotalLateMins).GetHourMinString(isMinutes: true))
+                            break;
+                        case "workedHrs":
+                        case "ot":
+                            @(Model.Sum(a => a.TotalHoursWorkedPerSchedule).GetHourMinString())
+                            @*@(TimeSpan.FromHours(Model.Sum(a => a.TotalHoursWorkedPerSchedule).GetHourMinString()).Hours + "h " + TimeSpan.FromHours(Model.Sum(a => a.TotalHoursWorkedPerSchedule)).Minutes + "m")*@
+                            break;
+                        case "absent":
+                            @(Model.Count() + "d")
+                            break;
+                        default:
+                            break;
+                    }
+                </td>
+            </tr>
+
+        </tfoot>
+    </table>
+</main>
+<footer class="modal__footer">
+    <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+</footer>

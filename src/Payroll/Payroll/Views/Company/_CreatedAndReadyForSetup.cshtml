@@ -1,0 +1,66 @@
+﻿@model CompanyAccount
+
+
+<div>
+    <div class="layout-main-landing">
+        <div class="row">
+            <div class="layout-main-landing-header col-sm-12">
+                <div class="">
+                    <div class="content-block-with-icon content-block-with-icon--icon-left flex-items-center flex-row">
+                        @*<img class="zp-icon-image large content-block-with-icon__icon hidden-xs flex-self-start" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-map-288f54db.svg" alt="">*@
+                        <div class="content-block-with-icon__content">
+                            <h1 class="page-title margin-top-none margin-bottom-none">
+                                New Company
+                            </h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layout-main-landing-row margin-bottom-20px">
+            <div class="row mt-3">
+                <div class="col-sm-12 content">
+                    <div>
+                        @*<div class="text-center"><img class="zp-icon-image medium margin-bottom-10px" src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/illustrations/illo-thumbs-up-99da57b4.svg" alt=""></div>*@
+                        <div class="text-center pt-4 pb-4">
+                            <div style="margin-bottom: 30px;">
+                                Welcome aboard, @Model.Name
+                            </div>
+                            <h2>Continue to more settings and activate company to start with Payall.</h2>
+                            <div class="pb-5">
+                                <span>You can always update or create new companies from the <a class="gusto-link" href="/manage_time_off/policies">Company</a> tab in the navigation.</span>
+                            </div>
+
+                            <div class="form-actions ajax-spinner formActions-module__spinner___12v5R">
+
+                                <a data-ajax="false" data-ajax-update="#main-content" data-ajax-success="" asp-action="SetupCompany" asp-route-id="@Model.Id" asp-controller="Account" class="btn btn-primary">Continue to Setup</a>
+                                &nbsp;
+                                <a data-ajax="false" data-ajax-update="#main-content" data-ajax-success="" asp-action="Detail" asp-route-id="@Model.Id" asp-controller="Company" class="btn btn-outline-primary">View details</a>
+
+                                @*<a class="btn btn-secondary" href="/time_off_policies/246408">View Policy</a>
+                                    <div class="spinner display-none">
+                                        <img src="https://d3bnlkto289wdc.cloudfront.net/assets/packs/media/images/loader-spinner-e1422883.gif" alt="Loading. Please Wait."><span class="inline-block margin-left-5px">Please wait…</span>
+                                    </div>*@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@*<script>
+    var dd = parseFloat('@Model.Company.ProgressPercent');
+    var stp = parseInt('@Model.Step');
+
+    $('.nav-steps:eq(' + (stp - 1) + ')').find('svg').attr('data-prefix', 'fa');
+    $('.percentage-bar-foreground').css('width', dd + '%');
+    $('.percentage-bar-progress').text(dd + '% complete');
+
+    var nxtSte = (stp + 1);
+    $('.btn-continue-to-step').text('Continue to step ' + nxtSte);
+    $('.btn-continue-to-step').attr('data-step', nxtSte);
+</script>*@

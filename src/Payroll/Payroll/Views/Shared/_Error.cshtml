@@ -1,0 +1,12 @@
+﻿@model (string, string, string, string)
+@{
+    var color = Model.Item1;
+    var icon = Model.Item2;
+    var heading = Model.Item3;
+    var summary = Model.Item4;
+}
+
+<div style="padding:20px;padding-top:30px" class="text-center ">
+    <h4 class="@color"><i class="fa @icon"></i> @heading</h4>
+    <span class="text-muted">@summary</span>
+</div>
